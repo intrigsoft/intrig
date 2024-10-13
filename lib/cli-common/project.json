@@ -1,0 +1,20 @@
+{
+  "name": "cli-common",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/cli-common/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/cli-common",
+        "tsConfig": "lib/cli-common/tsconfig.lib.json",
+        "packageJson": "lib/cli-common/package.json",
+        "main": "lib/cli-common/src/index.ts",
+        "assets": ["lib/cli-common/*.md"]
+      }
+    }
+  }
+}
