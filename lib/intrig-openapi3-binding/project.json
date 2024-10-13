@@ -1,0 +1,20 @@
+{
+  "name": "intrig-openapi3-binding",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/intrig-openapi3-binding/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/intrig-openapi3-binding",
+        "tsConfig": "lib/intrig-openapi3-binding/tsconfig.lib.json",
+        "packageJson": "lib/intrig-openapi3-binding/package.json",
+        "main": "lib/intrig-openapi3-binding/src/index.ts",
+        "assets": ["lib/intrig-openapi3-binding/*.md"]
+      }
+    }
+  }
+}

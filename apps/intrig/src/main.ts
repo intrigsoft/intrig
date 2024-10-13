@@ -1,3 +1,1 @@
-import {cliCommon} from "@intrig/cli-common";
-
-cliCommon()
+export {run} from '@oclif/core'

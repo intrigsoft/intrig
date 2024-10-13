@@ -1,1 +1,1 @@
-export * from './lib/cli-common';
+export type * from './lib/types'
