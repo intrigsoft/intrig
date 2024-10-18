@@ -15,7 +15,7 @@
   },
   "oclif": {
     "bin": "intrig",
-    "commands": "./app/intrig/src/commands",
+    "commands": "./apps/intrig/src/commands",
     "dirname": "intrig",
     "topicSeparator": " "
   },

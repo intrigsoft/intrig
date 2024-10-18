@@ -1,1 +1,1 @@
-export const CONFIG_FILE = "mycoriza.config.json";
+export const CONFIG_FILE = "intrig.config.json";

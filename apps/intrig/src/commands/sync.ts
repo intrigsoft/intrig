@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import chalk from 'chalk'
 import {IntrigConfig, IntrigSourceConfig} from "@intrig/cli-common";
 import {getOpenApiSpec} from "@intrig/intrig-openapi3-binding";
+import {setupCacheAndInstall} from "../service/packer";
 
 export default class Sync extends Command {
   static override description = 'Synchronize API specifications'
@@ -58,6 +59,8 @@ export default class Sync extends Command {
     for (const api of apisToSync) {
       await this.syncApi(api, flags.env, flags.force, flags['dry-run'])
     }
+
+    await setupCacheAndInstall()
   }
 
   private readConfig(): IntrigConfig {
