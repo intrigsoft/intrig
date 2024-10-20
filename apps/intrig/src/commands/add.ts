@@ -90,7 +90,7 @@ export default class Add extends Command {
       specUrl,
       devUrl,
       prodUrl,
-      sourcePath: sourcePath || path.join('api', id),
+      sourceDir: sourcePath || path.join('api', id),
     }
   }
 

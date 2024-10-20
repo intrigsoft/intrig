@@ -1,13 +1,19 @@
+import {CompiledOutput, typescript} from "@intrig/cli-common";
+import * as path from 'path'
+
+export function providerTemplate(_path: string): CompiledOutput {
+  const ts = typescript(path.resolve(_path, "src", "lib", "intrig-provider.tsx"))
+  return ts`
 import {createContext, useCallback, useContext, useMemo, useReducer} from "react";
 import {error, init, isPending, NetworkAction, NetworkState, pending, success} from "./network-state";
-import axios, {Axios, AxiosRequestConfig, CreateAxiosDefaults} from "axios";
+import axios, {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from "axios";
 
 type GlobalState = Record<string, Record<string, Record<string, NetworkState<unknown>>>>;
 
 export interface ContextType {
   state: GlobalState,
   dispatch: React.Dispatch<NetworkAction<unknown>>
-  axios: Record<string, Axios>
+  axios: Record<string, AxiosInstance>
 }
 
 let Context = createContext<ContextType>({
@@ -39,7 +45,7 @@ export interface IntrigProviderProps {
 export function IntrigProvider({children, configs = {}}: IntrigProviderProps) {
   const [state, dispatch] = useReducer(requestReducer, {} as GlobalState)
 
-  const axiosInstances: Record<string, Axios> = useMemo(() => {
+  const axiosInstances: Record<string, AxiosInstance> = useMemo(() => {
     return {
       "petstore": axios.create({
         ...(configs.defaults ?? {}),
@@ -107,5 +113,5 @@ export function useNetworkState<T>(key: string, operation: string, source: strin
 
   return [networkState, execute, clear]
 }
-
-
+  `
+}

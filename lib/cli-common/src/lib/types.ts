@@ -5,7 +5,7 @@ export interface IntrigSourceConfig {
   devUrl: string;
   prodUrl: string;
   regex?: string;
-  sourcePath?: string;
+  sourceDir?: string;
 }
 
 export interface IntrigConfig {
@@ -18,4 +18,9 @@ export interface IntrigConfig {
 export interface ServerInfo {
   title: string
   serverUrls: string[]
+}
+
+export interface CompiledOutput {
+  path: string,
+  content: string
 }

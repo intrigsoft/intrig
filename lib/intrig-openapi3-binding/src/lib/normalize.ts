@@ -1,0 +1,90 @@
+import {OpenAPIV3_1} from "openapi-types";
+import {deref, isRef} from "./util";
+import {produce} from 'immer'
+
+import {pascalCase, camelCase} from './change-case'
+
+export function normalize(spec: OpenAPIV3_1.Document) {
+
+  let doDeref = deref(spec)
+
+  return produce(spec, draft => {
+    let paths = draft.paths as OpenAPIV3_1.PathsObject;
+    for (let [path, pathItem] of Object.entries(paths)) {
+      let pathItemObject = pathItem as OpenAPIV3_1.PathItemObject;
+      if (pathItemObject.parameters) {
+        pathItemObject.parameters = pathItemObject.parameters.map(doDeref)
+      }
+      for (let [method, operation] of Object.entries(pathItemObject)) {
+        if (["get", "post", "put", "delete"].includes(method.toLowerCase())) {
+          let operationOb = operation as OpenAPIV3_1.OperationObject;
+          if (!operationOb.operationId) {
+            operationOb.operationId = camelCase(`${method.toLowerCase()}_${path.replace("/", "_")}`)
+          }
+          if (operationOb.parameters) {
+            operationOb.parameters = operationOb.parameters.map(doDeref)
+            operationOb.parameters.forEach((param: OpenAPIV3_1.ParameterObject) => {
+              if (!isRef(param.schema)) {
+                let paramName = pascalCase([operationOb.tags?.[0], operationOb.operationId, param.name].join("_"))
+                draft.components["schemas"][paramName] = param.schema as OpenAPIV3_1.SchemaObject;
+                param.schema = {
+                  $ref: `#/components/schemas/${paramName}`
+                } satisfies OpenAPIV3_1.ReferenceObject
+              }
+            })
+          }
+          if (operationOb.requestBody) {
+            operationOb.requestBody = doDeref(operationOb.requestBody)
+            Object.values(operationOb.requestBody.content)
+              .forEach(mto => {
+                if (mto.examples) {
+                  mto.examples = Object.fromEntries(Object.entries(mto.examples).map(([k, v]) => ([k, doDeref(v)])))
+                }
+                if (!isRef(mto.schema)) {
+                  let paramName = pascalCase([operationOb.tags?.[0], operationOb.operationId, 'RequestBody'].join("_"))
+                  draft.components["schemas"][paramName] = mto.schema as OpenAPIV3_1.SchemaObject;
+                  mto.schema = {
+                    $ref: `#/components/schemas/${paramName}`
+                  } satisfies OpenAPIV3_1.ReferenceObject
+                }
+              })
+
+          }
+          if (operationOb.callbacks) {
+            operationOb.callbacks = Object.fromEntries(Object.entries(operationOb.callbacks)
+              .map(([k, v]) => ([k, doDeref(v)])))
+          }
+
+          if (operationOb.responses) {
+            operationOb.responses = Object.fromEntries(Object.entries(operationOb.responses).map(([k, v]) => ([k, doDeref(v)])))
+            Object.values(operationOb.responses)
+              .filter(Boolean)
+              .map((response: OpenAPIV3_1.ResponseObject) => {
+              if (response.headers) {
+                response.headers = doDeref(response.headers)
+              }
+              if (response.links) {
+                response.links = doDeref(response.links)
+              }
+              if (response.content) {
+                Object.values(response.content).map((mto: OpenAPIV3_1.MediaTypeObject) => {
+                  if (mto.examples) {
+                    mto.examples = Object.fromEntries(Object.entries(mto.examples).map(([k, v]) => ([k, doDeref(v)])))
+                  }
+
+                  if (!isRef(mto.schema)) {
+                    let paramName = pascalCase([operationOb.tags?.[0], operationOb.operationId, 'ResponseBody'].join("_"))
+                    draft.components["schemas"][paramName] = mto.schema as OpenAPIV3_1.SchemaObject;
+                    mto.schema = {
+                      $ref: `#/components/schemas/${paramName}`
+                    } satisfies OpenAPIV3_1.ReferenceObject
+                  }
+                })
+              }
+            })
+          }
+        }
+      }
+    }
+  })
+}

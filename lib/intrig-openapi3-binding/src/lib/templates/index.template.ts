@@ -1,0 +1,11 @@
+import {CompiledOutput, typescript} from "@intrig/cli-common";
+import * as path from 'path'
+
+export function indexTemplate(_path: string): CompiledOutput {
+
+  const ts = typescript(path.resolve(_path, "src", "index.ts"))
+
+  return ts`
+  export * from './lib/intrig-provider'
+  `
+}

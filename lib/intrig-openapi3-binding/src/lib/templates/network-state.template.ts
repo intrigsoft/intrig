@@ -1,3 +1,9 @@
+import {CompiledOutput, typescript} from "@intrig/cli-common";
+import * as path from 'path'
+
+export function networkStateTemplate(_path: string): CompiledOutput {
+  const ts = typescript(path.resolve(_path, "src", "lib", "network-state.tsx"))
+  return ts`
 /**
  * State of an asynchronous call. Network state follows the state diagram given below.
  *
@@ -153,4 +159,6 @@ export interface NetworkAction<T> {
   source: string
   operation: string
   state: NetworkState<any>
+}
+  `
 }
