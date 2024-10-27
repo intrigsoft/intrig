@@ -11,15 +11,14 @@ export function deleteRequestTemplate({source, paths, operationId, responseType,
   return ts`
     import {useNetworkState} from "@root/intrig-provider"
     import {NetworkState} from "@root/network-state";
-    import { ${responseType} as Response } from "@root/${source}/components/schemas/${responseType}"
     ${variables.map(({ref}) => `import { ${ref.split('/').pop()} } from "@root/${source}/components/schemas/${ref.split('/').pop()}"`).join("\n")}
 
     export interface ${pascalCase(operationId)}Params extends Record<string, any> {
       ${variables.map((p) => `${p.name}${p.in === "path" ? "": "?"}: ${p.ref.split('/').pop()}`).join("\n")}
     }
 
-    export function use${pascalCase(operationId)}(key: string = "default"): [NetworkState<Response>, (params: ${pascalCase(operationId)}Params) => void, () => void] {
-      let [state, dispatch, clear] = useNetworkState<NetworkState<Response>>(key, "GET ${requestUrl}", "${source}");
+    export function use${pascalCase(operationId)}(key: string = "default"): [NetworkState<unknown>, (params: ${pascalCase(operationId)}Params) => void, () => void] {
+      let [state, dispatch, clear] = useNetworkState<NetworkState<unknown>>(key, "GET ${requestUrl}", "${source}");
 
       return [
         state,

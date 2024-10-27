@@ -1,14 +1,13 @@
-import {stripMargin} from "./strip-margin";
 import {CompiledOutput} from "./types";
 import prettier from 'prettier'
 
-export function typescript(path: string) {
+export function jsonLiteral(path: string) {
   return (strings: TemplateStringsArray, ...values: any[]): CompiledOutput => {
     const rawCode = strings.reduce((acc, str, i) =>
       acc + str + (values[i] || ''), '');
 
     let content = prettier.format(rawCode, {
-      parser: 'typescript',
+      parser: 'json',
       singleQuote: true
     });
 

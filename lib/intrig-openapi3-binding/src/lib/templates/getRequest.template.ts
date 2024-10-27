@@ -8,11 +8,13 @@ export function getRequestTemplate({source, paths, operationId, responseType, re
 
   const modifiedRequestUrl = requestUrl.replace("{", "${")
 
+  let variableNames = variables.map(a => a.ref.split('/').pop())
+
   return ts`
     import {useNetworkState} from "@root/intrig-provider"
     import {NetworkState} from "@root/network-state";
     import { ${responseType} as Response } from "@root/${source}/components/schemas/${responseType}"
-    ${variables.map(({ref}) => `import { ${ref.split('/').pop()} } from "@root/${source}/components/schemas/${ref.split('/').pop()}"`).join("\n")}
+    ${variableNames.map((name) => `import { ${name} } from "@root/${source}/components/schemas/${name}"`).join("\n")}
 
     export interface ${pascalCase(operationId)}Params extends Record<string, any> {
       ${variables.map((p) => `${p.name}${p.in === "path" ? "": "?"}: ${p.ref.split('/').pop()}`).join("\n")}

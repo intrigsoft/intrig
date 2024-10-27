@@ -23,19 +23,18 @@ export function deref(spec: OpenAPIV3_1.Document): <T> (ob: ReferenceObject | T)
 export function dump(output: CompiledOutput) {
   let dir = path.parse(output.path).dir;
   fs.mkdirSync(dir, {recursive: true})
-  let formatted = prettier.format(output.content, {
-    parser: 'typescript',
-    singleQuote: true
-  });
-  fs.writeFileSync(output.path, formatted)
+  fs.writeFileSync(output.path, output.content)
 }
 
 export interface RequestProperties {
+  method: string
   source: string
   paths: string[]
   operationId: string
   requestBody?: string
-  responseType: string
+  contentType?: string
+  responseType?: string
+  responseMediaType?: string,
   requestUrl: string,
   variables: {
     name: string,

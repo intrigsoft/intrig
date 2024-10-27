@@ -3,7 +3,7 @@ import * as path from 'path'
 import {pascalCase} from '../change-case'
 import {RequestProperties} from "../util";
 
-export function putRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody}: RequestProperties): CompiledOutput {
+export function multipartFormDataPutRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', "lib", source, ...paths, `${operationId}.ts`))
 
   const modifiedRequestUrl = requestUrl.replace("{", "${")
@@ -32,11 +32,17 @@ export function putRequestTemplate({source, paths, operationId, responseType, re
     ...variables.filter(a => a.in === "path").map(a => a.name),
     "...params"
   ].join(",")}} = p
+
+          const formData = new FormData()
+          ${requestBody ? `
+          Object.entries(data).forEach(([key, value]) => formData.append(key, value))
+          ` : ''}
+
           dispatch({
             method: 'put',
             url: \`${modifiedRequestUrl}\`,
             params,
-            ${requestBody ? 'data: JSON.stringify(data)' : ''}
+            ${requestBody ? 'formData' : ''}
           })
         },
         clear

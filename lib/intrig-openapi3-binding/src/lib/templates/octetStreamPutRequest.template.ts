@@ -2,8 +2,8 @@ import {CompiledOutput, typescript} from "@intrig/cli-common";
 import * as path from 'path'
 import {pascalCase} from '../change-case'
 import {RequestProperties} from "../util";
-
-export function putRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody}: RequestProperties): CompiledOutput {
+//TODO test with the media type.
+export function octetStreamPutRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', "lib", source, ...paths, `${operationId}.ts`))
 
   const modifiedRequestUrl = requestUrl.replace("{", "${")
@@ -36,7 +36,7 @@ export function putRequestTemplate({source, paths, operationId, responseType, re
             method: 'put',
             url: \`${modifiedRequestUrl}\`,
             params,
-            ${requestBody ? 'data: JSON.stringify(data)' : ''}
+            ${requestBody ? 'data' : ''}
           })
         },
         clear

@@ -36,7 +36,7 @@ export function postRequestTemplate({source, paths, operationId, responseType, r
             method: 'post',
             url: \`${modifiedRequestUrl}\`,
             params,
-            ${requestBody ? 'data' : ''}
+            ${requestBody ? 'data: JSON.stringify(data)' : ''}
           })
         },
         clear

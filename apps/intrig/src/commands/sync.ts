@@ -6,6 +6,7 @@ import {IntrigConfig, IntrigSourceConfig} from "@intrig/cli-common";
 import {generateCode, generateFinalizationCode, getOpenApiSpec} from "@intrig/intrig-openapi3-binding";
 import {setupCacheAndInstall} from "../service/packer";
 import {CONFIG_FILE} from "../util";
+import cli from 'cli-ux'
 
 export default class Sync extends Command {
   static override description = 'Synchronize API specifications'
@@ -73,26 +74,17 @@ export default class Sync extends Command {
   }
 
   private async syncApi(api: IntrigSourceConfig, env: string, force: boolean, path: string) {
-    this.log(chalk.cyan(`Syncing API: ${api.name} (${api.id})`))
+    // this.log(chalk.cyan(`Syncing API: ${api.name} (${api.id})`))
 
     try {
+      cli.action.start(`Fetching OpenAPI for source ${api.name}`)
       const newSpec = await getOpenApiSpec(api.specUrl, this.readConfig())
+      cli.action.stop()
 
+      cli.action.start(`Generating code for source ${api.name}`)
       await generateCode(api, path, newSpec)
+      cli.action.stop()
 
-      // Here you would implement the logic to compare the new spec with the existing one
-      // and determine if there are changes. For this example, we'll assume changes always exist.
-
-      // if (force || true /* replace with actual change detection logic */) {
-      //   if (dryRun) {
-      //     this.log(chalk.green(`Would sync changes for ${api.name}`))
-      //   } else {
-      //     // Implement the actual sync logic here
-      //     this.log(chalk.green(`Synced changes for ${api.name}`))
-      //   }
-      // } else {
-      //   this.log(chalk.yellow(`No changes detected for ${api.name}`))
-      // }
     } catch (error) {
       this.error(chalk.red(`Failed to sync ${api.name}: ${error}`))
     }

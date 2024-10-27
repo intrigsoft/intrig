@@ -27,7 +27,7 @@ export function networkStateTemplate(_path: string): CompiledOutput {
  *
  * </pre>
  */
-export interface NetworkState<T> {
+export interface NetworkState<T = unknown> {
   state: "init" | "pending" | "success" | "error";
 }
 
@@ -64,6 +64,24 @@ export function init<T>(): InitState<T> {
  */
 export interface PendingState<T> extends NetworkState<T> {
   state: "pending";
+  progress?: Progress
+}
+
+/**
+ * Interface representing progress information for an upload or download operation.
+ *
+ * @typedef {object} Progress
+ *
+ * @property {'upload' | 'download'} type - The type of the operation.
+ *
+ * @property {number} loaded - The amount of data that has been loaded so far.
+ *
+ * @property {number} [total] - The total amount of data to be loaded (if known).
+ */
+export interface Progress {
+  type?: 'upload' | 'download',
+  loaded: number
+  total?: number
 }
 
 /**
@@ -79,9 +97,10 @@ export function isPending<T>(state: NetworkState<T>): state is PendingState<T> {
  *
  * @return {PendingState<T>} An object representing the pending state.
  */
-export function pending<T>(): PendingState<T> {
+export function pending<T>(progress: Progress | undefined = undefined): PendingState<T> {
   return {
-    state: "pending"
+    state: "pending",
+    progress
   }
 }
 
@@ -147,6 +166,23 @@ export function error<T>(error: any, statusCode?: number): ErrorState<T> {
 }
 
 /**
+ * Represents an error state with additional contextual information.
+ *
+ * @typedef {Object} ErrorWithContext
+ * @template T
+ * @extends ErrorState<T>
+ *
+ * @property {string} source - The origin of the error.
+ * @property {string} operation - The operation being performed when the error occurred.
+ * @property {string} key - A unique key identifying the specific error instance.
+ */
+export interface ErrorWithContext<T = unknown> extends ErrorState<T> {
+  source: string
+  operation: string
+  key: string
+}
+
+/**
  * Represents an action in the network context.
  *
  * @template T - The type of data associated with the network action
@@ -158,7 +194,9 @@ export interface NetworkAction<T> {
   key: string
   source: string
   operation: string
-  state: NetworkState<any>
+  state: NetworkState<T>
+  handled?: boolean
 }
+
   `
 }
