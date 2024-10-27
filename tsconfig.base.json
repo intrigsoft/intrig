@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@intrig/cli-common": ["lib/cli-common/src/index.ts"],
+      "@intrig/client-react": ["lib/client-react/src/index.ts"],
       "@intrig/intrig-openapi3-binding": [
         "lib/intrig-openapi3-binding/src/index.ts"
       ],

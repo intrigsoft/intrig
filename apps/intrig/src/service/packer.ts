@@ -1,32 +1,29 @@
 import * as fs from 'fs-extra'
 import * as path from 'path'
-import {addDependency, removeDependency, detectPackageManager} from 'nypm'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import cli from 'cli-ux'
+import os from 'os'
+import {detectPackageManager} from "nypm";
 
 const execAsync = promisify(exec)
 
 export async function setupCacheAndInstall(
   generateData: (path: string) => Promise<void>
 ): Promise<void> {
-  const cacheDir = path.join(process.cwd(), '.intrig')
-  const generatedDir = path.join(cacheDir, 'generated')
-
-  // Ensure the cache directory exists
-  await fs.ensureDir(cacheDir)
+  const tempDir = path.join(os.tmpdir(), 'intrig_generated')
 
   // Remove existing installation if it exists
-  if (await fs.pathExists(generatedDir)) {
+  if (await fs.pathExists(tempDir)) {
     cli.action.start('Removing existing generated package files')
-    await fs.remove(generatedDir)
+    await fs.remove(tempDir)
     cli.action.stop()
   }
 
-  // Ensure the generated directory exists
-  await fs.ensureDir(generatedDir)
+  // Ensure the temp directory exists
+  await fs.ensureDir(tempDir)
 
-  await generateData(path.resolve(path.join(generatedDir)))
+  await generateData(path.resolve(tempDir))
 
   // Build the project
   cli.action.start("Building the generated package")
@@ -34,16 +31,16 @@ export async function setupCacheAndInstall(
     let packageManager = await detectPackageManager(process.cwd());
     switch (packageManager.name) {
       case "npm":
-        await execAsync('npm run build', { cwd: generatedDir })
+        await execAsync('npm run build', { cwd: tempDir })
         break;
       case "yarn":
-        await execAsync('yarn build', { cwd: generatedDir })
+        await execAsync('yarn build', { cwd: tempDir })
         break;
       case "pnpm":
-        await execAsync('pnpm run build', { cwd: generatedDir })
+        await execAsync('pnpm run build', { cwd: tempDir })
         break;
       case "bun":
-        await execAsync('bun run build', { cwd: generatedDir })
+        await execAsync('bun run build', { cwd: tempDir })
         break;
       default:
         console.error(new Error(`Unsupported package manager: ${packageManager.name}`))
@@ -53,17 +50,24 @@ export async function setupCacheAndInstall(
   }
   cli.action.stop()
 
+  // Copy all directories in <build>/dist/lib to projects node_modules/@intrig/client-react/dist/lib
+  const sourceLibDir = path.join(tempDir, 'dist', 'lib')
+  const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', 'client-react', 'dist', 'lib')
+
+  cli.action.start('Copying built libraries to project directory')
   try {
-    cli.action.start("Removing @intrig/generated package")
-    await removeDependency('@intrig/generated')
-    cli.action.stop()
-  } catch (error) {
-    console.warn('Failed to uninstall existing package. It may not have been installed.')
+    await fs.copy(sourceLibDir, targetLibDir)
+  } catch (e) {
+    console.error('Failed to copy built libraries', e)
   }
+  cli.action.stop()
 
-  // Install the generated package in the current project
-  cli.action.start('Installing the generated package...')
-  await addDependency('file:.intrig/generated')
-
+  // Clean up the temp directory
+  cli.action.start('Cleaning up the temp directory')
+  try {
+    await fs.remove(tempDir)
+  } catch (e) {
+    console.error('Failed to clean up temp directory', e)
+  }
   cli.action.stop()
 }

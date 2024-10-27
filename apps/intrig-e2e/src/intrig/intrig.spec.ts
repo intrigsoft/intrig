@@ -1,5 +1,6 @@
 import { execSync } from 'child_process';
 import { join } from 'path';
+import {useGetPetById} from '@intrig/generated/dist/lib/petstore/pet/getPetById'
 
 describe('CLI tests', () => {
   it('should print a message', () => {

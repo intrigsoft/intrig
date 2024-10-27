@@ -1,5 +1,5 @@
 {
-  "name": "intrig",
+  "name": "@intrig/cli",
   "version": "1.0.0",
   "description": "",
   "main": "eslint.config.js",
