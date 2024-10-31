@@ -2,31 +2,35 @@ import {CompiledOutput, typescript} from "@intrig/cli-common";
 import * as path from 'path'
 import {pascalCase} from '../change-case'
 import {RequestProperties} from "../util";
+import {decodeVariables} from "./template-util";
 
 export function deleteRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', "lib", source, ...paths, `${operationId}.ts`))
 
   const modifiedRequestUrl = requestUrl.replace("{", "${")
 
+  let {variableExplodeExpression, variableImports, variableTypes, isParamMandatory} = decodeVariables(variables, source);
+
   return ts`
     import {useNetworkState} from "@root/intrig-provider"
     import {NetworkState} from "@root/network-state";
-    ${variables.map(({ref}) => `import { ${ref.split('/').pop()} } from "@root/${source}/components/schemas/${ref.split('/').pop()}"`).join("\n")}
+    ${variableImports}
 
     export interface ${pascalCase(operationId)}Params extends Record<string, any> {
-      ${variables.map((p) => `${p.name}${p.in === "path" ? "": "?"}: ${p.ref.split('/').pop()}`).join("\n")}
+      ${variableTypes}
     }
 
     export function use${pascalCase(operationId)}(key: string = "default"): [NetworkState<unknown>, (params: ${pascalCase(operationId)}Params) => void, () => void] {
-      let [state, dispatch, clear] = useNetworkState<NetworkState<unknown>>(key, "GET ${requestUrl}", "${source}");
+      let [state, dispatch, clear] = useNetworkState<unknown>({
+        key,
+        operation: "DELETE ${requestUrl}",
+        source: "${source}",
+      });
 
       return [
         state,
-        (p${variables.some(a => a.in === 'path') ? '' : ' = {}'}) => {
-          let { ${[
-    ...variables.filter(a => a.in === "path").map(a => a.name),
-    "...params"
-  ].join(",")}} = p
+        (p${isParamMandatory ? '' : ' = {}'}) => {
+          let { ${variableExplodeExpression}} = p
           dispatch({
             method: 'delete',
             url: \`${modifiedRequestUrl}\`,

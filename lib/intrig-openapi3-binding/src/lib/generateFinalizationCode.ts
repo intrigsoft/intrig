@@ -6,12 +6,13 @@ import {networkStateTemplate} from "./templates/network-state.template";
 import {providerTemplate} from "./templates/provider.template";
 import {tsConfigTemplate} from "./templates/tsconfig.template";
 import {packageJsonTemplate} from "./templates/packageJson.template";
+import {IntrigSourceConfig} from "@intrig/cli-common";
 
 export async function generateFinalizationCode(env: string | ((context: DefaultContext<CustomOptions & OptionFlag<string, CustomOptions>>) => Promise<string | undefined>),
-                                         force: boolean,
-                                         path: string) {
+                                               force: boolean,
+                                               path: string, apisToSync: IntrigSourceConfig[]) {
   dump(networkStateTemplate(path))
-  dump(providerTemplate(path))
+  dump(providerTemplate(path, apisToSync))
   dump(indexTemplate(path))
   dump(tsConfigTemplate(path))
   dump(packageJsonTemplate(path))

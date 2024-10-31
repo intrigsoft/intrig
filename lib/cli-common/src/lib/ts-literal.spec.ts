@@ -1,4 +1,5 @@
 import {typescript} from "./ts-literal";
+import {util} from "zod";
 
 describe("ts-literal", () => {
   it('should compile to typescript', () => {
@@ -117,4 +118,14 @@ describe("ts-literal", () => {
     `
     console.log(a.content)
   });
+
+  it('should allow default values', () => {
+    let ts = typescript('');
+    let value = 1
+    let content = ts`
+      export const a = /*!*/5/*${value}*/;
+    `
+
+    expect(content.content).toContain(`export const a = ${value};`)
+  })
 })

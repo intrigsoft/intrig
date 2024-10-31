@@ -26,6 +26,12 @@ export function dump(output: CompiledOutput) {
   fs.writeFileSync(output.path, output.content)
 }
 
+export interface Variable {
+  name: string
+  in: string
+  ref: string
+}
+
 export interface RequestProperties {
   method: string
   source: string
@@ -36,10 +42,6 @@ export interface RequestProperties {
   responseType?: string
   responseMediaType?: string,
   requestUrl: string,
-  variables: {
-    name: string,
-    in: string,
-    ref: string
-  }[],
+  variables: Variable[],
   sourcePath: string
 }

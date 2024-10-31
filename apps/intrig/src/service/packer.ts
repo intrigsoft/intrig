@@ -11,7 +11,9 @@ const execAsync = promisify(exec)
 export async function setupCacheAndInstall(
   generateData: (path: string) => Promise<void>
 ): Promise<void> {
-  const tempDir = path.join(os.tmpdir(), 'intrig_generated')
+  // const tempDir = path.join(os.tmpdir(), 'intrig_generated')
+
+  const tempDir = path.join('.intrig', 'generated')
 
   // Remove existing installation if it exists
   if (await fs.pathExists(tempDir)) {
@@ -52,22 +54,23 @@ export async function setupCacheAndInstall(
 
   // Copy all directories in <build>/dist/lib to projects node_modules/@intrig/client-react/dist/lib
   const sourceLibDir = path.join(tempDir, 'dist', 'lib')
+  console.log(sourceLibDir)
   const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', 'client-react', 'dist', 'lib')
 
-  cli.action.start('Copying built libraries to project directory')
-  try {
-    await fs.copy(sourceLibDir, targetLibDir)
-  } catch (e) {
-    console.error('Failed to copy built libraries', e)
-  }
-  cli.action.stop()
-
-  // Clean up the temp directory
-  cli.action.start('Cleaning up the temp directory')
-  try {
-    await fs.remove(tempDir)
-  } catch (e) {
-    console.error('Failed to clean up temp directory', e)
-  }
-  cli.action.stop()
+  // cli.action.start('Copying built libraries to project directory')
+  // try {
+  //   await fs.copy(sourceLibDir, targetLibDir)
+  // } catch (e) {
+  //   console.error('Failed to copy built libraries', e)
+  // }
+  // cli.action.stop()
+  //
+  // // Clean up the temp directory
+  // cli.action.start('Cleaning up the temp directory')
+  // try {
+  //   await fs.remove(tempDir)
+  // } catch (e) {
+  //   console.error('Failed to clean up temp directory', e)
+  // }
+  // cli.action.stop()
 }

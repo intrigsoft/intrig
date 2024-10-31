@@ -28,15 +28,14 @@ export function networkStateTemplate(_path: string): CompiledOutput {
  * </pre>
  */
 export interface NetworkState<T = unknown> {
-  state: "init" | "pending" | "success" | "error";
+  state: 'init' | 'pending' | 'success' | 'error';
 }
-
 
 /**
  * Network call is not yet started
  */
 export interface InitState<T> extends NetworkState<T> {
-  state: "init";
+  state: 'init';
 }
 
 /**
@@ -44,7 +43,7 @@ export interface InitState<T> extends NetworkState<T> {
  * @param state
  */
 export function isInit<T>(state: NetworkState<T>): state is InitState<T> {
-  return state.state === "init";
+  return state.state === 'init';
 }
 
 /**
@@ -55,16 +54,16 @@ export function isInit<T>(state: NetworkState<T>): state is InitState<T> {
  */
 export function init<T>(): InitState<T> {
   return {
-    state: 'init'
-  }
+    state: 'init',
+  };
 }
 
 /**
  * Network call is not yet completed
  */
 export interface PendingState<T> extends NetworkState<T> {
-  state: "pending";
-  progress?: Progress
+  state: 'pending';
+  progress?: Progress;
 }
 
 /**
@@ -79,9 +78,9 @@ export interface PendingState<T> extends NetworkState<T> {
  * @property {number} [total] - The total amount of data to be loaded (if known).
  */
 export interface Progress {
-  type?: 'upload' | 'download',
-  loaded: number
-  total?: number
+  type?: 'upload' | 'download';
+  loaded: number;
+  total?: number;
 }
 
 /**
@@ -89,7 +88,7 @@ export interface Progress {
  * @param state
  */
 export function isPending<T>(state: NetworkState<T>): state is PendingState<T> {
-  return state.state === "pending";
+  return state.state === 'pending';
 }
 
 /**
@@ -97,18 +96,20 @@ export function isPending<T>(state: NetworkState<T>): state is PendingState<T> {
  *
  * @return {PendingState<T>} An object representing the pending state.
  */
-export function pending<T>(progress: Progress | undefined = undefined): PendingState<T> {
+export function pending<T>(
+  progress: Progress | undefined = undefined
+): PendingState<T> {
   return {
-    state: "pending",
-    progress
-  }
+    state: 'pending',
+    progress,
+  };
 }
 
 /**
  * Network call is completed with success state
  */
 export interface SuccessState<T> extends NetworkState<T> {
-  state: "success";
+  state: 'success';
   data: T;
 }
 
@@ -117,7 +118,7 @@ export interface SuccessState<T> extends NetworkState<T> {
  * @param state
  */
 export function isSuccess<T>(state: NetworkState<T>): state is SuccessState<T> {
-  return state.state === "success";
+  return state.state === 'success';
 }
 
 /**
@@ -128,18 +129,19 @@ export function isSuccess<T>(state: NetworkState<T>): state is SuccessState<T> {
  */
 export function success<T>(data: T): SuccessState<T> {
   return {
-    state: "success",
-    data
-  }
+    state: 'success',
+    data,
+  };
 }
 
 /**
  * Network call is completed with error response
  */
 export interface ErrorState<T> extends NetworkState<T> {
-  state: "error";
+  state: 'error';
   error: any;
-  statusCode?: number
+  statusCode?: number;
+  request?: any
 }
 
 /**
@@ -147,7 +149,7 @@ export interface ErrorState<T> extends NetworkState<T> {
  * @param state
  */
 export function isError<T>(state: NetworkState<T>): state is ErrorState<T> {
-  return state.state === "error";
+  return state.state === 'error';
 }
 
 /**
@@ -157,12 +159,13 @@ export function isError<T>(state: NetworkState<T>): state is ErrorState<T> {
  * @param {string} [statusCode] - An optional status code associated with the error.
  * @return {ErrorState<T>} An object representing the error state.
  */
-export function error<T>(error: any, statusCode?: number): ErrorState<T> {
+export function error<T>(error: any, statusCode?: number, request?: any): ErrorState<T> {
   return {
-    state: "error",
+    state: 'error',
     error,
-    statusCode
-  }
+    statusCode,
+    request
+  };
 }
 
 /**
@@ -177,9 +180,9 @@ export function error<T>(error: any, statusCode?: number): ErrorState<T> {
  * @property {string} key - A unique key identifying the specific error instance.
  */
 export interface ErrorWithContext<T = unknown> extends ErrorState<T> {
-  source: string
-  operation: string
-  key: string
+  source: string;
+  operation: string;
+  key: string;
 }
 
 /**
@@ -191,12 +194,24 @@ export interface ErrorWithContext<T = unknown> extends ErrorState<T> {
  * @property {string} key - The unique identifier for the network action
  */
 export interface NetworkAction<T> {
-  key: string
-  source: string
-  operation: string
-  state: NetworkState<T>
-  handled?: boolean
+  key: string;
+  source: string;
+  operation: string;
+  state: NetworkState<T>;
+  handled?: boolean;
 }
 
+/**
+ * Represents the result of a network state operation.
+ *
+ * @typedef {Array} NetworkStateResult
+ * @property {NetworkState<T>} 0 - The current state of the network operation.
+ * @property {function(P): void} 1 - Function to initiate the network request.
+ * @property {function(): void} 2 - Function to clear the current network state.
+ *
+ * @template P - The type of the parameter for the network request function.
+ * @template T - The type of the data in the network state.
+ */
+export type NetworkStateResult<P, T> = [NetworkState<T>, (request: P) => void, clear: () => void]
   `
 }

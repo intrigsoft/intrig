@@ -20,7 +20,13 @@ import {
   Progress,
   success,
 } from './network-state';
-import axios, { Axios, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
+import axios, {
+  Axios,
+  AxiosRequestConfig,
+  CreateAxiosDefaults,
+  isAxiosError,
+} from 'axios';
+import { ZodSchema } from 'zod';
 
 type GlobalState = Record<string, NetworkState>;
 
@@ -38,6 +44,7 @@ export interface ContextType {
   filteredState: GlobalState;
   dispatch: React.Dispatch<NetworkAction<unknown>>;
   axios: Record<string, Axios>;
+  configs: Record<string, DefaultConfigs>;
 }
 
 /**
@@ -51,6 +58,7 @@ let Context = createContext<ContextType>({
   filteredState: {},
   dispatch() {},
   axios: {},
+  configs: {}
 });
 
 /**
@@ -70,8 +78,12 @@ function requestReducer(
   };
 }
 
+export interface DefaultConfigs extends CreateAxiosDefaults {
+  debounceDelay?: number;
+}
+
 export interface IntrigProviderProps {
-  configs?: Record<string, CreateAxiosDefaults>;
+  configs?: Record<string, DefaultConfigs>;
   children: React.ReactNode;
 }
 
@@ -87,22 +99,19 @@ export interface IntrigProviderProps {
  * @return {JSX.Element} A context provider component that wraps the provided children.
  */
 export function IntrigProvider({
-  children,
-  configs = {},
-}: IntrigProviderProps) {
+                                 children,
+                                 configs = {},
+                               }: IntrigProviderProps) {
   const [state, dispatch] = useReducer(requestReducer, {} as GlobalState);
 
   const axiosInstances: Record<string, Axios> = useMemo(() => {
     return {
-      petstore: axios.create({
-        ...(configs.defaults ?? {}),
-        ...(configs['petstore'] ?? {}),
-      }),
+
     };
   }, [configs]);
 
   const contextValue = useMemo(
-    () => ({ state, dispatch, axios: axiosInstances, filteredState: state }),
+    () => ({ state, dispatch, axios: axiosInstances, filteredState: state, configs }),
     [state, axiosInstances]
   );
 
@@ -124,10 +133,10 @@ export interface StatusTrapProps {
  * @return {React.ReactElement} The context provider component with filtered state and custom dispatch.
  */
 export function StatusTrap({
-  children,
-  type,
-  propagate = true,
-}: PropsWithChildren<StatusTrapProps>) {
+                             children,
+                             type,
+                             propagate = true,
+                           }: PropsWithChildren<StatusTrapProps>) {
   const ctx = useContext(Context);
 
   const [requests, setRequests] = useState<string[]>([]);
@@ -188,21 +197,31 @@ export function StatusTrap({
   );
 }
 
-/**
- * Manages the state of network requests, including their progress and responses.
- *
- * @param {string} key - The unique key to identify the network request.
- * @param {string} operation - The operation associated with the network request.
- * @param {string} source - The source or origin of the network request.
- * @param {number|undefined} debounceDelay - The debounce delay in milliseconds to avoid excessive requests.
- * @return {[NetworkState<T>, (request: AxiosRequestConfig) => void, () => void]} An array containing the current network state, a function to execute the network request, and a function to clear the current request state.
- */
-export function useNetworkState<T>(
+export interface NetworkStateProps<T> {
   key: string,
   operation: string,
   source: string,
-  debounceDelay: number = 0
-): [NetworkState<T>, (request: AxiosRequestConfig) => void, clear: () => void] {
+  schema?: ZodSchema<T>
+  debounceDelay?: number
+}
+
+/**
+ * useNetworkState is a custom hook that manages the network state within the specified context.
+ * It handles making network requests, dispatching appropriate states based on the request lifecycle,
+ * and allows aborting ongoing requests.
+ *
+ * @param {Object} params - The parameters required to configure and use the network state.
+ * @param {string} params.key - A unique identifier for the network request.
+ * @param {string} params.operation - The operation type related to the request.
+ * @param {string} params.source - The source or endpoint for the network request.
+ * @param {Object} params.schema - The schema used for validating the response data.
+ * @param {number} [params.debounceDelay] - The debounce delay for executing the network request.
+ *
+ * @return {[NetworkState<T>, (request: AxiosRequestConfig) => void, () => void]}
+ *          Returns a state object representing the current network state,
+ *          a function to execute the network request, and a function to clear the request.
+ */
+export function useNetworkState<T>({key, operation, source, schema, debounceDelay: requestDebounceDelay}: NetworkStateProps<T>): [NetworkState<T>, (request: AxiosRequestConfig) => void, clear: () => void] {
   const context = useContext(Context);
 
   const [abortController, setAbortController] = useState<AbortController>();
@@ -221,58 +240,67 @@ export function useNetworkState<T>(
     [key, operation, source, context.dispatch]
   );
 
+  const debounceDelay = useMemo(() => {
+    return requestDebounceDelay ?? context.configs?.[source]?.debounceDelay ?? 0;
+  }, [context.configs,requestDebounceDelay]);
+
   const axios = useMemo(() => {
     return context.axios?.[source]!;
   }, [context.axios]);
 
   const execute = useCallback(
     async (request: AxiosRequestConfig) => {
-      //TODO implement debounce
-      if (isPending(networkState)) {
-        return;
-      }
+      let abortController = new AbortController();
+      setAbortController(abortController);
+
+      let requestConfig: AxiosRequestConfig = {
+        ...request,
+        onUploadProgress(event) {
+          dispatch(
+            pending({
+              type: 'upload',
+              loaded: event.loaded,
+              total: event.total,
+            })
+          );
+          request.onUploadProgress?.(event);
+        },
+        onDownloadProgress(event) {
+          dispatch(
+            pending({
+              type: 'download',
+              loaded: event.loaded,
+              total: event.total,
+            })
+          );
+          request.onDownloadProgress?.(event);
+        },
+        signal: abortController.signal,
+      };
 
       try {
-        let abortController = new AbortController();
-        setAbortController(abortController);
         dispatch(pending());
+        let response = await axios.request(requestConfig);
 
-        let response = await axios.request({
-          ...request,
-          onUploadProgress(event) {
-            dispatch(
-              pending({
-                type: 'upload',
-                loaded: event.loaded,
-                total: event.total,
-              })
-            );
-            request.onUploadProgress?.(event);
-          },
-          onDownloadProgress(event) {
-            dispatch(
-              pending({
-                type: 'download',
-                loaded: event.loaded,
-                total: event.total,
-              })
-            );
-            request.onDownloadProgress?.(event);
-          },
-          signal: abortController.signal,
-        });
-
-        if (response.status === 200) {
-          //TODO validate
-          dispatch(success(response.data));
+        if (response.status >= 200 && response.status < 300) {
+          if (schema) {
+            let data = schema.safeParse(response.data);
+            if (!data.success) {
+              dispatch(error(data.error.issues, response.status, requestConfig));
+              return;
+            }
+            dispatch(success(data.data));
+          } else {
+            dispatch(success(response.data));
+          }
         } else {
           dispatch(
             error(response.data ?? response.statusText, response.status)
           );
         }
       } catch (e: any) {
-        if (e.response) {
-          dispatch(error(e.response.data, e.response.status));
+        if (isAxiosError(e)) {
+          dispatch(error(e.response?.data, e.response?.status, requestConfig));
         } else {
           dispatch(error(e));
         }
@@ -315,7 +343,7 @@ function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
  * It filters the state to retain error states and maps them to a structured error object with additional context information.
  * @return {Object[]} An array of objects representing the error states with context information such as source, operation, and key.
  */
-export function ueCentralErrorHandling() {
+export function useCentralErrorHandling() {
   const ctx = useContext(Context);
 
   return useMemo(() => {

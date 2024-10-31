@@ -1,7 +1,15 @@
-import {CompiledOutput, typescript} from "@intrig/cli-common";
+import {CompiledOutput, IntrigSourceConfig, typescript} from "@intrig/cli-common";
 import * as path from 'path'
 
-export function providerTemplate(_path: string): CompiledOutput {
+export function providerTemplate(_path: string, apisToSync: IntrigSourceConfig[]): CompiledOutput {
+
+  let axiosConfigs = apisToSync.map(a => `
+  ${a.id}: axios.create({
+        ...(configs.defaults ?? {}),
+        ...(configs['${a.id}'] ?? {}),
+      }),
+  `).join("\n");
+
   const ts = typescript(path.resolve(_path, "src", "lib", "intrig-provider.tsx"))
   return ts`
 import {createContext, PropsWithChildren, useCallback, useContext, useMemo, useReducer, useState} from "react";
@@ -17,7 +25,8 @@ import {
   pending, Progress,
   success
 } from "./network-state";
-import axios, {Axios, AxiosRequestConfig, CreateAxiosDefaults} from "axios";
+import axios, {Axios, AxiosRequestConfig, CreateAxiosDefaults, isAxiosError} from "axios";
+import { ZodSchema } from 'zod';
 
 type GlobalState = Record<string, NetworkState>;
 
@@ -31,10 +40,11 @@ type GlobalState = Record<string, NetworkState>;
  * @property {Record<string, AxiosInstance>} axios - A record of Axios instances for making HTTP requests.
  */
 export interface ContextType {
-  state: GlobalState,
-  filteredState: GlobalState,
-  dispatch: React.Dispatch<NetworkAction<unknown>>
-  axios: Record<string, Axios>
+  state: GlobalState;
+  filteredState: GlobalState;
+  dispatch: React.Dispatch<NetworkAction<unknown>>;
+  axios: Record<string, Axios>;
+  configs: Record<string, DefaultConfigs>;
 }
 
 /**
@@ -46,10 +56,9 @@ export interface ContextType {
 let Context = createContext<ContextType>({
   state: {},
   filteredState: {},
-  dispatch() {
-
-  },
-  axios: {}
+  dispatch() {},
+  axios: {},
+  configs: {}
 });
 
 /**
@@ -66,9 +75,13 @@ function requestReducer(state: GlobalState, action: NetworkAction<unknown>): Glo
   }
 }
 
+export interface DefaultConfigs extends CreateAxiosDefaults {
+  debounceDelay?: number;
+}
+
 export interface IntrigProviderProps {
-  configs?: Record<string, CreateAxiosDefaults>
-  children: React.ReactNode
+  configs?: Record<string, DefaultConfigs>;
+  children: React.ReactNode;
 }
 
 /**
@@ -87,14 +100,11 @@ export function IntrigProvider({children, configs = {}}: IntrigProviderProps) {
 
   const axiosInstances: Record<string, Axios> = useMemo(() => {
     return {
-      "petstore": axios.create({
-        ...(configs.defaults ?? {}),
-        ...(configs['petstore'] ?? {})
-      })
+      ${axiosConfigs}
     };
   }, [configs]);
 
-  const contextValue = useMemo(() => ({state, dispatch, axios: axiosInstances, filteredState: state}), [state, axiosInstances]);
+  const contextValue = useMemo(() => ({state, dispatch, axios: axiosInstances, filteredState: state, configs}), [state, axiosInstances]);
 
   return <Context.Provider value={contextValue}>
     {children}
@@ -102,8 +112,8 @@ export function IntrigProvider({children, configs = {}}: IntrigProviderProps) {
 }
 
 export interface StatusTrapProps {
-  type: 'pending' | 'error' | 'pending + error'
-  propagate?: boolean
+  type: 'pending' | 'error' | 'pending + error';
+  propagate?: boolean;
 }
 
 /**
@@ -166,19 +176,34 @@ export function StatusTrap({children, type, propagate = true}: PropsWithChildren
   </Context.Provider>
 }
 
-/**
- * Manages the state of network requests, including their progress and responses.
- *
- * @param {string} key - The unique key to identify the network request.
- * @param {string} operation - The operation associated with the network request.
- * @param {string} source - The source or origin of the network request.
- * @param {number|undefined} debounceDelay - The debounce delay in milliseconds to avoid excessive requests.
- * @return {[NetworkState<T>, (request: AxiosRequestConfig) => void, () => void]} An array containing the current network state, a function to execute the network request, and a function to clear the current request state.
- */
-export function useNetworkState<T>(key: string, operation: string, source: string, debounceDelay: number = 0): [NetworkState<T>, (request: AxiosRequestConfig) => void, clear: () => void] {
-  const context = useContext(Context)
+export interface NetworkStateProps<T> {
+  key: string,
+  operation: string,
+  source: string,
+  schema?: ZodSchema<T>
+  debounceDelay?: number
+}
 
-  const [abortController, setAbortController] = useState<AbortController>()
+/**
+ * useNetworkState is a custom hook that manages the network state within the specified context.
+ * It handles making network requests, dispatching appropriate states based on the request lifecycle,
+ * and allows aborting ongoing requests.
+ *
+ * @param {Object} params - The parameters required to configure and use the network state.
+ * @param {string} params.key - A unique identifier for the network request.
+ * @param {string} params.operation - The operation type related to the request.
+ * @param {string} params.source - The source or endpoint for the network request.
+ * @param {Object} params.schema - The schema used for validating the response data.
+ * @param {number} [params.debounceDelay] - The debounce delay for executing the network request.
+ *
+ * @return {[NetworkState<T>, (request: AxiosRequestConfig) => void, () => void]}
+ *          Returns a state object representing the current network state,
+ *          a function to execute the network request, and a function to clear the request.
+ */
+export function useNetworkState<T>({key, operation, source, schema, debounceDelay: requestDebounceDelay}: NetworkStateProps<T>): [NetworkState<T>, (request: AxiosRequestConfig) => void, clear: () => void] {
+  const context = useContext(Context);
+
+  const [abortController, setAbortController] = useState<AbortController>();
 
   const networkState = useMemo(() => {
     return (context.state?.[\`${"${source}:${operation}:${key}"}\`] as NetworkState<T>) ?? init()
@@ -188,58 +213,74 @@ export function useNetworkState<T>(key: string, operation: string, source: strin
     context.dispatch({key, operation, source, state})
   }, [key, operation, source, context.dispatch]);
 
+  const debounceDelay = useMemo(() => {
+    return requestDebounceDelay ?? context.configs?.[source]?.debounceDelay ?? 0;
+  }, [context.configs,requestDebounceDelay]);
+
   const axios = useMemo(() => {
     return context.axios?.[source]!
   }, [context.axios]);
 
-  const execute = useCallback(async (request: AxiosRequestConfig) => {
-    //TODO implement debounce
-    if (isPending(networkState)) {
-      return
-    }
-
-    try {
+  const execute = useCallback(
+    async (request: AxiosRequestConfig) => {
       let abortController = new AbortController();
       setAbortController(abortController);
-      dispatch(pending())
 
-      let response = await axios.request({
+      let requestConfig: AxiosRequestConfig = {
         ...request,
         onUploadProgress(event) {
-          dispatch(pending({
-            type: 'upload',
-            loaded: event.loaded,
-            total: event.total
-          }))
-          request.onUploadProgress?.(event)
+          dispatch(
+            pending({
+              type: 'upload',
+              loaded: event.loaded,
+              total: event.total,
+            })
+          );
+          request.onUploadProgress?.(event);
         },
         onDownloadProgress(event) {
-          dispatch(pending({
-            type: 'download',
-            loaded: event.loaded,
-            total: event.total
-          }))
-          request.onDownloadProgress?.(event)
+          dispatch(
+            pending({
+              type: 'download',
+              loaded: event.loaded,
+              total: event.total,
+            })
+          );
+          request.onDownloadProgress?.(event);
         },
         signal: abortController.signal,
+      };
 
-      });
+      try {
+        dispatch(pending());
+        let response = await axios.request(requestConfig);
 
-      if (response.status === 200) {
-        //TODO validate
-        dispatch(success(response.data))
-      } else {
-        dispatch(error(response.data ?? response.statusText, response.status))
+        if (response.status >= 200 && response.status < 300) {
+          if (schema) {
+            let data = schema.safeParse(response.data);
+            if (!data.success) {
+              dispatch(error(data.error.issues, response.status, requestConfig));
+              return;
+            }
+            dispatch(success(data.data));
+          } else {
+            dispatch(success(response.data));
+          }
+        } else {
+          dispatch(
+            error(response.data ?? response.statusText, response.status)
+          );
+        }
+      } catch (e: any) {
+        if (isAxiosError(e)) {
+          dispatch(error(e.response?.data, e.response?.status, requestConfig));
+        } else {
+          dispatch(error(e));
+        }
       }
-    } catch (e: any) {
-      if (e.response) {
-        dispatch(error(e.response.data, e.response.status))
-      } else {
-        dispatch(error(e))
-      }
-    }
-
-  }, [networkState, context.dispatch, axios]);
+    },
+    [networkState, context.dispatch, axios]
+  );
 
   const deboundedExecute = useMemo(() => debounce(execute, debounceDelay ?? 0), [execute])
 
@@ -273,7 +314,7 @@ function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
  * It filters the state to retain error states and maps them to a structured error object with additional context information.
  * @return {Object[]} An array of objects representing the error states with context information such as source, operation, and key.
  */
-export function ueCentralErrorHandling() {
+export function useCentralErrorHandling() {
   const ctx = useContext(Context)
 
   return useMemo(() => {

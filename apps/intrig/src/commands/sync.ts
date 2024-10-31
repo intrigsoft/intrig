@@ -62,7 +62,7 @@ export default class Sync extends Command {
         await this.syncApi(api, flags.env, flags.force, _path)
       }
 
-      await generateFinalizationCode(flags.env, flags.force, _path)
+      await generateFinalizationCode(flags.env, flags.force, _path, apisToSync)
     })
   }
 

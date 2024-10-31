@@ -16,7 +16,8 @@ export function packageJsonTemplate(_path: string) {
   "dependencies": {
     "module-alias": "^2.2.2",
     "axios": "^1.7.7",
-    "immer": "^10.1.1"
+    "immer": "^10.1.1",
+    "zod": "^3.23.8"
   },
   "peerDependencies": {
     "react": "18.3.1",

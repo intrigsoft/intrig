@@ -61,15 +61,11 @@ export interface PendingState<T> extends NetworkState<T> {
 }
 
 /**
- * Interface representing progress information for an upload or download operation.
+ * An interface representing the progress of an upload or download operation.
  *
- * @typedef {object} Progress
- *
- * @property {'upload' | 'download'} type - The type of the operation.
- *
- * @property {number} loaded - The amount of data that has been loaded so far.
- *
- * @property {number} [total] - The total amount of data to be loaded (if known).
+ * @property {('upload' | 'download')} [type] - The type of the operation, either 'upload' or 'download'.
+ * @property {number} loaded - The amount of data loaded so far.
+ * @property {number} [total] - The total amount of data to be loaded. May not always be available.
  */
 export interface Progress {
   type?: 'upload' | 'download';
@@ -135,6 +131,7 @@ export interface ErrorState<T> extends NetworkState<T> {
   state: 'error';
   error: any;
   statusCode?: number;
+  request?: any;
 }
 
 /**
@@ -152,11 +149,16 @@ export function isError<T>(state: NetworkState<T>): state is ErrorState<T> {
  * @param {string} [statusCode] - An optional status code associated with the error.
  * @return {ErrorState<T>} An object representing the error state.
  */
-export function error<T>(error: any, statusCode?: number): ErrorState<T> {
+export function error<T>(
+  error: any,
+  statusCode?: number,
+  request?: any
+): ErrorState<T> {
   return {
     state: 'error',
     error,
     statusCode,
+    request,
   };
 }
 
@@ -192,3 +194,20 @@ export interface NetworkAction<T> {
   state: NetworkState<T>;
   handled?: boolean;
 }
+
+/**
+ * Represents the result of a network state operation.
+ *
+ * @typedef {Array} NetworkStateResult
+ * @property {NetworkState<T>} 0 - The current state of the network operation.
+ * @property {function(P): void} 1 - Function to initiate the network request.
+ * @property {function(): void} 2 - Function to clear the current network state.
+ *
+ * @template P - The type of the parameter for the network request function.
+ * @template T - The type of the data in the network state.
+ */
+export type NetworkStateResult<P, T> = [
+  NetworkState<T>,
+  (request: P) => void,
+  clear: () => void
+];
