@@ -20,6 +20,7 @@
       "@intrig/intrig-openapi3-binding": [
         "lib/intrig-openapi3-binding/src/index.ts"
       ],
+      "@intrig/intrig-react-binding": ["lib/intrig-react-binding/src/index.ts"],
       "@intrig/react-samples": ["lib/react-samples/src/index.ts"]
     }
   },

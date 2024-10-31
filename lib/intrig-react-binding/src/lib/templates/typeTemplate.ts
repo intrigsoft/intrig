@@ -15,7 +15,7 @@ export function typeTemplate({typeName, schema, sourcePath, paths}: TypeTemplate
   let ts = typescript(path.resolve(sourcePath, 'src', 'lib', ...paths, `${typeName}.ts`));
 
   return ts`
-  import { z, ZodObject } from 'zod'
+  import { z } from 'zod'
 
   ${[...imports].join('\n')}
 

@@ -1,9 +1,8 @@
 import {get as httpsGet} from 'https'
 import {get as httpGet} from 'http'
 import RefParser from '@apidevtools/json-schema-ref-parser'
-import {OpenAPIV3, OpenAPIV3_1,} from 'openapi-types'
+import {OpenAPIV3_1,} from 'openapi-types'
 import {IntrigConfig} from '@intrig/cli-common'
-import {cli} from "cli-ux";
 
 async function fetchSpec(url: string, rejectUnauthorized: boolean): Promise<string> {
   return new Promise<string>((resolve, reject) => {

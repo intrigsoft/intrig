@@ -1,10 +1,8 @@
 import {CompiledOutput, typescript} from "@intrig/cli-common";
 import * as path from 'path'
-import {pascalCase} from '../change-case'
-import {RequestProperties} from "../util";
-import {decodeDispatchParams, decodeVariables} from "./template-util";
-//TODO test with the media type.
-export function octetStreamPutRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody}: RequestProperties): CompiledOutput {
+import {decodeDispatchParams, decodeVariables, pascalCase, RequestProperties} from "@intrig/cli-common";
+
+export function multipartFormDataPostRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', "lib", source, ...paths, `${operationId}.ts`))
 
   const modifiedRequestUrl = requestUrl.replace("{", "${")
@@ -27,7 +25,7 @@ export function octetStreamPutRequestTemplate({source, paths, operationId, respo
     export function use${pascalCase(operationId)}(key: string = "default"): [NetworkState<Response>, (${dispatchParams}) => void, () => void] {
       let [state, dispatch, clear] = useNetworkState<Response>({
         key,
-        operation: "PUT ${requestUrl}",
+        operation: "POST ${requestUrl}",
         source: "${source}",
         schema
       });
@@ -36,11 +34,17 @@ export function octetStreamPutRequestTemplate({source, paths, operationId, respo
         state,
         (${dispatchParamExpansion}) => {
           let { ${variableExplodeExpression}} = p
+
+          const formData = new FormData()
+          ${requestBody ? `
+          Object.entries(data).forEach(([key, value]) => formData.append(key, value))
+          ` : ''}
+
           dispatch({
-            method: 'put',
+            method: 'post',
             url: \`${modifiedRequestUrl}\`,
             params,
-            ${requestBody ? 'data' : ''}
+            ${requestBody ? 'formData' : ''}
           })
         },
         clear

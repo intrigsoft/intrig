@@ -3,7 +3,6 @@ import ReferenceObject = OpenAPIV3_1.ReferenceObject;
 import {CompiledOutput} from "@intrig/cli-common";
 import * as fs from 'fs'
 import * as path from 'path'
-import prettier from 'prettier'
 
 export function isRef(ob: any): ob is ReferenceObject {
   return ob?.$ref !== undefined;

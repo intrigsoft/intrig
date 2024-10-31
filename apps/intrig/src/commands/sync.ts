@@ -1,12 +1,11 @@
-import { Command, Flags } from '@oclif/core'
+import {Command, Flags} from '@oclif/core'
 import * as fs from 'fs'
-import * as path from 'path'
 import chalk from 'chalk'
 import {IntrigConfig, IntrigSourceConfig} from "@intrig/cli-common";
-import {generateCode, generateFinalizationCode, getOpenApiSpec} from "@intrig/intrig-openapi3-binding";
+import {extractEndpointInfo, getOpenApiSpec} from "@intrig/intrig-openapi3-binding";
 import {setupCacheAndInstall} from "../service/packer";
 import {CONFIG_FILE} from "../util";
-import cli from 'cli-ux'
+import {adaptor} from "@intrig/intrig-react-binding";
 
 export default class Sync extends Command {
   static override description = 'Synchronize API specifications'
@@ -59,10 +58,11 @@ export default class Sync extends Command {
 
     await setupCacheAndInstall(async (_path) => {
       for (const api of apisToSync) {
-        await this.syncApi(api, flags.env, flags.force, _path)
+        let spec = await getOpenApiSpec(api.specUrl, config);
+        let sourceInfo = extractEndpointInfo(api, spec);
+        adaptor.generateSourceContent(api, _path, sourceInfo)
       }
-
-      await generateFinalizationCode(flags.env, flags.force, _path, apisToSync)
+      adaptor.generateGlobalContent(_path, apisToSync)
     })
   }
 
@@ -71,22 +71,5 @@ export default class Sync extends Command {
       this.error(`Configuration file not found: ${CONFIG_FILE}`)
     }
     return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'))
-  }
-
-  private async syncApi(api: IntrigSourceConfig, env: string, force: boolean, path: string) {
-    // this.log(chalk.cyan(`Syncing API: ${api.name} (${api.id})`))
-
-    try {
-      cli.action.start(`Fetching OpenAPI for source ${api.name}`)
-      const newSpec = await getOpenApiSpec(api.specUrl, this.readConfig())
-      cli.action.stop()
-
-      cli.action.start(`Generating code for source ${api.name}`)
-      await generateCode(api, path, newSpec)
-      cli.action.stop()
-
-    } catch (error) {
-      this.error(chalk.red(`Failed to sync ${api.name}: ${error}`))
-    }
   }
 }

@@ -1,3 +1,6 @@
+import {RequestProperties} from "./util";
+import {OpenAPIV3_1} from "openapi-types";
+
 export interface IntrigSourceConfig {
   id: string;
   name: string;
@@ -23,4 +26,14 @@ export interface ServerInfo {
 export interface CompiledOutput {
   path: string,
   content: string
+}
+
+export interface SourceInfo {
+  paths: RequestProperties[],
+  schemas: Record<string, OpenAPIV3_1.SchemaObject>
+}
+
+export interface ContentGeneratorAdaptor {
+  generateSourceContent(api: IntrigSourceConfig, _path: string, spec: SourceInfo): void
+  generateGlobalContent(path: string, apisToSync: IntrigSourceConfig[]): void
 }

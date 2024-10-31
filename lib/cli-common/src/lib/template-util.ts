@@ -1,5 +1,5 @@
-import {Variable} from "../util";
-import {pascalCase} from "../change-case";
+import {Variable} from "./util";
+import {pascalCase} from "./change-case";
 
 export function getVariableName(ref: string) {
   return ref.split('/').pop()

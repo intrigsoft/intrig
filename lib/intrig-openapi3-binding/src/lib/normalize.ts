@@ -1,8 +1,8 @@
 import {OpenAPIV3_1} from "openapi-types";
-import {deref, isRef} from "./util";
+import {deref, isRef} from "@intrig/cli-common";
 import {produce} from 'immer'
 
-import {pascalCase, camelCase} from './change-case'
+import {pascalCase, camelCase} from '@intrig/cli-common'
 
 export function normalize(spec: OpenAPIV3_1.Document) {
 

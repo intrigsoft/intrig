@@ -1,10 +1,8 @@
 import {CompiledOutput, typescript} from "@intrig/cli-common";
 import * as path from 'path'
-import {pascalCase} from '../change-case'
-import {RequestProperties} from "../util";
-import {decodeDispatchParams, decodeVariables} from "./template-util";
-
-export function octetStreamPostRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody}: RequestProperties): CompiledOutput {
+import {decodeDispatchParams, decodeVariables, pascalCase, RequestProperties} from "@intrig/cli-common";
+//TODO test with the media type.
+export function octetStreamPutRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', "lib", source, ...paths, `${operationId}.ts`))
 
   const modifiedRequestUrl = requestUrl.replace("{", "${")
@@ -27,7 +25,7 @@ export function octetStreamPostRequestTemplate({source, paths, operationId, resp
     export function use${pascalCase(operationId)}(key: string = "default"): [NetworkState<Response>, (${dispatchParams}) => void, () => void] {
       let [state, dispatch, clear] = useNetworkState<Response>({
         key,
-        operation: "POST ${requestUrl}",
+        operation: "PUT ${requestUrl}",
         source: "${source}",
         schema
       });
@@ -37,7 +35,7 @@ export function octetStreamPostRequestTemplate({source, paths, operationId, resp
         (${dispatchParamExpansion}) => {
           let { ${variableExplodeExpression}} = p
           dispatch({
-            method: 'post',
+            method: 'put',
             url: \`${modifiedRequestUrl}\`,
             params,
             ${requestBody ? 'data' : ''}

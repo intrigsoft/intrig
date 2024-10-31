@@ -1,22 +1,19 @@
 import {CompiledOutput, typescript} from "@intrig/cli-common";
 import * as path from 'path'
-import {pascalCase} from '../change-case'
-import {RequestProperties} from "../util";
-import {decodeDispatchParams, decodeVariables} from "./template-util";
+import {decodeVariables, pascalCase, RequestProperties} from "@intrig/cli-common";
 
-export function postRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody}: RequestProperties): CompiledOutput {
+export function getRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', "lib", source, ...paths, `${operationId}.ts`))
 
   const modifiedRequestUrl = requestUrl.replace("{", "${")
 
   let {variableExplodeExpression, variableImports, variableTypes, isParamMandatory} = decodeVariables(variables, source);
 
-  let {dispatchParamExpansion, dispatchParams} = decodeDispatchParams(operationId, requestBody, isParamMandatory);
+  let variableNames = variables.map(a => a.ref.split('/').pop())
 
   return ts`
     import {useNetworkState} from "@root/intrig-provider"
     import {NetworkState} from "@root/network-state";
-    ${requestBody ? `import { ${requestBody} as RequestBody } from "@root/${source}/components/schemas/${requestBody}"` : ''}
     import { ${responseType} as Response, ${responseType}Schema as schema } from "@root/${source}/components/schemas/${responseType}"
     ${variableImports}
 
@@ -24,23 +21,22 @@ export function postRequestTemplate({source, paths, operationId, responseType, r
       ${variableTypes}
     }
 
-    export function use${pascalCase(operationId)}(key: string = "default"): [NetworkState<Response>, (${dispatchParams}) => void, () => void] {
+    export function use${pascalCase(operationId)}(key: string = "default"): [NetworkState<Response>, (params: ${pascalCase(operationId)}Params) => void, () => void] {
       let [state, dispatch, clear] = useNetworkState<Response>({
         key,
-        operation: "POST ${requestUrl}",
+        operation: "GET ${requestUrl}",
         source: "${source}",
         schema
       });
 
       return [
         state,
-        (${dispatchParamExpansion}) => {
+        (p${isParamMandatory ? '' : ' = {}'}) => {
           let { ${variableExplodeExpression}} = p
           dispatch({
-            method: 'post',
+            method: 'get',
             url: \`${modifiedRequestUrl}\`,
-            params,
-            ${requestBody ? 'data: JSON.stringify(data)' : ''}
+            params
           })
         },
         clear

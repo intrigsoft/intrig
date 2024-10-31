@@ -1,3 +1,6 @@
 export type * from './lib/types'
 export * from './lib/ts-literal'
 export * from './lib/json-literal'
+export * from './lib/template-util'
+export * from './lib/util'
+export * from './lib/change-case'
