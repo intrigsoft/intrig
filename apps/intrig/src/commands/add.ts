@@ -23,7 +23,7 @@ export default class Add extends Command {
   async run() {
     const { flags } = await this.parse(Add)
 
-    let config: IntrigConfig = { sources: [] }
+    let config: IntrigConfig = { sources: [], generator: 'react' }
     if (fs.existsSync(CONFIG_FILE)) {
       config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'))
     }

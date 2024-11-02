@@ -1,11 +1,12 @@
 import {Command, Flags} from '@oclif/core'
 import * as fs from 'fs'
 import chalk from 'chalk'
-import {IntrigConfig, IntrigSourceConfig} from "@intrig/cli-common";
+import {ContentGeneratorAdaptor, IntrigConfig, IntrigSourceConfig} from "@intrig/cli-common";
 import {extractEndpointInfo, getOpenApiSpec} from "@intrig/intrig-openapi3-binding";
 import {setupCacheAndInstall} from "../service/packer";
 import {CONFIG_FILE} from "../util";
-import {adaptor} from "@intrig/intrig-react-binding";
+import {adaptor as reactAdaptor} from "@intrig/intrig-react-binding";
+import {adaptor as nextAdaptor} from "@intrig/intrig-next-binding";
 
 export default class Sync extends Command {
   static override description = 'Synchronize API specifications'
@@ -57,6 +58,15 @@ export default class Sync extends Command {
     }
 
     await setupCacheAndInstall(async (_path) => {
+      let adaptor: ContentGeneratorAdaptor
+      switch (config.generator ?? 'react') {
+        case 'react':
+          adaptor = reactAdaptor
+          break;
+        case "next":
+          adaptor = nextAdaptor
+          break;
+      }
       for (const api of apisToSync) {
         let spec = await getOpenApiSpec(api.specUrl, config);
         let sourceInfo = extractEndpointInfo(api, spec);

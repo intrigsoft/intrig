@@ -4,6 +4,12 @@ import {produce} from 'immer'
 
 import {pascalCase, camelCase} from '@intrig/cli-common'
 
+function generateTypeName(operationOb: OpenAPIV3_1.OperationObject, postFix: string) {
+  return [operationOb.tags?.[0], operationOb.operationId, postFix].filter(Boolean)
+    .map(s => pascalCase(s))
+    .join("$");
+}
+
 export function normalize(spec: OpenAPIV3_1.Document) {
 
   let doDeref = deref(spec)
@@ -25,7 +31,7 @@ export function normalize(spec: OpenAPIV3_1.Document) {
             operationOb.parameters = operationOb.parameters.map(doDeref)
             operationOb.parameters.forEach((param: OpenAPIV3_1.ParameterObject) => {
               if (!isRef(param.schema)) {
-                let paramName = pascalCase([operationOb.tags?.[0], operationOb.operationId, param.name].join("_"))
+                let paramName = generateTypeName(operationOb, param.name)
                 draft.components["schemas"][paramName] = param.schema as OpenAPIV3_1.SchemaObject;
                 param.schema = {
                   $ref: `#/components/schemas/${paramName}`
@@ -41,7 +47,7 @@ export function normalize(spec: OpenAPIV3_1.Document) {
                   mto.examples = Object.fromEntries(Object.entries(mto.examples).map(([k, v]) => ([k, doDeref(v)])))
                 }
                 if (!isRef(mto.schema)) {
-                  let paramName = pascalCase([operationOb.tags?.[0], operationOb.operationId, 'RequestBody'].join("_"))
+                  let paramName = generateTypeName(operationOb,'RequestBody')
                   draft.components["schemas"][paramName] = mto.schema as OpenAPIV3_1.SchemaObject;
                   mto.schema = {
                     $ref: `#/components/schemas/${paramName}`
@@ -73,7 +79,7 @@ export function normalize(spec: OpenAPIV3_1.Document) {
                   }
 
                   if (!isRef(mto.schema)) {
-                    let paramName = pascalCase([operationOb.tags?.[0], operationOb.operationId, 'ResponseBody'].join("_"))
+                    let paramName = generateTypeName(operationOb,'ResponseBody')
                     draft.components["schemas"][paramName] = mto.schema as OpenAPIV3_1.SchemaObject;
                     mto.schema = {
                       $ref: `#/components/schemas/${paramName}`

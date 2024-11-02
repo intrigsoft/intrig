@@ -28,6 +28,7 @@ export default class Init extends Command {
 
     let config: IntrigConfig = {
       sources: [],
+      generator: "react"
     }
 
     // Handle addToGitOnUpdate

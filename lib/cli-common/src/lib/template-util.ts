@@ -28,7 +28,8 @@ export function getParamExplodeExpression(variables: Variable[]) {
   ].join(",");
 }
 
-export function decodeVariables(variables: Variable[], source: string) {
+export function decodeVariables(_variables: Variable[], source: string) {
+  let variables = _variables.filter(a => ["path", "query"].includes(a.in))
   return {
     variableImports: getVariableImports(variables, source),
     variableTypes: getVariableTypes(variables),
@@ -58,4 +59,26 @@ export function decodeDispatchParams(operationId: string, requestBody?: string, 
     dispatchParams: getDispatchParams(operationId, requestBody),
     dispatchParamExpansion: getDispatchParamExpansion(requestBody, isParamMandatory)
   }
+}
+
+export function getDataTransformer(contentType?: string) {
+  let finalRequestBodyBlock = ''
+  switch (contentType) {
+    case "application/json":
+    case "application/octet-stream":
+    case "text/plain":
+      finalRequestBodyBlock = `data`
+      break;
+    case "multipart/form-data":
+      finalRequestBodyBlock = `data: (function(){
+        let formData = new FormData()
+        Object.keys(data).forEach(key => formData.append(key, data[key]))
+        return formData;
+      })()`
+      break;
+    case "application/x-www-form-urlencoded":
+      finalRequestBodyBlock = `data: qs.stringify(data)`
+      break;
+  }
+  return finalRequestBodyBlock;
 }

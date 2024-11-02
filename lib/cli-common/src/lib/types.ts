@@ -16,6 +16,7 @@ export interface IntrigConfig {
   rejectUnauthorized?: boolean;
   emptyBodyTypeOnPost?: "unknown" | "object" | "array" | "string" | "number" | "boolean" | "null" | "undefined";
   sources: IntrigSourceConfig[];
+  generator: 'react' | 'next'
 }
 
 export interface ServerInfo {
