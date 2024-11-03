@@ -13,21 +13,18 @@ import {requestRouteTemplate} from "./templates/requestRouteTemplate";
 export function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 
   function handleGet(params: RequestProperties) {
-    if (params.responseMediaType !== "application/json") return;
     dump(paramsTemplate(params))
     dump(getRequestHookTemplate(params))
     dump(getRequestMethodTemplate(params))
   }
 
   function handlePost(params: RequestProperties) {
-    if (params.responseMediaType !== "application/json") return;
     dump(paramsTemplate(params))
     dump(postRequestHookTemplate(params))
     dump(postRequestMethodTemplate(params))
   }
 
   function handlePut(params: RequestProperties) {
-    if (params.responseMediaType !== "application/json") return;
     dump(paramsTemplate(params))
     dump(putRequestHookTemplate(params))
     dump(putRequestMethodTemplate(params))

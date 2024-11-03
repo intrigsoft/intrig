@@ -1,9 +1,9 @@
-import {camelCase, CompiledOutput, getDataTransformer, typescript} from "@intrig/cli-common";
+import { camelCase, CompiledOutput, generatePostfix, getDataTransformer, typescript } from '@intrig/cli-common';
 import * as path from 'path'
 import {decodeDispatchParams, decodeVariables, pascalCase, RequestProperties} from "@intrig/cli-common";
 
-export function putRequestHookTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody, contentType}: RequestProperties): CompiledOutput {
-  const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}.ts`))
+export function putRequestHookTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody, contentType, responseMediaType}: RequestProperties): CompiledOutput {
+  const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseMediaType)}.ts`))
 
   const modifiedRequestUrl = `/api/source${requestUrl.replace("{", "${")}`
 

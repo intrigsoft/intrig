@@ -1,10 +1,3 @@
-import {CompiledOutput, typescript} from "@intrig/cli-common";
-import * as path from "path";
-
-export function mediaTypeUtilsTemplate(_path: string): CompiledOutput {
-  const ts = typescript(path.resolve(_path, "src", "media-type-utils.ts"))
-
-  return ts`
 import { ZodSchema } from 'zod';
 import { XMLParser } from 'fast-xml-parser';
 
@@ -26,7 +19,7 @@ export function transform<T>(
   if (transformers[mediaType]) {
     return transformers[mediaType](request, mediaType, schema);
   }
-  throw new Error(\`Unsupported media type: \` + mediaType);
+  throw new Error(`Unsupported media type: ` + mediaType);
 }
 
 transformers['application/json'] = async (request, mediaType, schema) => {
@@ -113,6 +106,4 @@ export async function transformResponse<T>(
     return await responseTransformers[mediaType](data, mediaType, schema);
   }
   return data
-}
-  `
 }

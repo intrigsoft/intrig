@@ -1,13 +1,5 @@
-import {camelCase, pascalCase, RequestProperties, typescript} from "@intrig/cli-common";
+import { camelCase, generatePostfix, pascalCase, RequestProperties, typescript } from '@intrig/cli-common';
 import * as path from "path";
-
-const mediaTypeExtMapping = {
-  "application/json": "",
-  "multipart/form-data": ".multipart",
-  "application/octet-stream": ".bin",
-  "application/x-www-form-urlencoded": ".form",
-  "application/xml": ".xml"
-}
 
 export function requestRouteTemplate(requestUrl: string, paths: RequestProperties[]) {
   let parts = requestUrl
@@ -20,14 +12,14 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
   const ts = typescript(path.resolve(sourcePath, 'src', "api", source, ...parts, `route.ts`))
 
   function getFunctionName(path: RequestProperties) {
-    return `${camelCase(path.operationId)}${mediaTypeExtMapping[path.contentType]?.replace(".", "_") ?? ""}`
+    return `${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)}`
   }
 
   function createImport(path: RequestProperties) {
-    if (path.contentType === "application/json") {
+    if (path.contentType === "application/json" && path.responseMediaType === "application/json") {
       return `import { ${camelCase(path.operationId)} } from "@intrig/client-next/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}"`
     }
-    return `import { ${camelCase(path.operationId)} as ${camelCase(path.operationId)}${mediaTypeExtMapping[path.contentType]?.replace(".", "_") ?? ""} } from "@intrig/client-next/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}${mediaTypeExtMapping[path.contentType] ?? ""}"`
+    return `import { ${camelCase(path.operationId)} as ${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)} } from "@intrig/client-next/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)}"`
   }
 
   let imports = new Set<string>()
@@ -50,9 +42,6 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
   for (let path of paths) {
     switch (path.method.toLowerCase()) {
       case "get":
-        if (path.responseMediaType !== "application/json") {
-          continue;
-        }
         imports.add(createImport(path))
         getBlocks.add(ts`
         let response = await ${getFunctionName(path)}(params)
@@ -60,9 +49,6 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
         `.content)
         break;
       case "post":
-        if (path.responseMediaType !== "application/json") {
-          continue;
-        }
         imports.add(createImport(path))
         postBlocks.add(ts`
         if (request.headers.get('Content-Type') === "${path.contentType}") {
@@ -80,9 +66,6 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
         `.content)
         break;
       case "put":
-        if (path.responseMediaType !== "application/json") {
-          continue;
-        }
         imports.add(createImport(path))
         putBlocks.add(ts`
         if (request.headers.get('Content-Type') === "${path.contentType}") {
@@ -136,16 +119,4 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
     ${createMethod("PUT", putBlocks)}
     ${createMethod("DELETE", deleteBlocks)}
   `
-}
-
-function groupBy<T>(xs: T[], key: (x: T) => string): Record<string, T[]> {
-  let result = {};
-  xs.forEach(x => {
-    let k = key(x)
-    if (!result[k]) {
-      result[k] = []
-    }
-    result[k].push(x)
-  })
-  return result
 }

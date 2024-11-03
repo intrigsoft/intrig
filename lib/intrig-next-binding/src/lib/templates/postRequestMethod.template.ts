@@ -5,8 +5,8 @@ import {
   decodeVariables,
   RequestProperties,
   typescript,
-  decodeDispatchParams, getDataTransformer
-} from "@intrig/cli-common";
+  decodeDispatchParams, getDataTransformer, generatePostfix
+} from '@intrig/cli-common';
 import * as path from 'path'
 
 const mediaTypeExtMapping = {
@@ -17,9 +17,9 @@ const mediaTypeExtMapping = {
   "application/xml": ".xml"
 }
 
-export function postRequestMethodTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody, contentType}: RequestProperties): CompiledOutput {
+export function postRequestMethodTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody, contentType, responseMediaType}: RequestProperties): CompiledOutput {
 
-  const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `${camelCase(operationId)}${mediaTypeExtMapping[contentType] ?? ""}.ts`))
+  const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `${camelCase(operationId)}${generatePostfix(contentType, responseMediaType)}.ts`))
 
   let {variableExplodeExpression, variableImports, variableTypes, isParamMandatory} = decodeVariables(variables, source);
 
@@ -49,7 +49,7 @@ export function postRequestMethodTemplate({source, paths, operationId, responseT
             ${finalRequestBodyBlock}
           })
 
-          return schema.parse(responseData);
+          return transformResponse(data, "${responseMediaType}", schema);
     }
   `
 }

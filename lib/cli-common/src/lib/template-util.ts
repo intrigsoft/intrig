@@ -82,3 +82,23 @@ export function getDataTransformer(contentType?: string) {
   }
   return finalRequestBodyBlock;
 }
+
+const contentTypePostfixMap: Record<string, string | undefined> = {
+  'application/json': undefined,
+  'multipart/form-data': 'form',
+  'application/octet-stream': 'binary',
+  'application/x-www-form-urlencoded': 'form',
+  'application/xml': 'xml',
+  'text/plain': 'txt',
+  'text/html': 'html',
+  'text/css': 'css',
+  'text/javascript': 'js',
+}
+
+export function generatePostfix(contentType: string, responseType: string) {
+  return [
+    contentType && contentTypePostfixMap[contentType] ? `$${contentTypePostfixMap[contentType]}` : undefined,
+    responseType && contentTypePostfixMap[responseType] ? `_${contentTypePostfixMap[responseType]}` : undefined,
+  ].filter(Boolean)
+    .join('')
+}
