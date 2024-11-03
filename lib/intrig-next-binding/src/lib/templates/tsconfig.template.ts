@@ -6,12 +6,13 @@ export function tsConfigTemplate(_path: string) {
   return json`
 {
   "compilerOptions": {
-    "target": "es2018",
-    "module": "commonjs",
+    "target": "es2020",
+    "module": "ESNext",
     "declaration": true,
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
+    "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
       "@intrig/client-next/*": [

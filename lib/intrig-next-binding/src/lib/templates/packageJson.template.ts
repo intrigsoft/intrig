@@ -30,7 +30,8 @@ export function packageJsonTemplate(_path: string) {
   },
   "_moduleAliases": {
     "@intrig/client-next": "./src"
-  }
+  },
+  "type": "module"
 }
   `
 }
