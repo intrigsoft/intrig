@@ -5,7 +5,7 @@ import {decodeVariables, pascalCase, RequestProperties} from "@intrig/cli-common
 export function getRequestHookTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, responseMediaType}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(undefined, responseMediaType)}.ts`))
 
-  const modifiedRequestUrl = `/api/${source}${requestUrl.replace("{", "${")}`
+  const modifiedRequestUrl = `/api/__GENERATED__/${source}${requestUrl.replace("{", "${")}`
 
   let {variableExplodeExpression, isParamMandatory} = decodeVariables(variables, source);
 

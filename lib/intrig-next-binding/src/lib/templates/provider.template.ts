@@ -5,6 +5,7 @@ export function providerTemplate(_path: string, apisToSync: IntrigSourceConfig[]
 
   const ts = typescript(path.resolve(_path, "src", "intrig-provider.tsx"))
   return ts`
+  "use client"
 import {createContext, PropsWithChildren, useCallback, useContext, useMemo, useReducer, useState} from "react";
 import {
   error,

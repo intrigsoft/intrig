@@ -6,7 +6,6 @@
   "private": true,
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^11.7.2",
-    "@intrig/generated": "file:apps/intrig-e2e/.intrig/generated",
     "@oclif/core": "^4.0.28",
     "@types/inquirer": "^9.0.7",
     "axios": "^1.7.7",

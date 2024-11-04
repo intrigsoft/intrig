@@ -9,7 +9,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
 
   let {source, sourcePath} = paths[0]
 
-  const ts = typescript(path.resolve(sourcePath, 'src', "api", source, ...parts, `route.ts`))
+  const ts = typescript(path.resolve(sourcePath, 'src', "api", "__GENERATED__", source, ...parts, `route.ts`))
 
   function getFunctionName(path: RequestProperties) {
     return `${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)}`

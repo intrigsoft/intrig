@@ -5,10 +5,10 @@ export function getVariableName(ref: string) {
   return ref.split('/').pop()
 }
 
-export function getVariableImports(variables: Variable[], source: string) {
+export function getVariableImports(variables: Variable[], source: string, prefix: string) {
   return variables
     .map(a => getVariableName(a.ref))
-    .map((ref) => `import { ${ref} } from "@root/${source}/components/schemas/${ref}"`)
+    .map((ref) => `import { ${ref} } from "${prefix}/${source}/components/schemas/${ref}"`)
     .join("\n");
 }
 
@@ -28,10 +28,10 @@ export function getParamExplodeExpression(variables: Variable[]) {
   ].join(",");
 }
 
-export function decodeVariables(_variables: Variable[], source: string) {
+export function decodeVariables(_variables: Variable[], source: string, prefix: string = "@root") {
   let variables = _variables.filter(a => ["path", "query"].includes(a.in))
   return {
-    variableImports: getVariableImports(variables, source),
+    variableImports: getVariableImports(variables, source, prefix),
     variableTypes: getVariableTypes(variables),
     isParamMandatory: isParamMandatory(variables),
     variableExplodeExpression: getParamExplodeExpression(variables)

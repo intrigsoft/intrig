@@ -163,7 +163,7 @@ function handleComplexSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<stri
     const options = schema.allOf.map(subSchema => openApiSchemaToZod(subSchema as OpenAPIV3_1.SchemaObject));
     const zodSchemas = options.map(option => option.zodSchema);
     const tsTypes = options.map(option => option.tsType);
-    return { tsType: tsTypes.join(' & '), zodSchema: `z.intersection([${zodSchemas.join(', ')}])`, imports: new Set([...imports, ...options.flatMap(option => Array.from(option.imports))]) };
+    return { tsType: tsTypes.join(' & '), zodSchema: `z.intersection(${zodSchemas.join(', ')})`, imports: new Set([...imports, ...options.flatMap(option => Array.from(option.imports))]) };
   }
   return { tsType: 'any', zodSchema: 'z.any()', imports };
 }

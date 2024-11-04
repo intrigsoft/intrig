@@ -6,5 +6,8 @@ export const adaptor: ContentGeneratorAdaptor = {
   generateSourceContent,
   generateGlobalContent,
   async postBuild() {
+  },
+  async predev(): Promise<void> {
+
   }
 }

@@ -3,7 +3,6 @@ import * as path from 'path'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import cli from 'cli-ux'
-import os from 'os'
 import {detectPackageManager} from "nypm";
 
 const execAsync = promisify(exec)
@@ -82,9 +81,22 @@ export async function setupCacheAndInstall(
 
   cli.action.start('Copying built libraries to project directory')
   try {
-    await fs.copy(sourceLibDir, targetLibDir)
+    await fs.copy(sourceLibDir, targetLibDir, {
+      filter: (src) => !src.includes('api')
+    })
   } catch (e) {
     console.error('Failed to copy built libraries', e)
+  }
+  cli.action.stop()
+
+  // Copy __GENERATED__ from src directory to target
+  cli.action.start('Copying __GENERATED__ files to project directory')
+  try {
+    const generatedSourceDir = path.join(tempDir, 'src', 'api', '__GENERATED__')
+    const generatedTargetDir = path.join(targetLibDir, '__GENERATED__')
+    await fs.copy(generatedSourceDir, generatedTargetDir)
+  } catch (e) {
+    console.error('Failed to copy __GENERATED__ files', e)
   }
   cli.action.stop()
 

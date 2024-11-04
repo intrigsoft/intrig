@@ -21,7 +21,7 @@ export function typeTemplate({typeName, schema, sourcePath, paths}: TypeTemplate
 
   export const ${typeName}Schema = ${zodSchema}
 
-  export type ${typeName} = z.infer<typeof ${typeName}Schema>
+  export type ${typeName} = ${tsType}
   `
 }
 
@@ -127,7 +127,8 @@ function handleObjectSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<strin
   if (schema.properties) {
     const propertiesTs = Object.entries(schema.properties).map(([key, value]) => {
       const { tsType } = openApiSchemaToZod(value as OpenAPIV3_1.SchemaObject);
-      return `${key}: ${tsType};`;
+      const isRequired = updatedRequiredFields.includes(key);
+      return `${key}${isRequired ? '' : '?'}: ${tsType};`;
     });
 
     const propertiesZod = Object.entries(schema.properties).map(([key, value]) => {
@@ -163,7 +164,7 @@ function handleComplexSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<stri
     const options = schema.allOf.map(subSchema => openApiSchemaToZod(subSchema as OpenAPIV3_1.SchemaObject));
     const zodSchemas = options.map(option => option.zodSchema);
     const tsTypes = options.map(option => option.tsType);
-    return { tsType: tsTypes.join(' & '), zodSchema: `z.intersection([${zodSchemas.join(', ')}])`, imports: new Set([...imports, ...options.flatMap(option => Array.from(option.imports))]) };
+    return { tsType: tsTypes.join(' & '), zodSchema: `z.intersection(${zodSchemas.join(', ')})`, imports: new Set([...imports, ...options.flatMap(option => Array.from(option.imports))]) };
   }
   return { tsType: 'any', zodSchema: 'z.any()', imports };
 }
