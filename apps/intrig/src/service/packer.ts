@@ -9,8 +9,7 @@ import {detectPackageManager} from "nypm";
 const execAsync = promisify(exec)
 
 export async function setupCacheAndInstall(
-  generateData: (path: string) => Promise<void>
-): Promise<void> {
+  generateData: (path: string) => Promise<void>, generator: string): Promise<void> {
   // const tempDir = path.join(os.tmpdir(), 'intrig_generated')
 
   const tempDir = path.join('.intrig', 'generated')
@@ -52,20 +51,44 @@ export async function setupCacheAndInstall(
   }
   cli.action.stop()
 
-  // Copy all directories in <build>/dist/lib to projects node_modules/@intrig/client-react/dist/lib
-  const sourceLibDir = path.join(tempDir, 'dist', 'lib')
-  console.log(sourceLibDir)
-  const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', 'client-react', 'dist', 'lib')
+  // Copy all directories in <build>/dist/lib to projects node_modules/@intrig/client-react
+  const sourceLibDir = path.join(tempDir, 'dist')
+  let client = 'client-react';
+  switch (generator) {
+    case 'next':
+      client = 'client-next';
+      break;
+    case 'react':
+      client = 'client-react';
+      break;
+  }
+  const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', client)
 
-  // cli.action.start('Copying built libraries to project directory')
-  // try {
-  //   await fs.copy(sourceLibDir, targetLibDir)
-  // } catch (e) {
-  //   console.error('Failed to copy built libraries', e)
-  // }
-  // cli.action.stop()
-  //
-  // // Clean up the temp directory
+  if (await fs.pathExists(targetLibDir)) {
+    cli.action.start('Removing existing target library files')
+    try {
+      await fs.readdir(targetLibDir).then(async (files) => {
+        for (const file of files) {
+          if (file !== 'package.json' && !file.endsWith('.md')) {
+            await fs.remove(path.join(targetLibDir, file))
+          }
+        }
+      })
+    } catch (e) {
+      console.error('Failed to remove existing target library files', e)
+    }
+    cli.action.stop()
+  }
+
+  cli.action.start('Copying built libraries to project directory')
+  try {
+    await fs.copy(sourceLibDir, targetLibDir)
+  } catch (e) {
+    console.error('Failed to copy built libraries', e)
+  }
+  cli.action.stop()
+
+  // Clean up the temp directory
   // cli.action.start('Cleaning up the temp directory')
   // try {
   //   await fs.remove(tempDir)

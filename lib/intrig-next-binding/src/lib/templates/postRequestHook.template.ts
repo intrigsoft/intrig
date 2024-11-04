@@ -13,7 +13,7 @@ const mediaTypeExtMapping = {
 export function postRequestHookTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody, contentType, responseMediaType}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseMediaType)}.ts`))
 
-  const modifiedRequestUrl = `/api/source${requestUrl.replace("{", "${")}`
+  const modifiedRequestUrl = `/api/${source}${requestUrl.replace("{", "${")}`
 
   let {variableExplodeExpression, variableImports, variableTypes, isParamMandatory} = decodeVariables(variables, source);
 

@@ -4,5 +4,7 @@ import {generateSourceContent} from "./generateSourceContent";
 
 export const adaptor: ContentGeneratorAdaptor = {
   generateSourceContent,
-  generateGlobalContent
+  generateGlobalContent,
+  async postBuild() {
+  }
 }

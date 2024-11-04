@@ -37,4 +37,5 @@ export interface SourceInfo {
 export interface ContentGeneratorAdaptor {
   generateSourceContent(api: IntrigSourceConfig, _path: string, spec: SourceInfo): void
   generateGlobalContent(path: string, apisToSync: IntrigSourceConfig[]): void
+  postBuild(): Promise<void>
 }
