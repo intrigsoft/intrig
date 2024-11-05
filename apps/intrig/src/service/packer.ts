@@ -61,7 +61,7 @@ export async function setupCacheAndInstall(
       client = 'client-react';
       break;
   }
-  const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', client)
+  const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', client, "src")
 
   if (await fs.pathExists(targetLibDir)) {
     cli.action.start('Removing existing target library files')
@@ -93,7 +93,7 @@ export async function setupCacheAndInstall(
   cli.action.start('Copying __GENERATED__ files to project directory')
   try {
     const generatedSourceDir = path.join(tempDir, 'src', 'api', '__GENERATED__')
-    const generatedTargetDir = path.join(targetLibDir, '__GENERATED__')
+    const generatedTargetDir = path.join(path.join(targetLibDir, ".."), '__GENERATED__')
     await fs.copy(generatedSourceDir, generatedTargetDir)
   } catch (e) {
     console.error('Failed to copy __GENERATED__ files', e)
