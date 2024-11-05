@@ -38,10 +38,10 @@ export function decodeVariables(_variables: Variable[], source: string, prefix: 
   }
 }
 
-export function getDispatchParams(operationId: string, requestBody?: string) {
+export function getDispatchParams(operationId: string, requestBody?: string, isParamMandatory: boolean = false) {
   return [
     requestBody ? `data: RequestBody` : undefined,
-    `params: ${pascalCase(operationId)}Params`
+    `params: Params${isParamMandatory ? '' : ' | undefined'}`
   ]
     .filter(Boolean)
     .join(', ')
@@ -56,7 +56,7 @@ export function getDispatchParamExpansion(requestBody?: string, isParamMandatory
 
 export function decodeDispatchParams(operationId: string, requestBody?: string, isParamMandatory?: boolean) {
   return {
-    dispatchParams: getDispatchParams(operationId, requestBody),
+    dispatchParams: getDispatchParams(operationId, requestBody, isParamMandatory),
     dispatchParamExpansion: getDispatchParamExpansion(requestBody, isParamMandatory)
   }
 }

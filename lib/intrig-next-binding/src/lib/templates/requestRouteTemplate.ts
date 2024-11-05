@@ -17,9 +17,9 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
 
   function createImport(path: RequestProperties) {
     if (path.contentType === "application/json" && path.responseMediaType === "application/json") {
-      return `import { ${camelCase(path.operationId)} } from "@intrig/client-next/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}"`
+      return `import { ${camelCase(path.operationId)} } from "@intrig/client-next/src/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}"`
     }
-    return `import { ${camelCase(path.operationId)} as ${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)} } from "@intrig/client-next/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)}"`
+    return `import { ${camelCase(path.operationId)} as ${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)} } from "@intrig/client-next/src/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)}"`
   }
 
   let imports = new Set<string>()
@@ -31,9 +31,9 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
 
   function getRequestBodyTransformerBlock(path: RequestProperties) {
     imports.add(
-      `import {${path.requestBody}, ${path.requestBody}Schema} from "@intrig/client-next/${source}/components/schemas/${path.requestBody}";`
+      `import {${path.requestBody}, ${path.requestBody}Schema} from "@intrig/client-next/src/${source}/components/schemas/${path.requestBody}";`
     )
-    imports.add(`import { transform } from "@intrig/client-next/media-type-utils"`)
+    imports.add(`import { transform } from "@intrig/client-next/src/media-type-utils"`)
     return `
       let body = await transform<${path.requestBody}>(request, "${path.contentType}", ${path.requestBody}Schema)
     `

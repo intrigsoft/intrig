@@ -10,17 +10,19 @@ export function getRequestHookTemplate({source, paths, operationId, responseType
   let {variableExplodeExpression, isParamMandatory} = decodeVariables(variables, source);
 
   return ts`
-    import {useNetworkState} from "@intrig/client-next/intrig-provider"
-    import {NetworkState} from "@intrig/client-next/network-state";
-    import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/${source}/components/schemas/${responseType}"
+    import {useNetworkState} from "@intrig/client-next/src/intrig-provider"
+    import {NetworkState, GetHook${isParamMandatory ? '' : 'Op'}} from "@intrig/client-next/src/network-state";
+    import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${responseType}"
+    import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
-    import {${pascalCase(operationId)}Params} from './${pascalCase(operationId)}.params'
+    const operation = "GET ${requestUrl}| -> ${responseMediaType}"
+    const source = "${source}"
 
-    export function use${pascalCase(operationId)}(key: string = "default"): [NetworkState<Response>, (params: ${pascalCase(operationId)}Params) => void, () => void] {
+    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response>, (params: Params${isParamMandatory ? '' : ' | undefined'}) => void, () => void] {
       let [state, dispatch, clear] = useNetworkState<Response>({
         key,
-        operation: "GET ${requestUrl}",
-        source: "${source}",
+        operation,
+        source,
         schema
       });
 
@@ -31,11 +33,16 @@ export function getRequestHookTemplate({source, paths, operationId, responseType
           dispatch({
             method: 'get',
             url: \`${modifiedRequestUrl}\`,
-            params
+            params,
+            key: \`${"${source}: ${operation}"}\`
           })
         },
         clear
       ]
     }
+
+    use${pascalCase(operationId)}Hook.key = \`${"${source}: ${operation}"}\`
+
+    export const use${pascalCase(operationId)}: GetHook${isParamMandatory ? '' : 'Op'}<Params, Response> = use${pascalCase(operationId)}Hook;
   `
 }

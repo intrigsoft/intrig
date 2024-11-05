@@ -11,14 +11,14 @@ import {
   error,
   ErrorState,
   ErrorWithContext,
-  init,
+  init, IntrigHook,
   isError,
   isPending,
   NetworkAction,
   NetworkState,
   pending,
   Progress,
-  success,
+  success
 } from './network-state';
 import axios, {
   Axios,
@@ -30,6 +30,19 @@ import axios, {
 import { ZodSchema } from 'zod';
 
 type GlobalState = Record<string, NetworkState>;
+
+interface RequestType<T = any> {
+  method: 'get' | 'post' | 'put' | 'delete';
+  url: string;
+  headers?: Record<string, string>;
+  params?: Record<string, any>;
+  data?: any; // This allows transformations, while retaining flexibility.
+  originalData?: T; // Keeps track of the original data type.
+  onUploadProgress?: (event: AxiosProgressEvent) => void;
+  onDownloadProgress?: (event: AxiosProgressEvent) => void;
+  signal?: AbortSignal;
+  key: string;
+}
 
 /**
  * Defines the ContextType interface for managing global state, dispatching actions,
@@ -44,8 +57,8 @@ export interface ContextType {
   state: GlobalState;
   filteredState: GlobalState;
   dispatch: React.Dispatch<NetworkAction<unknown>>;
-  axios?: Axios;
   configs: DefaultConfigs;
+  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined) => Promise<void>;
 }
 
 /**
@@ -59,6 +72,9 @@ let Context = createContext<ContextType>({
   filteredState: {},
   dispatch() {},
   configs: {},
+  async execute() {
+
+  }
 });
 
 /**
@@ -83,7 +99,7 @@ export interface DefaultConfigs extends CreateAxiosDefaults {
 }
 
 export interface IntrigProviderProps {
-  configs?: Record<string, DefaultConfigs>;
+  configs?: DefaultConfigs;
   children: React.ReactNode;
 }
 
@@ -110,18 +126,101 @@ export function IntrigProvider({
     });
   }, [configs]);
 
-  const contextValue = useMemo(
-    () => ({
+  const contextValue = useMemo(() => {
+    async function execute<T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined) {
+      try {
+        dispatch(pending());
+        let response = await axiosInstance.request(request);
+
+        if (response.status >= 200 && response.status < 300) {
+          if (schema) {
+            let data = schema.safeParse(response.data);
+            if (!data.success) {
+              dispatch(
+                error(data.error.issues, response.status, request)
+              );
+              return;
+            }
+            dispatch(success(data.data));
+          } else {
+            dispatch(success(response.data));
+          }
+        } else {
+          dispatch(
+            error(response.data ?? response.statusText, response.status)
+          );
+        }
+      } catch (e: any) {
+        if (isAxiosError(e)) {
+          dispatch(error(e.response?.data, e.response?.status, request));
+        } else {
+          dispatch(error(e));
+        }
+      }
+    }
+
+    return {
       state,
       dispatch,
-      axios: axiosInstance,
       filteredState: state,
       configs,
-    }),
-    [state, axiosInstance]
-  );
+      execute,
+    };
+  }, [state, axiosInstance]);
 
   return <Context.Provider value={contextValue}>{children}</Context.Provider>;
+}
+
+export interface StubType<P, B, T> {
+  (hook: IntrigHook<P, B, T>, fn: (params: P, body: B, dispatch: (state: NetworkState<T>) => void) => Promise<void>): void
+}
+
+export interface IntrigProviderStubProps {
+  configs?: DefaultConfigs;
+  stubs?: (stub: StubType<any, any, any>) => void;
+  children: React.ReactNode;
+}
+
+export function IntrigProviderStub({ children, configs = {}, stubs = () => {} }: IntrigProviderStubProps) {
+  const [state, dispatch] = useReducer(requestReducer, {} as GlobalState);
+
+  const collectedStubs = useMemo(() => {
+    let fns: Record<string, (params: any, body: any, dispatch: (state: NetworkState<any>) => void) => Promise<void>> = {};
+    function stub<P, B, T>(hook: IntrigHook<P, B, T>, fn: (params: P, body: B, dispatch: (state: NetworkState<T>) => void) => Promise<void>) {
+      fns[hook.key] = fn;
+    }
+    stubs(stub);
+    return fns
+  }, [stubs]);
+
+  const contextValue = useMemo(() => {
+
+    async function execute<T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined) {
+      let stub = collectedStubs[request.key];
+
+      if (!!stub) {
+        try {
+          await stub(request.params, request.data, dispatch);
+        } catch (e) {
+          dispatch(error(e));
+        }
+      } else {
+        dispatch(init())
+      }
+    }
+
+    return {
+      state,
+      dispatch,
+      filteredState: state,
+      configs,
+      execute,
+    };
+  }, [state, dispatch, configs, collectedStubs]);
+
+  return <Context.Provider value={contextValue}>
+    {children}
+  </Context.Provider>
 }
 
 export interface StatusTrapProps {
@@ -235,7 +334,7 @@ export function useNetworkState<T>({
   debounceDelay: requestDebounceDelay,
 }: NetworkStateProps<T>): [
   NetworkState<T>,
-  (request: AxiosRequestConfig) => void,
+  (request: RequestType) => void,
   clear: () => void
 ] {
   const context = useContext(Context);
@@ -260,16 +359,12 @@ export function useNetworkState<T>({
     return requestDebounceDelay ?? context.configs?.debounceDelay ?? 0;
   }, [context.configs, requestDebounceDelay]);
 
-  const axios = useMemo(() => {
-    return context.axios!;
-  }, [context.axios]);
-
   const execute = useCallback(
-    async (request: AxiosRequestConfig) => {
+    async (request: RequestType) => {
       let abortController = new AbortController();
       setAbortController(abortController);
 
-      let requestConfig: AxiosRequestConfig = {
+      let requestConfig: RequestType = {
         ...request,
         onUploadProgress(event: AxiosProgressEvent) {
           dispatch(
@@ -294,35 +389,7 @@ export function useNetworkState<T>({
         signal: abortController.signal,
       };
 
-      try {
-        dispatch(pending());
-        let response = await axios.request(requestConfig);
-
-        if (response.status >= 200 && response.status < 300) {
-          if (schema) {
-            let data = schema.safeParse(response.data);
-            if (!data.success) {
-              dispatch(
-                error(data.error.issues, response.status, requestConfig)
-              );
-              return;
-            }
-            dispatch(success(data.data));
-          } else {
-            dispatch(success(response.data));
-          }
-        } else {
-          dispatch(
-            error(response.data ?? response.statusText, response.status)
-          );
-        }
-      } catch (e: any) {
-        if (isAxiosError(e)) {
-          dispatch(error(e.response?.data, e.response?.status, requestConfig));
-        } else {
-          dispatch(error(e));
-        }
-      }
+      await context.execute(requestConfig, dispatch, schema);
     },
     [networkState, context.dispatch, axios]
   );

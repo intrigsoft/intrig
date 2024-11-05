@@ -14,19 +14,21 @@ export function putRequestHookTemplate({source, paths, operationId, responseType
   let finalRequestBodyBlock = getDataTransformer(contentType)
 
   return ts`
-    import {useNetworkState} from "@intrig/client-next/intrig-provider"
-    import {NetworkState} from "@intrig/client-next/network-state";
-    ${requestBody ? `import { ${requestBody} as RequestBody } from "@intrig/client-next/${source}/components/schemas/${requestBody}"` : ''}
-    import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/${source}/components/schemas/${responseType}"
+    import {useNetworkState} from "@intrig/client-next/src/intrig-provider"
+    import {NetworkState, PutHook${isParamMandatory ? '' : 'Op'}} from "@intrig/client-next/network-state";
+    ${requestBody ? `import { ${requestBody} as RequestBody } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
+    import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${responseType}"
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
+    import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
-    import {${pascalCase(operationId)}Params} from './${pascalCase(operationId)}.params'
+    const operation = "PUT ${requestUrl}| ${contentType} -> ${responseMediaType}"
+    const source = "${source}"
 
-    export function use${pascalCase(operationId)}(key: string = "default"): [NetworkState<Response>, (${dispatchParams}) => void, () => void] {
+    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response>, (${dispatchParams}) => void, () => void] {
       let [state, dispatch, clear] = useNetworkState<Response>({
         key,
-        operation: "POST ${requestUrl}",
-        source: "${source}",
+        operation,
+        source,
         schema
       });
 
@@ -41,11 +43,18 @@ export function putRequestHookTemplate({source, paths, operationId, responseType
               "Content-Type": "${contentType}",
             },
             params,
-            ${finalRequestBodyBlock}
+            ${finalRequestBodyBlock},
+            key: \`${"${source}: ${operation}"}\`
           })
         },
         clear
       ]
     }
+
+    use${pascalCase(operationId)}Hook.key = \`${"${source}: ${operation}"}\`
+
+    export const use${pascalCase(operationId)}: PutHook${isParamMandatory ? '' : 'Op'}<Params, RequestBody, Response> = use${pascalCase(operationId)}Hook;
+
+
   `
 }

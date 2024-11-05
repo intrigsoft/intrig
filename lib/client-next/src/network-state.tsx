@@ -215,3 +215,23 @@ export type NetworkStateResult<P, T> = [
   (request: P) => void,
   clear: () => void
 ];
+
+type HookWithKey = {
+  key: string;
+}
+
+export type DeleteHook<P> = ((key?: string) => [NetworkState<never>, (params: P) => void, () => void]) & HookWithKey;
+export type DeleteHookOp<P> = ((key?: string) => [NetworkState<never>, (params?: P) => void, () => void]) & HookWithKey;
+export type GetHook<P, T> = ((key?: string) => [NetworkState<T>, (params: P) => void, () => void]) & HookWithKey;
+export type GetHookOp<P, T> = ((key?: string) => [NetworkState<T>, (params?: P) => void, () => void]) & HookWithKey;
+export type PostHook<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
+export type PostHookOp<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
+export type PutHook<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
+export type PutHookOp<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
+
+export type IntrigHook<P = undefined, B = undefined, T = any> = DeleteHook<P> | GetHook<P, T> | PostHook<P, T, B> | PutHook<P, T, B> | PostHookOp<P, T, B> | PutHookOp<P, T, B> | GetHookOp<P, T> | DeleteHookOp<P>;
+
+
+
+
+

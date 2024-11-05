@@ -17,9 +17,9 @@ export function getRequestMethodTemplate({source, paths, operationId, responseTy
   const modifiedRequestUrl = requestUrl.replace("{", "${")
 
   return ts`
-    import {getAxiosInstance} from "@intrig/client-next/axios.server"
-    import {transformResponse} from "@intrig/client-next/media-type-utils"
-    import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/${source}/components/schemas/${responseType}"
+    import {getAxiosInstance} from "@intrig/client-next/src/axios.server"
+    import {transformResponse} from "@intrig/client-next/src/media-type-utils"
+    import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${responseType}"
 
     import {${pascalCase(operationId)}Params} from './${pascalCase(operationId)}.params'
 

@@ -4,7 +4,7 @@ import * as path from 'path'
 
 export async function predev() {
   const sourceDir = path.resolve('node_modules/@intrig/client-next/__GENERATED__');
-  const destDir = path.resolve('src/app/__GENERATED__');
+  const destDir = path.resolve('src/app/api/__GENERATED__');
   const gitignorePath = path.resolve('.gitignore');
 
   try {
