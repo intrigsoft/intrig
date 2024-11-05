@@ -31,6 +31,7 @@ export function putRequestMethodTemplate({source, paths, operationId, responseTy
 
   return ts`
     import {getAxiosInstance} from "@intrig/client-next/axios.server"
+    import {transformResponse} from "@intrig/client-next/media-type-utils";
     ${requestBody ? `import { ${requestBody} as RequestBody } from "@intrig/client-next/${source}/components/schemas/${requestBody}"` : ''}
     import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/${source}/components/schemas/${responseType}"
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
@@ -48,7 +49,7 @@ export function putRequestMethodTemplate({source, paths, operationId, responseTy
             ${finalRequestBodyBlock}
           })
 
-          return transformResponse(data, "${responseMediaType}", schema);;
+          return transformResponse(responseData, "${responseMediaType}", schema);;
     }
   `
 }
