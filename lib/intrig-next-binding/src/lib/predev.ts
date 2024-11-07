@@ -3,8 +3,8 @@ import * as fs from 'fs-extra';
 import * as path from 'path'
 
 export async function predev() {
-  const sourceDir = path.resolve('node_modules/@intrig/client-next/__GENERATED__');
-  const destDir = path.resolve('src/app/api/__GENERATED__');
+  const sourceDir = path.resolve('node_modules/@intrig/client-next/(generated)');
+  const destDir = path.resolve('src/app/api/(generated)');
   const gitignorePath = path.resolve('.gitignore');
 
   try {
@@ -17,7 +17,7 @@ export async function predev() {
     if (await fs.pathExists(gitignorePath)) {
       gitignoreContent = await fs.readFile(gitignorePath, 'utf-8');
     }
-    const generatedEntry = '**/__GENERATED__';
+    const generatedEntry = '**/(generated)';
     if (!gitignoreContent.includes(generatedEntry)) {
       gitignoreContent += `\n${generatedEntry}`;
       await fs.writeFile(gitignorePath, gitignoreContent, 'utf-8');

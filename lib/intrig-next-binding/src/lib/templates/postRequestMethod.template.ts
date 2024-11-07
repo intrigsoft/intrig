@@ -8,15 +8,6 @@ import {
   decodeDispatchParams, getDataTransformer, generatePostfix
 } from '@intrig/cli-common';
 import * as path from 'path'
-
-const mediaTypeExtMapping = {
-  "application/json": "",
-  "multipart/form-data": ".multipart",
-  "application/octet-stream": ".bin",
-  "application/x-www-form-urlencoded": ".form",
-  "application/xml": ".xml"
-}
-
 export function postRequestMethodTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, requestBody, contentType, responseMediaType}: RequestProperties): CompiledOutput {
 
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `${camelCase(operationId)}${generatePostfix(contentType, responseMediaType)}.ts`))
@@ -30,13 +21,13 @@ export function postRequestMethodTemplate({source, paths, operationId, responseT
   let finalRequestBodyBlock = getDataTransformer(contentType)
 
   return ts`
-    import {getAxiosInstance} from "@intrig/client-next/src/axios.server"
+  import {getAxiosInstance} from "@intrig/client-next/src/intrig-middleware";
     import {transformResponse} from "@intrig/client-next/src/media-type-utils";
     ${requestBody ? `import { ${requestBody} as RequestBody } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
     import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${responseType}"
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
 
-    import {${pascalCase(operationId)}Params} from './${pascalCase(operationId)}.params'
+    import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
     export const ${camelCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
           let {${variableExplodeExpression}} = p

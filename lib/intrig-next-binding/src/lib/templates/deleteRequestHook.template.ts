@@ -11,7 +11,7 @@ import {
 export function deleteRequestHookTemplate({source, paths, operationId, requestUrl, variables, sourcePath}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}.ts`))
 
-  const modifiedRequestUrl = `/api/__GENERATED__/${source}${requestUrl.replace("{", "${")}`
+  const modifiedRequestUrl = `/api/${source}${requestUrl.replace("{", "${")}`
 
   let {variableExplodeExpression, isParamMandatory} = decodeVariables(variables, source);
 

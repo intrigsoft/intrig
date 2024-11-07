@@ -7,7 +7,6 @@ export function indexTemplate(_path: string): CompiledOutput {
 
   return ts`
   export * from './intrig-provider';
-  export * from './axios.server';
   export * from './network-state';
   `
 }

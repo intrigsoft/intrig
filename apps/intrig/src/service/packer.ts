@@ -4,11 +4,14 @@ import { exec } from 'child_process'
 import { promisify } from 'util'
 import cli from 'cli-ux'
 import {detectPackageManager} from "nypm";
+import { ContentGeneratorAdaptor } from '@intrig/cli-common';
 
 const execAsync = promisify(exec)
 
 export async function setupCacheAndInstall(
-  generateData: (path: string) => Promise<void>, generator: string): Promise<void> {
+  generateData: (path: string) => Promise<void>,
+  generator: string,
+  adaptor: ContentGeneratorAdaptor): Promise<void> {
   // const tempDir = path.join(os.tmpdir(), 'intrig_generated')
 
   const tempDir = path.join('.intrig', 'generated')
@@ -89,16 +92,10 @@ export async function setupCacheAndInstall(
   }
   cli.action.stop()
 
-  // Copy __GENERATED__ from src directory to target
-  cli.action.start('Copying __GENERATED__ files to project directory')
-  try {
-    const generatedSourceDir = path.join(tempDir, 'src', 'api', '__GENERATED__')
-    const generatedTargetDir = path.join(path.join(targetLibDir, ".."), '__GENERATED__')
-    await fs.copy(generatedSourceDir, generatedTargetDir)
-  } catch (e) {
-    console.error('Failed to copy __GENERATED__ files', e)
-  }
-  cli.action.stop()
+  await adaptor?.postCompile({
+    tempDir,
+    targetLibDir
+  })
 
   // Clean up the temp directory
   // cli.action.start('Cleaning up the temp directory')

@@ -18,12 +18,14 @@ export function packageJsonTemplate(_path: string) {
     "axios": "^1.7.7",
     "immer": "^10.1.1",
     "zod": "^3.23.8",
-    "fast-xml-parser": "^4.5.0"
+    "fast-xml-parser": "^4.5.0",
+    "loglevel": "1.8.1"
   },
   "peerDependencies": {
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "next": ">=13.0.0",
+    "next/server": ">=13.0.0",
   },
   "devDependencies": {
     "@types/glob": "^8.1.0"

@@ -9,10 +9,10 @@ export function deleteRequestMethodTemplate({source, paths, operationId, respons
   const modifiedRequestUrl = requestUrl.replace("{", "${")
 
   return ts`
-    import {getAxiosInstance} from "@intrig/client-next/src/axios.server"
-    import {${pascalCase(operationId)}Params} from './${pascalCase(operationId)}.params'
+    import {getAxiosInstance} from "@intrig/client-next/src/intrig-middleware";
+    import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
-    export async function ${camelCase(operationId)}({${variableExplodeExpression}}: ${pascalCase(operationId)}Params): Promise<${responseType ?? 'unknown'}> {
+    export async function ${camelCase(operationId)}({${variableExplodeExpression}}: Params): Promise<${responseType ?? 'unknown'}> {
           let result = await getAxiosInstance('${source}').request({
             method: 'delete',
             url: \`${modifiedRequestUrl}\`,

@@ -30,12 +30,12 @@ export function putRequestMethodTemplate({source, paths, operationId, responseTy
   let finalRequestBodyBlock = getDataTransformer(contentType)
 
   return ts`
-    import {getAxiosInstance} from "@intrig/client-next/src/axios.server"
+  import {getAxiosInstance} from "@intrig/client-next/src/intrig-middleware";
     import {transformResponse} from "@intrig/client-next/src/media-type-utils";
     ${requestBody ? `import { ${requestBody} as RequestBody } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
     import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${responseType}"
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
-    import {${pascalCase(operationId)}Params} from './${pascalCase(operationId)}.params'
+    import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
     export const ${camelCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
           let {${variableExplodeExpression}} = p

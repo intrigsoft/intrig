@@ -34,9 +34,15 @@ export interface SourceInfo {
   schemas: Record<string, OpenAPIV3_1.SchemaObject>
 }
 
+export interface PostCompileProps {
+  tempDir: string
+  targetLibDir: string
+}
+
 export interface ContentGeneratorAdaptor {
   generateSourceContent(api: IntrigSourceConfig, _path: string, spec: SourceInfo): void
   generateGlobalContent(path: string, apisToSync: IntrigSourceConfig[]): void
   postBuild(): Promise<void>
   predev(): Promise<void>
+  postCompile(props: PostCompileProps): Promise<void>
 }

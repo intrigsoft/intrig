@@ -57,23 +57,24 @@ export default class Sync extends Command {
       this.error(chalk.red('Please specify either --all or --ids'))
     }
 
+    let adaptor: ContentGeneratorAdaptor
+    switch (config.generator ?? 'react') {
+      case 'react':
+        adaptor = reactAdaptor
+        break;
+      case "next":
+        adaptor = nextAdaptor
+        break;
+    }
+
     await setupCacheAndInstall(async (_path) => {
-      let adaptor: ContentGeneratorAdaptor
-      switch (config.generator ?? 'react') {
-        case 'react':
-          adaptor = reactAdaptor
-          break;
-        case "next":
-          adaptor = nextAdaptor
-          break;
-      }
       for (const api of apisToSync) {
         let spec = await getOpenApiSpec(api.specUrl, config);
         let sourceInfo = extractEndpointInfo(api, spec);
         adaptor.generateSourceContent(api, _path, sourceInfo)
       }
       adaptor.generateGlobalContent(_path, apisToSync)
-    }, config.generator ?? 'react')
+    }, config.generator ?? 'react', adaptor)
   }
 
   private readConfig(): IntrigConfig {

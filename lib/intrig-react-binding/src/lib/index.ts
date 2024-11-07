@@ -9,5 +9,8 @@ export const adaptor: ContentGeneratorAdaptor = {
   },
   async predev(): Promise<void> {
 
+  },
+  async postCompile() {
+
   }
 }

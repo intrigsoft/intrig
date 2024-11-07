@@ -9,7 +9,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
 
   let {source, sourcePath} = paths[0]
 
-  const ts = typescript(path.resolve(sourcePath, 'src', "api", "__GENERATED__", source, ...parts, `route.ts`))
+  const ts = typescript(path.resolve(sourcePath, 'src', "api", "(generated)", source, ...parts, `route.ts`))
 
   function getFunctionName(path: RequestProperties) {
     return `${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)}`
@@ -44,7 +44,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
       case "get":
         imports.add(createImport(path))
         getBlocks.add(ts`
-        let response = await ${getFunctionName(path)}(params)
+        let response = await ${getFunctionName(path)}(params ?? {})
         return NextResponse.json(response, { status: 200})
         `.content)
         break;
@@ -53,7 +53,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
         postBlocks.add(ts`
         if (request.headers.get('Content-Type') === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
-          let response = await ${getFunctionName(path)}(body, params)
+          let response = await ${getFunctionName(path)}(body, params ?? {})
           return NextResponse.json(response, { status: 200})
         }
         `.content)
@@ -61,7 +61,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
       case "delete":
         imports.add(createImport(path))
         deleteBlocks.add(ts`
-        let response = await ${getFunctionName(path)}(params)
+        let response = await ${getFunctionName(path)}(params ?? {})
         return NextResponse.json(response, { status: 200})
         `.content)
         break;
@@ -70,7 +70,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
         putBlocks.add(ts`
         if (request.headers.get('Content-Type') === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
-          let response = await ${getFunctionName(path)}(body, params)
+          let response = await ${getFunctionName(path)}(body, params ?? {})
           return NextResponse.json(response, { status: 200})
         }
         `.content)
@@ -100,7 +100,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
 
               return NextResponse.json({ errors: formattedErrors }, { status: 400 });
             } else {
-              return NextResponse.json("An error occurred", { status: 500 })
+              return NextResponse.json(e, { status: 500 })
             }
           }
         }

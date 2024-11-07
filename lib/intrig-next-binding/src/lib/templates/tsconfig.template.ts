@@ -17,7 +17,8 @@ export function tsConfigTemplate(_path: string) {
     "paths": {
       "@intrig/client-next/*": [
         "./src/*"
-      ]
+      ],
+      "intrig-hook": ["src/config/intrig"]
     },
     "jsx": "react-jsx"
   },

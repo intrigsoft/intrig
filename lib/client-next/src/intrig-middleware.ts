@@ -1,5 +1,14 @@
-export function extractPathVariables(template: string, path: string) {
-  return new RegExp(
-    template.replace(/[{]/g, '(?<').replace(/[}]/g, '>[^/]+)')
-  ).exec(path)?.groups;
+import axios from 'axios';
+import { requestInterceptor } from 'intrig-hook';
+
+export function getAxiosInstance(key: string) {
+  let axiosInstance = axios.create({
+    baseURL: process.env[`${key.toUpperCase()}_API_URL`],
+  });
+
+  axiosInstance.interceptors.request.use(requestInterceptor);
+
+  return axiosInstance;
 }
+
+

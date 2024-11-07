@@ -10,7 +10,8 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@intrig/next-client/*": ["./src/*"]
+      "@intrig/next-client/*": ["./src/*"],
+      "intrig-hook": ["src/config/intrig"]
     },
     "jsx": "react-jsx"
   },
