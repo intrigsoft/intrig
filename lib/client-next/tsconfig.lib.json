@@ -1,7 +1,6 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "NodeNext",
     "outDir": "../../dist/out-tsc",
     "declaration": true,
     "types": ["node"]

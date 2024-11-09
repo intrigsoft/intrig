@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "eslint.config.js",
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/intrigsoft/intrig.git"
@@ -20,7 +19,8 @@
     "topicSeparator": " "
   },
   "dependencies": {
-    "@oclif/core": "^4.0.28"
+    "@oclif/core": "^4.0.28",
+    "open": "^10.1.0"
   },
   "devDependencies": {
     "@types/node": "^18.19.55",

@@ -1,0 +1,45 @@
+{
+  "name": "insight",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/web",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "dependsOn": ["^build", "build-custom-server", {
+        "projects": ["intrig"],
+        "target": "intrigbuild"
+      }]
+    },
+    "build-custom-server": {
+      "executor": "@nx/js:swc",
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/web",
+        "main": "apps/web/server/main.ts",
+        "tsConfig": "apps/web/tsconfig.server.json",
+        "clean": false,
+        "assets": []
+      },
+      "configurations": {
+        "development": {},
+        "production": {}
+      }
+    },
+    "serve-custom-server": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "production",
+      "options": {
+        "buildTarget": "insight:build-custom-server"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "insight:build-custom-server:development"
+        },
+        "production": {
+          "buildTarget": "insight:build-custom-server:production"
+        }
+      }
+    }
+  }
+}

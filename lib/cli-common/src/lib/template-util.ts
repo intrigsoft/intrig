@@ -62,7 +62,7 @@ export function decodeDispatchParams(operationId: string, requestBody?: string, 
 }
 
 export function getDataTransformer(contentType?: string) {
-  let finalRequestBodyBlock = ''
+  let finalRequestBodyBlock = 'data'
   switch (contentType) {
     case "application/json":
     case "application/octet-stream":

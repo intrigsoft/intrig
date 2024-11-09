@@ -30,6 +30,8 @@ export interface CompiledOutput {
 }
 
 export interface SourceInfo {
+  sourceInfo: OpenAPIV3_1.InfoObject,
+  controllers: OpenAPIV3_1.TagObject[],
   paths: RequestProperties[],
   schemas: Record<string, OpenAPIV3_1.SchemaObject>
 }

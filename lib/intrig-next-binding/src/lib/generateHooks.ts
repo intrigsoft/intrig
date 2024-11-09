@@ -1,14 +1,14 @@
 import {dump, IntrigSourceConfig, RequestProperties} from "@intrig/cli-common";
-import {getRequestHookTemplate} from "./templates/getRequestHook.template";
-import {postRequestHookTemplate} from "./templates/postRequestHook.template";
-import {putRequestHookTemplate} from "./templates/putRequestHook.template";
-import {deleteRequestHookTemplate} from "./templates/deleteRequestHook.template";
-import {deleteRequestMethodTemplate} from "./templates/deleteRequestMethod.template";
-import {getRequestMethodTemplate} from "./templates/getRequestMethod.template";
-import {postRequestMethodTemplate} from "./templates/postRequestMethod.template";
-import {putRequestMethodTemplate} from "./templates/putRequestMethod.template";
-import {paramsTemplate} from "./templates/params.template";
-import {requestRouteTemplate} from "./templates/requestRouteTemplate";
+import {getRequestHookTemplate} from "./templates/source/controller/method/getRequestHook.template";
+import {postRequestHookTemplate} from "./templates/source/controller/method/postRequestHook.template";
+import {putRequestHookTemplate} from "./templates/source/controller/method/putRequestHook.template";
+import {deleteRequestHookTemplate} from "./templates/source/controller/method/deleteRequestHook.template";
+import {deleteRequestMethodTemplate} from "./templates/source/controller/method/deleteRequestMethod.template";
+import {getRequestMethodTemplate} from "./templates/source/controller/method/getRequestMethod.template";
+import {postRequestMethodTemplate} from "./templates/source/controller/method/postRequestMethod.template";
+import {putRequestMethodTemplate} from "./templates/source/controller/method/putRequestMethod.template";
+import {paramsTemplate} from "./templates/source/controller/method/params.template";
+import {requestRouteTemplate} from "./templates/source/controller/method/requestRouteTemplate";
 
 export function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 

@@ -6,6 +6,17 @@
   "tags": [],
   "targets": {
     "build": {
+      "dependsOn": [
+        {
+          "target": "intrigbuild"
+        },
+        {
+          "projects": ["insight"],
+          "target": "build"
+        }
+      ]
+    },
+    "intrigbuild": {
       "executor": "@nx/esbuild:esbuild",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
@@ -17,11 +28,21 @@
         "main": "apps/intrig/src/main.ts",
         "tsConfig": "apps/intrig/tsconfig.app.json",
         "assets": [
-        "apps/intrig/src/assets",
-        {
+          "apps/intrig/src/assets",
+          {
             "input": "apps/intrig/bin",
             "output": "bin",
             "glob": "**/*"
+          },
+          {
+            "input": "apps/web/public",
+            "output": "web/public",
+            "glob": "**/*"
+          },
+          {
+            "input": "apps/intrig/src/assets",
+            "output": "web",
+            "glob": "next.config.js"
           }
         ],
         "generatePackageJson": true,
