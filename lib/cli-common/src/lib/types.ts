@@ -29,8 +29,14 @@ export interface CompiledOutput {
   content: string
 }
 
+export interface DocInfo {
+  info: OpenAPIV3_1.InfoObject,
+  servers: OpenAPIV3_1.ServerObject[],
+  externalDocs: OpenAPIV3_1.ExternalDocumentationObject
+}
+
 export interface SourceInfo {
-  sourceInfo: OpenAPIV3_1.InfoObject,
+  sourceInfo: DocInfo,
   controllers: OpenAPIV3_1.TagObject[],
   paths: RequestProperties[],
   schemas: Record<string, OpenAPIV3_1.SchemaObject>

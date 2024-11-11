@@ -43,4 +43,7 @@ export interface RequestProperties {
   requestUrl: string,
   variables: Variable[],
   sourcePath: string
+  description?: string
+  summary?: string
+  responseExamples?: Record<string, string>
 }

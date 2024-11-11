@@ -1,19 +1,16 @@
-import { getRoot } from '../services/getRoot';
+import * as fs from 'fs'
+import * as path from 'path'
+import { Documentation } from '@/components/Documentation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Index() {
 
-  const dirPath = await getRoot()
+  let filePath = path.resolve(process.cwd(), '../../docs/insight/introduction.md');
 
-  /*
-   * Replace the elements below with your own.
-   *
-   * Note: The corresponding styles are in the ./index.css file.
-   */
   return (
     <>
-      {dirPath}
+      <Documentation filePath={filePath} />
     </>
   );
 }

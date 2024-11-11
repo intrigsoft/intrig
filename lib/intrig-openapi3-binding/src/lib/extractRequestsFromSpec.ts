@@ -24,6 +24,8 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
           operationId: operation.operationId,
           sourcePath: "",
           method,
+          description: operation.description,
+          summary: operation.summary,
         }
 
         if (method.toLowerCase() === "delete") {
@@ -36,7 +38,11 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
             params = {
               ...params,
               responseType: ref.$ref.split("/").pop(),
-              responseMediaType: mediaType
+              responseMediaType: mediaType,
+              responseExamples: content.examples ? Object.fromEntries(
+                Object.entries(content.examples)
+                  .map(([k, v]) => ([k, JSON.stringify(v)])))
+                : {default: JSON.stringify(content.example)},
             }
 
             if (method.toLowerCase() === "get") {

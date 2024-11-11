@@ -5,11 +5,14 @@
   "projectType": "application",
   "tags": [],
   "targets": {
-    "build": {
+    "intrigbuild": {
       "dependsOn": ["^build", "build-custom-server", {
         "projects": ["intrig"],
         "target": "intrigbuild"
       }]
+    },
+    "build": {
+      "dependsOn": ["^build", "build-custom-server"]
     },
     "build-custom-server": {
       "executor": "@nx/js:swc",

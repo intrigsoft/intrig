@@ -12,7 +12,7 @@
         },
         {
           "projects": ["insight"],
-          "target": "build"
+          "target": "intrigbuild"
         }
       ]
     },
