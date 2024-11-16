@@ -12,7 +12,7 @@ export function deleteRequestMethodTemplate({source, paths, operationId, respons
     import {getAxiosInstance} from "@intrig/client-next/src/intrig-middleware";
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
-    export async function ${camelCase(operationId)}({${variableExplodeExpression}}: Params): Promise<${responseType ?? 'unknown'}> {
+    export const ${camelCase(operationId)}: (p: Params) => Promise<${responseType ?? 'unknown'}> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
           let result = await getAxiosInstance('${source}').request({
             method: 'delete',
             url: \`${modifiedRequestUrl}\`,

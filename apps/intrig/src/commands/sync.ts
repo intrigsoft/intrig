@@ -40,41 +40,45 @@ export default class Sync extends Command {
   }
 
   async run() {
-    const { flags } = await this.parse(Sync)
+    try {
+      const { flags } = await this.parse(Sync);
 
-    const config = this.readConfig()
+      const config = this.readConfig();
 
-    let apisToSync: IntrigSourceConfig[]
+      let apisToSync: IntrigSourceConfig[];
 
-    if (flags.all) {
-      apisToSync = config.sources
-    } else if (flags.ids) {
-      apisToSync = config.sources.filter(source => flags.ids?.includes(source.id))
-      if (apisToSync.length !== flags.ids.length) {
-        this.warn(chalk.yellow('Some specified API IDs were not found in the configuration.'))
+      if (flags.all) {
+        apisToSync = config.sources;
+      } else if (flags.ids) {
+        apisToSync = config.sources.filter(source => flags.ids?.includes(source.id));
+        if (apisToSync.length !== flags.ids.length) {
+          this.warn(chalk.yellow('Some specified API IDs were not found in the configuration.'));
+        }
+      } else {
+        this.error(chalk.red('Please specify either --all or --ids'));
       }
-    } else {
-      this.error(chalk.red('Please specify either --all or --ids'))
-    }
 
-    let adaptor: ContentGeneratorAdaptor
-    switch (config.generator ?? 'react') {
-      case 'react':
-        adaptor = reactAdaptor
-        break;
-      case "next":
-        adaptor = nextAdaptor
-        break;
-    }
-
-    await setupCacheAndInstall(async (_path) => {
-      for (const api of apisToSync) {
-        let spec = await getOpenApiSpec(api.specUrl, config);
-        let sourceInfo = extractEndpointInfo(api, spec);
-        adaptor.generateSourceContent(api, _path, sourceInfo)
+      let adaptor: ContentGeneratorAdaptor;
+      switch (config.generator ?? 'react') {
+        case 'react':
+          adaptor = reactAdaptor;
+          break;
+        case 'next':
+          adaptor = nextAdaptor;
+          break;
       }
-      adaptor.generateGlobalContent(_path, apisToSync)
-    }, config.generator ?? 'react', adaptor)
+
+      await setupCacheAndInstall(async (_path) => {
+        for (const api of apisToSync) {
+          let spec = await getOpenApiSpec(api.specUrl, config);
+          let sourceInfo = extractEndpointInfo(api, spec);
+          adaptor.generateSourceContent(api, _path, sourceInfo);
+        }
+        adaptor.generateGlobalContent(_path, apisToSync);
+      }, config.generator ?? 'react', adaptor);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   private readConfig(): IntrigConfig {

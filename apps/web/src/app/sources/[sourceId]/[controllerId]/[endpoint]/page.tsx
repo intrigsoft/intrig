@@ -1,67 +1,20 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Documentation } from '@/components/Documentation';
+import { NextRequest } from 'next/server';
+import { GENERATED_LOCATION } from '@/const/locations';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Index() {
+export default async function Index({ params: {sourceId, controllerId, endpoint}}: {params: {sourceId: string, controllerId: string, endpoint: string}} & NextRequest) {
 
-  let filePath = path.resolve(process.cwd(), 'src/docs/endpoint.md');
+  let filePath = path.resolve(GENERATED_LOCATION, 'generated', 'src', sourceId, controllerId, endpoint, 'doc.md');
 
-  let json = {
-    "id": "getPetById",
-    "description": "Returns a single pet",
-    "summary": "Find pet by ID",
-    "method": "get",
-    "requestUrl": "/pet/{petId}",
-    "endpoints": [
-      {
-        "source": "petstore",
-        "paths": ["pet"],
-        "variables": [
-          {
-            "name": "petId",
-            "in": "path",
-            "ref": "#/components/schemas/Pet$GetPetById$PetId"
-          }
-        ],
-        "requestUrl": "/pet/{petId}",
-        "operationId": "getPetById",
-        "sourcePath": "",
-        "method": "get",
-        "description": "Returns a single pet",
-        "summary": "Find pet by ID",
-        "responseType": "Pet",
-        "responseMediaType": "application/xml",
-        "responseExamples": {}
-      },
-      {
-        "source": "petstore",
-        "paths": ["pet"],
-        "variables": [
-          {
-            "name": "petId",
-            "in": "path",
-            "ref": "#/components/schemas/Pet$GetPetById$PetId"
-          }
-        ],
-        "requestUrl": "/pet/{petId}",
-        "operationId": "getPetById",
-        "sourcePath": "",
-        "method": "get",
-        "description": "Returns a single pet",
-        "summary": "Find pet by ID",
-        "responseType": "Pet",
-        "responseMediaType": "application/json",
-        "responseExamples": {}
-      }
-    ]
-  }
-
+  let content = fs.readFileSync(filePath, 'utf8');
 
   return (
     <>
-      <Documentation filePath={filePath} variables={json} />
+      <Documentation filePath={filePath} content={content} />
     </>
   );
 }

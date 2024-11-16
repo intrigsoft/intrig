@@ -11,7 +11,7 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false
   },
-  // distDir: '../../dist/apps/intrig/web/.next',
+  distDir: '../../dist/apps/intrig/web/.next',
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,

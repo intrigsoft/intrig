@@ -1,23 +1,20 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Documentation } from '@/components/Documentation';
+import { NextRequest } from 'next/server';
+import { GENERATED_LOCATION } from '@/const/locations';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Index() {
+export default async function Index({ params: {sourceId, controllerId}}: {params: {sourceId: string, controllerId: string}} & NextRequest) {
 
-  let filePath = path.resolve(process.cwd(), 'src/docs/controller.md');
+  let filePath = path.resolve(GENERATED_LOCATION, 'generated', 'src', sourceId, controllerId, 'doc.md');
 
-  let json = {
-    "id": "pet",
-    "name": "pet",
-    "description": "Everything about your Pets",
-    "externalDocs": { "description": "Find out more", "url": "http://swagger.io" }
-  }
+  let content = fs.readFileSync(filePath, 'utf8');
 
   return (
     <>
-      <Documentation filePath={filePath} variables={json} />
+      <Documentation filePath={filePath} content={content} />
     </>
   );
 }

@@ -12,6 +12,8 @@ import { QuickLink, QuickLinks } from '@/components/QuickLinks';
 import { Badge } from '@/catalyst/badge';
 import { Link } from '@/catalyst/link';
 import { TabbedFence } from '@/components/TabbedFence';
+import { CodeViewer, DataTypeViewer } from '@/components/DataTypeViewer';
+import { HierarchyView } from '@/components/HierarchyView';
 
 let documentSlugifyMap = new Map()
 const config: Config = {
@@ -146,6 +148,24 @@ const config: Config = {
         language: { type: String }
       },
       render: TabbedFence
+    },
+    dataType: {
+      attributes: {
+        type: { type: String }
+      },
+      render: DataTypeViewer
+    },
+    code: {
+      attributes: {
+        path: { type: String }
+      },
+      render: CodeViewer
+    },
+    hierarchy: {
+      attributes: {
+        filter: { type: String }
+      },
+      render: HierarchyView
     }
   }
 }
@@ -156,7 +176,13 @@ function Markdown({children}: PropsWithChildren<any>) {
   return Markdoc.renderers.react(content, React, {});
 }
 
-export function Documentation({ filePath, variables = {} }: { filePath: string, variables?: Record<string, any> }) {
+export interface DocumentationProps {
+  filePath: string,
+  content?: string,
+  variables?: Record<string, any>
+}
+
+export function Documentation({ filePath, content: defaultContent, variables = {} }: DocumentationProps) {
 
   let _config: Config = {
     ...config,
@@ -166,7 +192,7 @@ export function Documentation({ filePath, variables = {} }: { filePath: string, 
     }
   }
 
-  const source = fs.readFileSync(path.join(filePath), 'utf8');
+  const source = defaultContent ?? fs.readFileSync(path.join(filePath), 'utf8');
   const ast = Markdoc.parse(source);
   const content = Markdoc.transform(ast, _config);
   return Markdoc.renderers.react(content, React, {});

@@ -6,13 +6,12 @@ import yaml from 'yaml'
 export function sourceDocsTemplate(api: IntrigSourceConfig, _path: string, sourceInfo: DocInfo) {
   let md = markdownLiteral(path.resolve(_path, "src", api.id, "doc.md"))
 
-  return md`
----
+  return md`---
 ${yaml.stringify({
-    tags: [api.id, sourceInfo.info.version]
+    tags: [api.id, sourceInfo.info.version],
+    title: `${api.id} API (${sourceInfo.info.version})`,
   })}
 ---
-# ${api.id} API {% badge %} ${sourceInfo.info.version} {% /badge %}
 
 ## API information for ${sourceInfo.info.title}
 
@@ -21,5 +20,11 @@ ${sourceInfo.info.description}
 ${sourceInfo.externalDocs ? `[${sourceInfo.externalDocs.description}](${sourceInfo.externalDocs.url})` : ''}
 
 ${sourceInfo.info.termsOfService ? `[Terms of Service](${sourceInfo.info.termsOfService})` : ''}
+
+---
+
+## Included Endpoints
+
+{% hierarchy filter="/sources/${api.id}" %} {% /hierarchy %}
   `
 }

@@ -1,5 +1,4 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import * as path from 'path';
 import { Documentation } from '@/components/Documentation';
 
 export const dynamic = 'force-dynamic';

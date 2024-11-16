@@ -1,9 +1,3 @@
-import {CompiledOutput, typescript} from "@intrig/cli-common";
-import * as path from 'path'
-
-export function networkStateTemplate(_path: string): CompiledOutput {
-  const ts = typescript(path.resolve(_path, "src", "network-state.tsx"))
-  return ts`
 /**
  * State of an asynchronous call. Network state follows the state diagram given below.
  *
@@ -141,7 +135,7 @@ export interface ErrorState<T> extends NetworkState<T> {
   state: 'error';
   error: any;
   statusCode?: number;
-  request?: any
+  request?: any;
 }
 
 /**
@@ -159,12 +153,16 @@ export function isError<T>(state: NetworkState<T>): state is ErrorState<T> {
  * @param {string} [statusCode] - An optional status code associated with the error.
  * @return {ErrorState<T>} An object representing the error state.
  */
-export function error<T>(error: any, statusCode?: number, request?: any): ErrorState<T> {
+export function error<T>(
+  error: any,
+  statusCode?: number,
+  request?: any
+): ErrorState<T> {
   return {
     state: 'error',
     error,
     statusCode,
-    request
+    request,
   };
 }
 
@@ -212,7 +210,11 @@ export interface NetworkAction<T> {
  * @template P - The type of the parameter for the network request function.
  * @template T - The type of the data in the network state.
  */
-export type NetworkStateResult<P, T> = [NetworkState<T>, (request: P) => void, clear: () => void]
+export type NetworkStateResult<P, T> = [
+  NetworkState<T>,
+  (request: P) => void,
+  clear: () => void
+];
 
 type HookWithKey = {
   key: string;
@@ -222,12 +224,14 @@ export type DeleteHook<P> = ((key?: string) => [NetworkState<never>, (params: P)
 export type DeleteHookOp<P> = ((key?: string) => [NetworkState<never>, (params?: P) => void, () => void]) & HookWithKey;
 export type GetHook<P, T> = ((key?: string) => [NetworkState<T>, (params: P) => void, () => void]) & HookWithKey;
 export type GetHookOp<P, T> = ((key?: string) => [NetworkState<T>, (params?: P) => void, () => void]) & HookWithKey;
-export type PostHook<P, B, T> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
-export type PostHookOp<P, B, T> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
-export type PutHook<P, B, T> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
-export type PutHookOp<P, B, T> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
+export type PostHook<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
+export type PostHookOp<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
+export type PutHook<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
+export type PutHookOp<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
 
 export type IntrigHook<P = undefined, B = undefined, T = any> = DeleteHook<P> | GetHook<P, T> | PostHook<P, T, B> | PutHook<P, T, B> | PostHookOp<P, T, B> | PutHookOp<P, T, B> | GetHookOp<P, T> | DeleteHookOp<P>;
 
-  `
-}
+
+
+
+

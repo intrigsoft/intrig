@@ -2,8 +2,10 @@ import { dump, IntrigSourceConfig, RequestProperties, SourceInfo } from '@intrig
 import { sourceDocsTemplate } from './templates/source/sourceDocsTemplate';
 import { controllerDocsTempalte } from './templates/source/controller/controllerDocs.tempalte';
 import { methodDocsTempalte } from './templates/source/controller/method/methodDocs.tempalte';
+import { registryTemplate } from './templates/source/registry.template';
 
 export function generateSourceTemplates(api: IntrigSourceConfig, _path: string, spec: SourceInfo) {
+  dump(registryTemplate(api, _path, spec))
   dump(sourceDocsTemplate(api, _path, spec.sourceInfo))
   spec.controllers.forEach(tag => {
     dump(controllerDocsTempalte(api, _path, tag))
@@ -18,4 +20,5 @@ export function generateSourceTemplates(api: IntrigSourceConfig, _path: string, 
   Object.values(categorizedPaths).forEach(pathList => {
     dump(methodDocsTempalte(api, _path, pathList))
   })
+
 }

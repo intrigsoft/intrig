@@ -1,5 +1,5 @@
 import { OpenAPIV3_1 } from 'openapi-types';
-import {typescript} from "@intrig/cli-common";
+import { jsonLiteral, typescript } from '@intrig/cli-common';
 import * as path from 'path'
 
 export interface TypeTemplateParams {
@@ -14,23 +14,39 @@ export function typeTemplate({typeName, schema, sourcePath, paths}: TypeTemplate
 
   let ts = typescript(path.resolve(sourcePath, 'src', ...paths, `${typeName}.ts`));
 
+  let simpleType = jsonLiteral('')`${JSON.stringify(schema)}`.content;
+
   return ts`
   import { z } from 'zod'
 
   ${[...imports].join('\n')}
 
+  //--- Zod Schemas  ---//
+
   export const ${typeName}Schema = ${zodSchema}
 
+  //--- Typescript Type  ---//
+
   export type ${typeName} = ${tsType}
+
+  //--- JSON Schema  ---//
+
+  export const ${typeName}_jsonschema = ${JSON.stringify(schema) ?? "{}"}
+
+  //--- Simple Type  ---//
+  /*[${simpleType}]*/
   `
 }
 
 function isRef(schema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject): schema is OpenAPIV3_1.ReferenceObject {
-  return '$ref' in schema;
+  return  '$ref' in (schema ?? {});
 }
 
 // Helper function to convert OpenAPI schema types to TypeScript types and Zod schemas
 function openApiSchemaToZod(schema: OpenAPIV3_1.SchemaObject, imports: Set<string> = new Set()): { tsType: string; zodSchema: string; imports: Set<string> } {
+  if (!schema) {
+    return { tsType: 'any', zodSchema: 'z.any()', imports: new Set() };
+  }
   if (isRef(schema)) {
     return handleRefSchema(schema.$ref, imports);
   }
@@ -117,7 +133,7 @@ function handleArraySchema(schema: OpenAPIV3_1.ArraySchemaObject, imports: Set<s
     let zodSchema = `z.array(${itemZodSchema})`;
     if (schema.minItems !== undefined) zodSchema += `.min(${schema.minItems})`;
     if (schema.maxItems !== undefined) zodSchema += `.max(${schema.maxItems})`;
-    return { tsType: `${tsType}[]`, zodSchema, imports: new Set([...imports, ...itemImports]) };
+    return { tsType: `(${tsType})[]`, zodSchema, imports: new Set([...imports, ...itemImports]) };
   }
   throw new Error('Array schema must have an items property');
 }

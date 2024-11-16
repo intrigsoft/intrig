@@ -11,6 +11,20 @@ const nextConfig = {
     // Set this to true if you would like to use SVGR
     // See: https://github.com/gregberge/svgr
     svgr: false
+  },
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/,
+      issuer: /\.[jt]sx?$/,
+      use: ['@svgr/webpack'],
+    });
+
+    config.module.rules.push({
+      test: /\.md$/,
+      use: 'raw-loader',
+    })
+
+    return config;
   }
 };
 

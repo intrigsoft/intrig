@@ -22,14 +22,16 @@ import { Dialog, DialogPanel } from '@headlessui/react'
 import clsx from 'clsx'
 
 import { getNavigation } from '@/lib/navigation';
-import { type Result } from '@/markdoc/search.mjs'
+import axios from 'axios';
 
 type EmptyObject = Record<string, never>
 
 type Result = {
-  pageTitle: string
-  title: string
-  url: string
+  title: string;
+  tags: string[];
+  content: string;
+  signature: string;
+  url: string;
 }
 
 type Autocomplete = AutocompleteApi<
@@ -93,21 +95,26 @@ function useAutocomplete({
         navigate,
       },
       getSources({ query }) {
-        return []
-        // return import('@/markdoc/search.mjs').then(({ search }) => {
-        //   return [
-        //     {
-        //       sourceId: 'documentation',
-        //       getItems() {
-        //         return search(query, { limit: 5 })
-        //       },
-        //       getItemUrl({ item }) {
-        //         return item.url
-        //       },
-        //       onSelect: navigate,
-        //     },
-        //   ]
-        // })
+        return axios.get('/api/search', {
+          params: {
+            q: query,
+            size: 10
+          }
+        }).then((result) => {
+
+          return [
+            {
+              sourceId: 'documentation',
+              getItems() {
+                return result.data
+              },
+              getItemUrl({ item }) {
+                return item.url
+              },
+              onSelect: navigate,
+            }
+          ]
+        })
       },
     }),
   )
@@ -171,7 +178,7 @@ function SearchResult({
   let sectionTitle = getNavigation().find((section) =>
     section.links.find((link) => link.href === result.url.split('#')[0]),
   )?.title
-  let hierarchy = [sectionTitle, result.pageTitle].filter(
+  let hierarchy = [sectionTitle, result.signature].filter(
     (x): x is string => typeof x === 'string',
   )
 

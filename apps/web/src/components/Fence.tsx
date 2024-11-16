@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useState } from 'react';
-import { Highlight } from 'prism-react-renderer'
+import { Highlight, themes } from 'prism-react-renderer'
 import { ClipboardIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 export function Fence({
@@ -39,7 +39,7 @@ export function Fence({
       <Highlight
         code={children.trimEnd()}
         language={language}
-        theme={{ plain: {}, styles: [] }}
+        theme={{plain: {}, styles: []}}
       >
         {({ className, style, tokens, getTokenProps }) => (
           <pre className={className} style={style}>
@@ -61,3 +61,4 @@ export function Fence({
     </div>
   )
 }
+

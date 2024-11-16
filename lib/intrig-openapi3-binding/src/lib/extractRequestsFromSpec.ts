@@ -67,5 +67,5 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
 }
 
 function isOperationObject(ob: any): ob is OpenAPIV3_1.OperationObject {
-  return !!ob.responses
+  return !!ob.operationId
 }

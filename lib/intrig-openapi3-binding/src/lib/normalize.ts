@@ -24,6 +24,14 @@ export function normalize(spec: OpenAPIV3_1.Document) {
       for (let [method, operation] of Object.entries(pathItemObject)) {
         if (["get", "post", "put", "delete"].includes(method.toLowerCase())) {
           let operationOb = operation as OpenAPIV3_1.OperationObject;
+          operationOb.tags?.forEach(tag => {
+            draft.tags = draft.tags ?? []
+            if (!draft.tags.some(t => t.name === tag)) {
+              draft.tags.push({
+                name: tag
+              })
+            }
+          })
           if (!operationOb.operationId) {
             operationOb.operationId = camelCase(`${method.toLowerCase()}_${path.replace("/", "_")}`)
           }
