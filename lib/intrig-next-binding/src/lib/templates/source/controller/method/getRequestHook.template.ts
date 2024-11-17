@@ -2,8 +2,8 @@ import { camelCase, CompiledOutput, generatePostfix, typescript } from '@intrig/
 import * as path from 'path'
 import {decodeVariables, pascalCase, RequestProperties} from "@intrig/cli-common";
 
-export function getRequestHookTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath, responseMediaType}: RequestProperties): CompiledOutput {
-  const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(undefined, responseMediaType)}.ts`))
+export function getRequestHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, responseType}: RequestProperties): CompiledOutput {
+  const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(undefined, responseType)}.ts`))
 
   const modifiedRequestUrl = `/api/${source}${requestUrl.replace("{", "${")}`
 
@@ -13,14 +13,14 @@ export function getRequestHookTemplate({source, paths, operationId, responseType
     import { z } from 'zod'
     import {useNetworkState} from "@intrig/client-next/src/intrig-provider"
     import {NetworkState, GetHook${isParamMandatory ? '' : 'Op'}} from "@intrig/client-next/src/network-state";
-    ${responseType ? `import { ${responseType} as Response, ${responseType}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${responseType}"` : ''}
+    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${response}"` : ''}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
-    ${!responseType ? `
+    ${!response ? `
     type Response = any;
     const schema = z.any();
     ` : ''}
 
-    const operation = "GET ${requestUrl}| -> ${responseMediaType}"
+    const operation = "GET ${requestUrl}| -> ${responseType}"
     const source = "${source}"
 
     function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response>, (params: Params${isParamMandatory ? '' : ' | undefined'}) => void, () => void] {

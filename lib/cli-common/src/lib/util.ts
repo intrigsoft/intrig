@@ -38,8 +38,8 @@ export interface RequestProperties {
   operationId: string
   requestBody?: string
   contentType?: string
-  responseType?: string
-  responseMediaType?: string,
+  response?: string
+  responseType?: string,
   requestUrl: string,
   variables: Variable[],
   sourcePath: string

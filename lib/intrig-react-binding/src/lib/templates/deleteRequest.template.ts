@@ -2,7 +2,7 @@ import {CompiledOutput, typescript} from "@intrig/cli-common";
 import * as path from 'path'
 import {decodeVariables, pascalCase, RequestProperties} from "@intrig/cli-common";
 
-export function deleteRequestTemplate({source, paths, operationId, responseType, requestUrl, variables, sourcePath}: RequestProperties): CompiledOutput {
+export function deleteRequestTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', "lib", source, ...paths, `${operationId}.ts`))
 
   const modifiedRequestUrl = requestUrl.replace("{", "${")

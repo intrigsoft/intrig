@@ -1,5 +1,5 @@
-import * as path from 'path'
-import * as fs from 'fs'
+import * as path from 'path';
+import * as fs from 'fs';
 import { walkDirectory } from '@/services/walkDirectory';
 import { GENERATED_LOCATION } from '@/const/locations';
 
@@ -7,15 +7,21 @@ export interface EmbeddedCodes {
   [key: string]: string;
 }
 
-declare global {
-  var __embeddedCodes: Record<string, EmbeddedCodes>;
+export interface EmbeddedCodeSection {
+  tsType: Record<string, string>
+  zodSchema: Record<string, string>
+  jsonSchema: Record<string, string>
 }
 
-let embeddedCodes: Record<string, EmbeddedCodes> = {};
+declare global {
+  var __embeddedCodes: Record<string, EmbeddedCodeSection>;
+}
+
+let embeddedCodes: Record<string, EmbeddedCodeSection> = {};
 
 function addDocumentsToIndex() {
 
-  let typeMappings: Record<string, Record<string, string>> = {};
+  let typeMappings: Record<string, EmbeddedCodeSection> = {};
 
   fs.readdirSync(path.resolve(GENERATED_LOCATION, 'generated', 'src'))
     .filter((file) => file !== 'api')
@@ -27,20 +33,48 @@ function addDocumentsToIndex() {
         return
       }
 
-      let appBasedMapping: Record<string, string> = {}
+      let appBasedMapping: EmbeddedCodeSection = {
+        tsType: {},
+        zodSchema: {},
+        jsonSchema: {},
+      }
 
-      const extractTypeDefinitions = (code: string, location: string): void => {
-        let sections: Record<string, string> = {}
-        code.split("//---").map((section) => {
-          let [name, code] = section.split("---//")
-          sections[name.trim()] = code?.trim()
-        })
-        let [def, impl] = sections['Typescript Type'].split('=');
+      function extractDef(section: string) {
+        let [def, ...content] = section.split(/=/);
 
-        appBasedMapping[location] = impl
-      };
+        // @ts-ignore
+        let { groups } = /export (\w+) (?<name>[\w$]+)/.exec(def)!;
+        return {
+          def: groups?.['name'] ?? '',
+          content: content.join('=').trim()
+        }
+      }
 
-      let directoryPath = path.resolve(GENERATED_LOCATION, 'generated', 'src', apiId, 'components', 'schemas');
+      function extractTypeDefinitions(code: string, location: string): void {
+        let sections: Record<string, string> = {};
+        code.split('//---').map((section) => {
+          let [name, code] = section.split('---//');
+          sections[name.trim()] = code?.trim();
+        });
+
+        let tsType = extractDef(sections['Typescript Type']);
+        appBasedMapping.tsType[tsType.def] = tsType.content;
+
+        let schema = extractDef(sections['Zod Schemas']);
+        appBasedMapping.zodSchema[schema.def] = schema.content;
+
+        let jsonSchema = extractDef(sections['JSON Schema']);
+        appBasedMapping.jsonSchema[jsonSchema.def] = jsonSchema.content;
+      }
+
+      let directoryPath = path.resolve(
+        GENERATED_LOCATION,
+        'generated',
+        'src',
+        apiId,
+        'components',
+        'schemas'
+      );
       walkDirectory(directoryPath, (filePath, stats) => {
         if (stats.isFile() && filePath.endsWith('.ts')) {
           let content = fs.readFileSync(filePath, 'utf-8');
@@ -54,6 +88,11 @@ function addDocumentsToIndex() {
 }
 
 if (!global.__embeddedCodes) {
+  global.__embeddedCodes = {}
+  addDocumentsToIndex();
+}
+
+export function reindex() {
   global.__embeddedCodes = {}
   addDocumentsToIndex();
 }

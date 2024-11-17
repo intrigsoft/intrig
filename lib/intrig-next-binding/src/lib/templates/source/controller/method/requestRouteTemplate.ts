@@ -12,14 +12,14 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
   const ts = typescript(path.resolve(sourcePath, 'src', "api", "(generated)", source, ...parts, `route.ts`))
 
   function getFunctionName(path: RequestProperties) {
-    return `${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)}`
+    return `${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseType)}`
   }
 
   function createImport(path: RequestProperties) {
-    if (path.contentType === "application/json" && path.responseMediaType === "application/json") {
+    if (path.contentType === "application/json" && path.responseType === "application/json") {
       return `import { ${camelCase(path.operationId)} } from "@intrig/client-next/src/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}"`
     }
-    return `import { ${camelCase(path.operationId)} as ${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)} } from "@intrig/client-next/src/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseMediaType)}"`
+    return `import { ${camelCase(path.operationId)} as ${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseType)} } from "@intrig/client-next/src/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseType)}"`
   }
 
   let imports = new Set<string>()

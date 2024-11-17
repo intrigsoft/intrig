@@ -11,12 +11,12 @@ import {deleteRequestTemplate} from "./templates/deleteRequest.template";
 export function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 
   function handleGet(params: RequestProperties) {
-    if (params.responseMediaType !== "application/json") return;
+    if (params.responseType !== "application/json") return;
     dump(getRequestTemplate(params))
   }
 
   function handlePost(params: RequestProperties) {
-    if (params.responseMediaType !== "application/json") return;
+    if (params.responseType !== "application/json") return;
     switch (params.contentType) {
       case "application/json":
         dump(postRequestTemplate(params))
@@ -31,7 +31,7 @@ export function generateHooks(api: IntrigSourceConfig, _path: string, paths: Req
   }
 
   function handlePut(params: RequestProperties) {
-    if (params.responseMediaType !== "application/json") return;
+    if (params.responseType !== "application/json") return;
     switch (params.contentType) {
       case "application/json":
         dump(putRequestTemplate(params))

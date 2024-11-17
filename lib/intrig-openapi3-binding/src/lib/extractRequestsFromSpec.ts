@@ -37,8 +37,8 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
 
             params = {
               ...params,
-              responseType: ref.$ref.split("/").pop(),
-              responseMediaType: mediaType,
+              response: ref.$ref.split("/").pop(),
+              responseType: mediaType,
               responseExamples: content.examples ? Object.fromEntries(
                 Object.entries(content.examples)
                   .map(([k, v]) => ([k, JSON.stringify(v)])))

@@ -17,6 +17,7 @@
     "@types/inquirer": "^9.0.7",
     "axios": "^1.7.7",
     "change-case": "^5.4.4",
+    "chokidar": "^4.0.1",
     "cli-table3": "^0.6.5",
     "cli-ux": "^6.0.9",
     "clsx": "^2.1.1",

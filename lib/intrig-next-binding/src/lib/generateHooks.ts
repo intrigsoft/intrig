@@ -9,6 +9,8 @@ import {postRequestMethodTemplate} from "./templates/source/controller/method/po
 import {putRequestMethodTemplate} from "./templates/source/controller/method/putRequestMethod.template";
 import {paramsTemplate} from "./templates/source/controller/method/params.template";
 import {requestRouteTemplate} from "./templates/source/controller/method/requestRouteTemplate";
+import { clientIndexTemplate } from './templates/source/controller/method/clientIndex.template';
+import { serverIndexTemplate } from './templates/source/controller/method/serverIndex.template';
 
 export function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 
@@ -36,6 +38,11 @@ export function generateHooks(api: IntrigSourceConfig, _path: string, paths: Req
     dump(deleteRequestMethodTemplate(params))
   }
 
+  function handleIndexes(params: RequestProperties) {
+    dump(clientIndexTemplate(params))
+    dump(serverIndexTemplate(params))
+  }
+
   const groupedByPath: Record<string, RequestProperties[]> = {}
 
   for (let path of paths) {
@@ -56,6 +63,10 @@ export function generateHooks(api: IntrigSourceConfig, _path: string, paths: Req
       case "delete":
         handleDelete(path);
         break;
+    }
+    if ((!path.responseType || path.responseType === 'application/json')
+      && (!path.contentType || path.contentType === 'application/json')) {
+      handleIndexes(path);
     }
     groupedByPath[path.requestUrl] = groupedByPath[path.requestUrl] ?? []
     groupedByPath[path.requestUrl].push(path)

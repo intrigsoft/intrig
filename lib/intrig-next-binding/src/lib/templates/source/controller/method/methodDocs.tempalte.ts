@@ -22,8 +22,8 @@ export function methodDocsTempalte(
     contentType,
     variables,
     requestBody,
+    response,
     responseType,
-    responseMediaType,
   } = endpoints[0];
   let md = markdownLiteral(
     path.resolve(_path, 'src', api.id, ...paths, operationId, 'doc.md')
@@ -41,7 +41,7 @@ export function methodDocsTempalte(
 
   let content = `---
 ${yaml.stringify({
-    tags: [api.id, methodName, ...paths, hookName, method, requestUrl, operationId, contentType, responseMediaType],
+    tags: [api.id, methodName, ...paths, hookName, method, requestUrl, operationId, contentType, responseType],
     title: `${operationId}`,
     requestSignature: `${method.toUpperCase()} ${requestUrl}`,
   })}
@@ -113,19 +113,19 @@ ${queryParams
 `
     : ``
 }${
-  responseMediaType
+  responseType
     ? `
 * Response Type
-* ${responseMediaType}
+* ${responseType}
 ---
 `
     : ``
 }${
-  responseType
+  response
     ? `
 * Response
 *
-  {% dataType type="${responseType}" %} {% /dataType %}
+  {% dataType type="${response}" %} {% /dataType %}
 ---
 `
     : ``

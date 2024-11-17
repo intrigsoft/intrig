@@ -1,34 +1,33 @@
-'use client'
-import { SearchResult } from '@/services/flexIndex';
+'use client';
 import { useEffect, useMemo, useState } from 'react';
 import TreeView, { buildHierarchy } from '@/components/TreeView';
 import { useSearch } from '@/services/flexIndex.client';
 import { isSuccess } from '@/services/network-state';
-import { Text } from '@/catalyst/text';
 import { Input } from '@/catalyst/input';
 
 export function HierarchyView({ filter }: { filter: string }) {
-
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
 
   let [result, search, clear] = useSearch();
 
   useEffect(() => {
-    search(filter)
-    return clear
-  }, [])
+    search(filter);
+    return clear;
+  }, []);
 
   let filteredNodes = useMemo(() => {
     if (isSuccess(result)) {
-      let searchResults = result.data.filter(a => a.url.startsWith(filter + '/'));
-      return buildHierarchy(searchResults, filter.split('/').length - 1)
+      let searchResults = result.data.filter((a) =>
+        a.url.startsWith(filter + '/')
+      );
+      return buildHierarchy(searchResults, filter.split('/').length - 1);
     } else {
-      return buildHierarchy([])
+      return buildHierarchy([]);
     }
-  }, [result])
+  }, [result]);
 
   useEffect(() => {
-    search(searchTerm.trim().length > 0 ? searchTerm.trim() : filter)
+    search(searchTerm.trim().length > 0 ? searchTerm.trim() : filter);
   }, [searchTerm]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,21 +36,13 @@ export function HierarchyView({ filter }: { filter: string }) {
   };
 
   const clearSearch = () => {
-    setSearchTerm("");
-
+    setSearchTerm('');
   };
 
   return (
     <div className="w-full">
       <div className="relative mb-4">
-        <Input onChange={handleSearch} />
-        {/*<input*/}
-        {/*  type="text"*/}
-        {/*  value={searchTerm}*/}
-        {/*  onChange={handleSearch}*/}
-        {/*  placeholder="Search..."*/}
-        {/*  className="px-4 py-2 border rounded w-full bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-600"*/}
-        {/*/>*/}
+        <Input onChange={handleSearch} value={searchTerm} placeholder="Filter" />
         {searchTerm && (
           <button
             onClick={clearSearch}
