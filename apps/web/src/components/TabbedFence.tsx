@@ -4,7 +4,7 @@ import { Fence } from '@/components/Fence';
 import { CheckIcon, ClipboardIcon } from '@heroicons/react/24/outline';
 import { Highlight } from 'prism-react-renderer';
 
-export function TabbedFence({children, language}: PropsWithChildren<{ language: string }>) {
+export function TabbedFence({children, language}: { language: string, children: any }) {
 
   let tabs = [...children]
 

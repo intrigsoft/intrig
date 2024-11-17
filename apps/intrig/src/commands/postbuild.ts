@@ -10,7 +10,7 @@ export default class Postbuild extends Command {
 
   }
 
-  static override description = 'describe the command here'
+  static override description = 'Post build action for the Intrig CLI'
 
   static override examples = [
     '<%= config.bin %> <%= command.id %>',

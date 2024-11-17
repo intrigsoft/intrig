@@ -1,7 +1,7 @@
 import * as chokidar from 'chokidar';
 import path from 'path';
 import _ from 'lodash';
-import { GENERATED_LOCATION } from '@/const/locations';
+import { INTRIG_LOCATION } from '@/const/locations';
 import {reindex as flexIndexReload} from './flexIndex'
 import {reindex as codeIndexReload} from './codeIndex'
 
@@ -12,10 +12,11 @@ declare global {
       generatedContentWatcher?: chokidar.FSWatcher;
     }
   }
+  var generatedContentWatcher: chokidar.FSWatcher
 }
 
 if (!global.generatedContentWatcher) {
-  const directoryToWatch = path.join(GENERATED_LOCATION, );
+  const directoryToWatch = path.join(INTRIG_LOCATION, );
 
   const updateIndexes = _.debounce(() => {
     console.log('Reloading')

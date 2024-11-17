@@ -20,7 +20,7 @@ const config: Config = {
   nodes: {
     document: {
       ...defaultNodes.document,
-      render: DocsLayout,
+      render: DocsLayout as any,
       transform(node, config) {
         documentSlugifyMap.set(config, slugifyWithCounter())
 
@@ -61,7 +61,7 @@ const config: Config = {
       },
     },
     fence: {
-      render: Fence,
+      render: Fence as any,
       attributes: {
         language: {
           type: String,
@@ -74,17 +74,18 @@ const config: Config = {
 
         let src = node.attributes.src;
 
-        if (typeof window === 'undefined') {
-          // Check if the src is a local file path or an external URL
-          if (!src.startsWith('http://') && !src.startsWith('https://')) {
-            // Resolve the path relative to the markdown file
-            const resolvedPath = path.resolve(path.dirname(config.variables?._filePath ?? ''), src);
-            const fileContent = fs.readFileSync(resolvedPath);
-            src = `data:image/*;base64,${fileContent.toString('base64')}`;
-          }
-        } else {
-          throw new Error('File system access is not available in the browser environment.');
-        }
+        // if (typeof window === 'undefined') {
+        //   // Check if the src is a local file path or an external URL
+        //   if (!src.startsWith('http://') && !src.startsWith('https://')) {
+        //     console.log(node, config)
+        //     // Resolve the path relative to the markdown file
+        //     // const resolvedPath = path.resolve(path.dirname(config.variables?._filePath ?? ''), src);
+        //     // const fileContent = fs.readFileSync(resolvedPath);
+        //     // src = `data:image/*;base64,${fileContent.toString('base64')}`;
+        //   }
+        // } else {
+        //   throw new Error('File system access is not available in the browser environment.');
+        // }
 
         return new Tag('img', { src, alt: node.attributes.alt || '' }, []);
       },
@@ -101,7 +102,7 @@ const config: Config = {
           errorLevel: 'critical',
         },
       },
-      render: Callout,
+      render: Callout as any,
     },
     figure: {
       selfClosing: true,
@@ -110,20 +111,20 @@ const config: Config = {
         alt: { type: String },
         caption: { type: String },
       },
-      render: ({ src, alt = '', caption }) => (
+      render: (({ src, alt = '', caption }: {src: string, alt: string, caption: string}) => (
         <figure>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={src} alt={alt} />
           <figcaption>{caption}</figcaption>
         </figure>
-      ),
+      )) as any,
     },
     'quick-links': {
-      render: QuickLinks,
+      render: QuickLinks as any,
     },
     'quick-link': {
       selfClosing: true,
-      render: QuickLink,
+      render: QuickLink as any,
       attributes: {
         title: { type: String },
         description: { type: String },
@@ -132,40 +133,40 @@ const config: Config = {
       },
     },
     badge: {
-      render: Badge
+      render: Badge as any
     },
     markdown: {
-      render: Markdown
+      render: Markdown as any
     },
     link: {
       attributes: {
         href: { type: String }
       },
-      render: Link
+      render: Link as any
     },
-    tabbedFence: {
-      attributes: {
-        language: { type: String }
-      },
-      render: TabbedFence
-    },
+    // tabbedFence: {
+    //   attributes: {
+    //     language: { type: String }
+    //   },
+    //   render: TabbedFence as any
+    // },
     dataType: {
       attributes: {
         type: { type: String }
       },
-      render: DataTypeViewer
+      render: DataTypeViewer as any
     },
     code: {
       attributes: {
         path: { type: String }
       },
-      render: CodeViewer
+      render: CodeViewer as any
     },
     hierarchy: {
       attributes: {
         filter: { type: String }
       },
-      render: HierarchyView
+      render: HierarchyView as any
     }
   }
 }

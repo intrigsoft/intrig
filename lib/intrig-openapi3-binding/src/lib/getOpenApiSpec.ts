@@ -1,8 +1,11 @@
-import {get as httpsGet} from 'https'
-import {get as httpGet} from 'http'
-import RefParser from '@apidevtools/json-schema-ref-parser'
-import {OpenAPIV3_1,} from 'openapi-types'
-import {IntrigConfig} from '@intrig/cli-common'
+import { get as httpsGet } from 'https';
+import { get as httpGet } from 'http';
+import RefParser from '@apidevtools/json-schema-ref-parser';
+import { OpenAPIV3_1 } from 'openapi-types';
+import { IntrigConfig } from '@intrig/cli-common';
+import { normalize } from './normalize';
+import { getLatestVersion, saveOpenApiDocument } from './openApiVersionManager';
+import { cli } from 'cli-ux';
 
 async function fetchSpec(url: string, rejectUnauthorized: boolean): Promise<string> {
   return new Promise<string>((resolve, reject) => {
@@ -33,5 +36,28 @@ export async function getOpenApiSpec(url: string, config: IntrigConfig): Promise
     } else {
       throw new Error(`An unknown error occurred while fetching OpenAPI spec from ${url}`)
     }
+  }
+}
+
+export async function syncOpenApiSpec(url: string, id: string, config: IntrigConfig): Promise<void> {
+  cli.action.start(`Fetching OpenAPI spec from ${url}`)
+  let spec = await getOpenApiSpec(url, config);
+  cli.action.stop()
+
+  cli.action.start(`Normalizing OpenAPI spec`)
+  let normalized = normalize(spec);
+  cli.action.stop()
+
+  cli.action.start(`Saving OpenAPI spec`)
+  await saveOpenApiDocument(id, normalized.info.version, JSON.stringify(normalized, null, 2));
+  cli.action.stop()
+}
+
+export async function getOpenApiSpecFromFile(id: string): Promise<OpenAPIV3_1.Document> {
+  try {
+    cli.action.start(`Fetching OpenAPI spec from git`)
+    return await getLatestVersion(id);
+  } catch (e: any) {
+    cli.action.stop()
   }
 }

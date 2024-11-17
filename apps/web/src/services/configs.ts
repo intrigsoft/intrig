@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { GENERATED_LOCATION } from '@/const/locations';
+import { INTRIG_LOCATION } from '@/const/locations';
 
 export interface IntrigSourceConfig {
   id: string;
@@ -21,6 +21,6 @@ export interface IntrigConfig {
 }
 
 export function getConfig(): IntrigConfig {
-  let s = fs.readFileSync(path.resolve(GENERATED_LOCATION, '..', 'intrig.config.json'), 'utf8');
+  let s = fs.readFileSync(path.resolve(INTRIG_LOCATION, '..', 'intrig.config.json'), 'utf8');
   return JSON.parse(s) as IntrigConfig;
 }

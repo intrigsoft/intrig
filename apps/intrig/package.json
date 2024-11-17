@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "@oclif/core": "^4.0.28",
-    "open": "^10.1.0"
+    "open": "^10.1.0",
+    "openapi-diff": "^0.23.7"
   },
   "devDependencies": {
     "@types/node": "^18.19.55",

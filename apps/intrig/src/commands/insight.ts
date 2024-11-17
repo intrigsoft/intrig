@@ -3,7 +3,6 @@ import { createServer } from 'http';
 import { parse } from 'node:url';
 import * as path from 'path';
 import next from 'next';
-import open from 'open';
 
 export default class Insight extends Command {
 
@@ -26,6 +25,8 @@ export default class Insight extends Command {
     const port = flags.port;
     const hostname = process.env.HOST || 'localhost';
 
+    const open = await import('open');
+
     // Set the directory and environment mode for Next.js
     const dir = process.env.NX_NEXT_DIR || path.join(__dirname, '../../../../web');
     const dev = false;
@@ -43,7 +44,7 @@ export default class Insight extends Command {
       });
 
       server.listen(port, hostname, () => {
-        open(`http://${hostname}:${port}`)
+        open.default(`http://${hostname}:${port}`)
       });
     };
 

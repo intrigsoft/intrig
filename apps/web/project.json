@@ -6,7 +6,7 @@
   "tags": [],
   "targets": {
     "intrigbuild": {
-      "dependsOn": ["^build", "build-custom-server", {
+      "dependsOn": ["^build", "build", "build-custom-server", {
         "projects": ["intrig"],
         "target": "intrigbuild"
       }]

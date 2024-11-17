@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import Markdoc, { RenderableTreeNode } from '@markdoc/markdoc';
 import yaml from 'yaml';
-import { GENERATED_LOCATION } from '@/const/locations';
+import { INTRIG_LOCATION } from '@/const/locations';
 import { walkDirectory } from '@/services/walkDirectory';
 
 export interface SearchResult {
@@ -17,20 +17,21 @@ export interface SearchResult {
 
 declare global {
   // Extending the global object to include swaggerIndex
-  var swaggerIndex: Document<SearchResult> | undefined;
+  var swaggerIndex: Document<SearchResult, string[]> | undefined;
 }
 
-let index: Document<SearchResult>;
+let index: Document<SearchResult, string[]>;
 
 function createIndex() {
   console.log('Creating new index');
-  global.swaggerIndex = new FlexSearch.Document<SearchResult>({
+  global.swaggerIndex = new FlexSearch.Document<SearchResult, string[]>({
     document: {
       id: "url",
       index: ["url", "title", "content", "tags", "signature"],
       store: ["title", "content", "tags", "url", "signature"],
     },
     tokenize: "forward",
+    // @ts-ignore
     suggest: true,
     cache: true,
     context: {
@@ -45,7 +46,7 @@ function addDocumentsToIndex() {
 
   const swaggerDocs: SearchResult[] = [];
 
-  walkDirectory(path.resolve(GENERATED_LOCATION, 'generated', 'src'  /*__dirname, '../../src/api'*/), (filePath, stats) => {
+  walkDirectory(path.resolve(INTRIG_LOCATION, 'generated', 'src'  /*__dirname, '../../src/api'*/), (filePath, stats) => {
     if (stats.isFile() && path.extname(filePath) === '.md') {
       let content = fs.readFileSync(filePath, 'utf8');
       let ast = Markdoc.parse(content);
@@ -66,7 +67,7 @@ function addDocumentsToIndex() {
         tags,
         signature,
         content: data,
-        url: `/sources/${path.relative(path.resolve(GENERATED_LOCATION, 'generated', 'src'), path.dirname(filePath))}`
+        url: `/sources/${path.relative(path.resolve(INTRIG_LOCATION, 'generated', 'src'), path.dirname(filePath))}`
       };
 
       swaggerDocs.push(entry)
@@ -81,19 +82,20 @@ export function reindex() {
   addDocumentsToIndex();
 }
 
-fs.watch(GENERATED_LOCATION, { recursive: true }, (eventType, filename) => {
+fs.watch(INTRIG_LOCATION, { recursive: true }, (eventType, filename) => {
   console.log('File changed', eventType, filename);
   reindex()
 })
 
 if (!global.swaggerIndex) {
-  global.swaggerIndex = new FlexSearch.Document<SearchResult>({
+  global.swaggerIndex = new FlexSearch.Document<SearchResult, string[]>({
     document: {
       id: "url",
       index: ["url", "title", "content", "tags", "signature"],
       store: ["url", "title", "content", "tags", "signature"],
     },
     tokenize: "forward",
+    // @ts-ignore
     suggest: true,
     cache: true,
     context: {
@@ -124,6 +126,7 @@ function extractText(node: RenderableTreeNode): string {
 }
 
 export function search(query: string, limit?: number): SearchResult[] {
+  // @ts-ignore
   const results = index.search(query, {
     enrich: true,
     suggest: true,

@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   description: 'Backend API integration assistant for Intrig',
 }
 
-const inter = Inter({
-  subsets: ['latin'],
+const inter = localFont({
+  src: '../fonts/Inter-Regular.woff2',
   display: 'swap',
   variable: '--font-inter',
 })

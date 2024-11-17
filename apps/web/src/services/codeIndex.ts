@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { walkDirectory } from '@/services/walkDirectory';
-import { GENERATED_LOCATION } from '@/const/locations';
+import { INTRIG_LOCATION } from '@/const/locations';
 
 export interface EmbeddedCodes {
   [key: string]: string;
@@ -23,11 +23,11 @@ function addDocumentsToIndex() {
 
   let typeMappings: Record<string, EmbeddedCodeSection> = {};
 
-  fs.readdirSync(path.resolve(GENERATED_LOCATION, 'generated', 'src'))
+  fs.readdirSync(path.resolve(INTRIG_LOCATION, 'generated', 'src'))
     .filter((file) => file !== 'api')
     .forEach((apiId) => {
 
-      const apiPath = path.resolve(GENERATED_LOCATION, 'generated', 'src', apiId);
+      const apiPath = path.resolve(INTRIG_LOCATION, 'generated', 'src', apiId);
 
       if (!fs.statSync(apiPath).isDirectory()) {
         return
@@ -68,7 +68,7 @@ function addDocumentsToIndex() {
       }
 
       let directoryPath = path.resolve(
-        GENERATED_LOCATION,
+        INTRIG_LOCATION,
         'generated',
         'src',
         apiId,

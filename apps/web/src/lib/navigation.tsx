@@ -35,7 +35,6 @@ export function NavigationProvider({children}: PropsWithChildren) {
   useEffect(() => {
     axios.get('/api/navigation/left')
       .then(resp => {
-        console.log(resp.data);
         setNavigations(resp.data)
       })
   }, []);

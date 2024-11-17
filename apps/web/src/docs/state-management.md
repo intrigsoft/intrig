@@ -10,7 +10,7 @@ Intrig introduces a new generic type `NetworkState<T>`. It follows a predefined 
 
 **Network State Diagram**
 
-![Network State Diagram](./images/state-diagram.png)
+![Network State Diagram](state-diagram.png)
 
 - **Init**: This state indicates that the network call has not yet been initiated.
 - **Pending**: Once the call is initiated, the `NetworkState` moves to the Pending state. Loaders can be rendered during this state.

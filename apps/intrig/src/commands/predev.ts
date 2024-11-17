@@ -11,7 +11,7 @@ export default class Predev extends Command {
   static override args = {
   };
 
-  static override description = 'Copy routes to main project';
+  static override description = 'Pre dev action for Intrig CLI.';
 
   static override examples = [
     '$ intrig predev',
