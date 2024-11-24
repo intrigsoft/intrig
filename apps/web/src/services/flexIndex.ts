@@ -46,33 +46,35 @@ function addDocumentsToIndex() {
 
   const swaggerDocs: SearchResult[] = [];
 
-  walkDirectory(path.resolve(INTRIG_LOCATION, 'generated', 'src'  /*__dirname, '../../src/api'*/), (filePath, stats) => {
-    if (stats.isFile() && path.extname(filePath) === '.md') {
-      let content = fs.readFileSync(filePath, 'utf8');
-      let ast = Markdoc.parse(content);
-      let tags: string[] = [];
-      let title = '';
-      let signature = '';
-      if (ast.attributes.frontmatter) {
-        let frontmatter = yaml.parse(ast.attributes.frontmatter);
-        tags = frontmatter['tags'];
-        title = frontmatter['title'];
-        signature = frontmatter['requestSignature'] ?? '';
+  if (fs.existsSync(path.resolve(INTRIG_LOCATION, 'generated', 'src'))) {
+    walkDirectory(path.resolve(INTRIG_LOCATION, 'generated', 'src'), (filePath, stats) => {
+      if (stats.isFile() && path.extname(filePath) === '.md') {
+        let content = fs.readFileSync(filePath, 'utf8');
+        let ast = Markdoc.parse(content);
+        let tags: string[] = [];
+        let title = '';
+        let signature = '';
+        if (ast.attributes.frontmatter) {
+          let frontmatter = yaml.parse(ast.attributes.frontmatter);
+          tags = frontmatter['tags'];
+          title = frontmatter['title'];
+          signature = frontmatter['requestSignature'] ?? '';
+        }
+        let transformed = Markdoc.transform(ast);
+        let data = extractText(transformed);
+
+        let entry: SearchResult = {
+          title,
+          tags,
+          signature,
+          content: data,
+          url: `/sources/${path.relative(path.resolve(INTRIG_LOCATION, 'generated', 'src'), path.dirname(filePath))}`
+        };
+
+        swaggerDocs.push(entry)
       }
-      let transformed = Markdoc.transform(ast);
-      let data = extractText(transformed);
-
-      let entry: SearchResult = {
-        title,
-        tags,
-        signature,
-        content: data,
-        url: `/sources/${path.relative(path.resolve(INTRIG_LOCATION, 'generated', 'src'), path.dirname(filePath))}`
-      };
-
-      swaggerDocs.push(entry)
-    }
-  })
+    })
+  }
 
   swaggerDocs.forEach((doc) => global.swaggerIndex?.add(doc));
 }

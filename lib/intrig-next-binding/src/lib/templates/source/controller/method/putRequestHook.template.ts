@@ -15,9 +15,9 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
 
   return ts`
   import { z } from 'zod'
-    import {useNetworkState} from "@intrig/client-next/src/intrig-provider"
-    import {NetworkState, PutHook${isParamMandatory ? '' : 'Op'}} from "@intrig/client-next/network-state";
-    ${requestBody ? `import { ${requestBody} as RequestBody } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
+    import {useNetworkState} from "@intrig/client-next/intrig-provider"
+    import {NetworkState, PutHook${isParamMandatory ? '' : 'Op'}, error, DispatchState, successfulDispatch, validationError} from "@intrig/client-next/network-state";
+    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
@@ -30,7 +30,7 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
     const operation = "PUT ${requestUrl}| ${contentType} -> ${responseType}"
     const source = "${source}"
 
-    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response>, (${dispatchParams}) => void, () => void] {
+    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response>, (${dispatchParams}) => DispatchState<any>, () => void] {
       let [state, dispatch, clear] = useNetworkState<Response>({
         key,
         operation,
@@ -42,6 +42,14 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
         state,
         (${dispatchParamExpansion}) => {
           let { ${variableExplodeExpression}} = p
+
+          ${requestBody ? `
+          const validationResult = requestBodySchema.safeParse(data);
+          if (!validationResult.success) {
+            return validationError(validationResult.error.errors);
+          }
+          ` : ``}
+
           dispatch({
             method: 'put',
             url: \`${modifiedRequestUrl}\`,
@@ -52,6 +60,7 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
             ${finalRequestBodyBlock},
             key: \`${"${source}: ${operation}"}\`
           })
+          return successfulDispatch();
         },
         clear
       ]

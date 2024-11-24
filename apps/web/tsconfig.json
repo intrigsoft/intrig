@@ -28,7 +28,9 @@
     "module": "esnext",
     "moduleResolution": "node",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
   "include": [
@@ -44,7 +46,8 @@
     "dist/types/**/*.ts",
     "dist/apps/intrig/web/.next/types/**/*.ts",
     "../../dist/apps/intrig/web/.next/types/**/*.ts",
-    "../dist/apps/intrig/web/.next/types/**/*.ts"
+    "../dist/apps/intrig/web/.next/types/**/*.ts",
+    "../../dist/.next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

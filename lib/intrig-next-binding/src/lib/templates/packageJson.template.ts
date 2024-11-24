@@ -19,6 +19,7 @@ export function packageJsonTemplate(_path: string) {
     "immer": "^10.1.1",
     "zod": "^3.23.8",
     "fast-xml-parser": "^4.5.0",
+    "date-fns": "^4.1.0",
     "loglevel": "1.8.1"
   },
   "peerDependencies": {

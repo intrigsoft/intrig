@@ -92,20 +92,57 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string;
   }
 
   let zodSchema = 'z.string()';
+  let tsType = 'string';
+
   if (schema.format === 'date' && !schema.pattern) {
-    zodSchema = 'z.string().date()';
-  } else if (schema.format === 'time' && !schema.pattern) {
-    zodSchema = 'z.string().time()';
+    tsType = 'Date';
+    zodSchema = 'z.date()';
+    zodSchema += `.transform((val) => {
+        const parsedDate = new Date(val);
+        if (isNaN(parsedDate.getTime())) {
+          throw new Error('Invalid date format');
+        }
+        return parsedDate;
+    })`;
+  } else if (schema.format === 'time') {
+    zodSchema = 'z.string()';
+    if (schema.pattern) {
+      zodSchema += `.regex(new RegExp('${schema.pattern}'))`;
+    }
   } else if (schema.format === 'date-time' && !schema.pattern) {
-    zodSchema = 'z.string().datetime()';
+    tsType = 'Date';
+    zodSchema = 'z.date()';
+    zodSchema += `.transform((val) => {
+        const parsedDateTime = new Date(val);
+        if (isNaN(parsedDateTime.getTime())) {
+          throw new Error('Invalid date-time format');
+        }
+        return parsedDateTime;
+    })`;
   } else if (schema.format === 'binary') {
+    tsType = 'Blob';
     zodSchema = 'z.instanceof(Blob)';
+  } else if (schema.format === 'byte') {
+    tsType = 'Buffer';
+    zodSchema = 'z.string().transform((val) => Buffer.from(val, "base64"))';
+  } else if (schema.format === 'email') {
+    zodSchema = 'z.string().email()';
+  } else if (schema.format === 'uuid') {
+    zodSchema = 'z.string().uuid()';
+  } else if (schema.format === 'uri') {
+    zodSchema = 'z.string().url()';
+  } else if (schema.format === 'hostname') {
+    zodSchema = 'z.string()'; // Zod does not have a direct hostname validator
+  } else if (schema.format === 'ipv4') {
+    zodSchema =  'z.string().regex(/^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/)';
+  } else if (schema.format === 'ipv6') {
+    zodSchema = 'z.string().regex(/^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,3}:){1,4}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,5}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,6}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,7}|:)|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1[0-9]|0?[0-9][0-9]?)\.){3}([0-9a-fA-F]{1,7}|[0-9a-fA-F]{1,4}))$/)';
   } else {
     if (schema.minLength !== undefined) zodSchema += `.min(${schema.minLength})`;
     if (schema.maxLength !== undefined) zodSchema += `.max(${schema.maxLength})`;
     if (schema.pattern !== undefined) zodSchema += `.regex(new RegExp('${schema.pattern}'))`;
   }
-  return { tsType: 'string', zodSchema, imports: new Set() };
+  return { tsType, zodSchema, imports: new Set() };
 }
 
 function handleNumberSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string; zodSchema: string; imports: Set<string> } {

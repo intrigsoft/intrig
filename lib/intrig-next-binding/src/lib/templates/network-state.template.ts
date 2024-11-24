@@ -229,5 +229,38 @@ export type PutHookOp<P, B, T> = ((key?: string) => [NetworkState<T>, (body: B, 
 
 export type IntrigHook<P = undefined, B = undefined, T = any> = DeleteHook<P> | GetHook<P, T> | PostHook<P, T, B> | PutHook<P, T, B> | PostHookOp<P, T, B> | PutHookOp<P, T, B> | GetHookOp<P, T> | DeleteHookOp<P>;
 
+export interface DispatchState<T> {
+  state: string
+}
+
+export interface SuccessfulDispatch<T> extends DispatchState<T>{
+  state: 'success'
+}
+
+export function successfulDispatch<T>(): DispatchState<T> {
+  return {
+    state: 'success'
+  }
+}
+
+export function isSuccessfulDispatch<T>(value: DispatchState<T>): value is SuccessfulDispatch<T> {
+  return value.state === 'success'
+}
+
+export interface ValidationError<T> extends DispatchState<T>{
+  state: 'validation-error'
+  error: any
+}
+
+export function validationError<T>(error: any): ValidationError<T> {
+  return {
+    state: 'validation-error',
+    error
+  }
+}
+
+export function isValidationError<T>(value: DispatchState<T>): value is ValidationError<T> {
+  return value.state === 'validation-error'
+}
   `
 }

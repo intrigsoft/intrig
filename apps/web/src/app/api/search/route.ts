@@ -1,6 +1,8 @@
 import { search } from '@/services/flexIndex'
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   let q = request.nextUrl.searchParams.get('q') ?? '';
   let size = request.nextUrl.searchParams.get('size');

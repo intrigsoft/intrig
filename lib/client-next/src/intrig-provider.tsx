@@ -172,7 +172,11 @@ export function IntrigProvider({
 }
 
 export interface StubType<P, B, T> {
-  (hook: IntrigHook<P, B, T>, fn: (params: P, body: B, dispatch: (state: NetworkState<T>) => void) => Promise<void>): void
+  <P, B, T>(hook: IntrigHook<P, B, T>, fn: (params: P, body: B, dispatch: (state: NetworkState<T>) => void) => Promise<void>): void
+}
+
+export type WithStubSupport<T> = T & {
+  stubs?: (stub: StubType<any, any, any>) => void;
 }
 
 export interface IntrigProviderStubProps {
@@ -335,7 +339,8 @@ export function useNetworkState<T>({
 }: NetworkStateProps<T>): [
   NetworkState<T>,
   (request: RequestType) => void,
-  clear: () => void
+  clear: () => void,
+  (state: NetworkState<T>) => void
 ] {
   const context = useContext(Context);
 
@@ -346,7 +351,7 @@ export function useNetworkState<T>({
       (context.state?.[`${source}:${operation}:${key}`] as NetworkState<T>) ??
       init()
     );
-  }, [context.state[key]]);
+  }, [context.state?.[`${source}:${operation}:${key}`]]);
 
   const dispatch = useCallback(
     (state: NetworkState<T>) => {
@@ -407,7 +412,7 @@ export function useNetworkState<T>({
     });
   }, [dispatch, abortController]);
 
-  return [networkState, deboundedExecute, clear];
+  return [networkState, deboundedExecute, clear, dispatch];
 }
 
 function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {

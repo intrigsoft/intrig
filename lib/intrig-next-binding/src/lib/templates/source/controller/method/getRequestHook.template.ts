@@ -12,7 +12,7 @@ export function getRequestHookTemplate({source, paths, operationId, response, re
   return ts`
     import { z } from 'zod'
     import {useNetworkState} from "@intrig/client-next/src/intrig-provider"
-    import {NetworkState, GetHook${isParamMandatory ? '' : 'Op'}} from "@intrig/client-next/src/network-state";
+    import {NetworkState, GetHook${isParamMandatory ? '' : 'Op'}, DispatchState, successfulDispatch} from "@intrig/client-next/network-state";
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${response}"` : ''}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
     ${!response ? `
@@ -23,7 +23,7 @@ export function getRequestHookTemplate({source, paths, operationId, response, re
     const operation = "GET ${requestUrl}| -> ${responseType}"
     const source = "${source}"
 
-    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response>, (params: Params${isParamMandatory ? '' : ' | undefined'}) => void, () => void] {
+    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response>, (params: Params${isParamMandatory ? '' : ' | undefined'}) => DispatchState<any>, () => void] {
       let [state, dispatch, clear] = useNetworkState<Response>({
         key,
         operation,
@@ -41,6 +41,7 @@ export function getRequestHookTemplate({source, paths, operationId, response, re
             params,
             key: \`${"${source}: ${operation}"}\`
           })
+          return successfulDispatch();
         },
         clear
       ]

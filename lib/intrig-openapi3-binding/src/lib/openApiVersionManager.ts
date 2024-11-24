@@ -8,7 +8,7 @@ const readdir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
-const apiVersionsDir = path.join(__dirname, '.intrig', 'specs');
+const apiVersionsDir = path.join(process.cwd(), '.intrig', 'specs');
 const indexFileName = 'index.json';
 
 interface VersionIndex {
@@ -67,7 +67,7 @@ export async function saveOpenApiDocument(apiName: string, version: string, cont
   await writeFile(indexPath, JSON.stringify(index, null, 2));
   cli.action.stop();
 
-  cli.info(`Saved OpenAPI document: ${fileName}`);
+  cli.info(`Saved OpenAPI document: ${indexPath}${fileName}`);
 }
 
 export async function getLatestVersion(apiName: string): Promise<any> {

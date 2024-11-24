@@ -26,6 +26,9 @@ const nextConfig = {
 
     return config;
   },
+  env: {
+    NEXT_FORCE_SERVER_SIDE: "true"
+  }
 };
 
 const plugins = [

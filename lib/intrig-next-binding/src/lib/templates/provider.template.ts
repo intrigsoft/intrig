@@ -159,7 +159,11 @@ export function IntrigProvider({children, configs = {}}: IntrigProviderProps) {
 }
 
 export interface StubType<P, B, T> {
-  (hook: IntrigHook<P, B, T>, fn: (params: P, body: B, dispatch: (state: NetworkState<T>) => void) => Promise<void>): void
+  <P, B, T>(hook: IntrigHook<P, B, T>, fn: (params: P, body: B, dispatch: (state: NetworkState<T>) => void) => Promise<void>): void
+}
+
+export type WithStubSupport<T> = T & {
+  stubs?: (stub: StubType<any, any, any>) => void;
 }
 
 export interface IntrigProviderStubProps {
@@ -306,7 +310,7 @@ export function useNetworkState<T>({key, operation, source, schema, debounceDela
 
   const networkState = useMemo(() => {
     return (context.state?.[\`${"${source}:${operation}:${key}"}\`] as NetworkState<T>) ?? init()
-  }, [context.state[key]]);
+  }, [context.state?.[\`${"${source}:${operation}:${key}"}\`]]);
 
   const dispatch = useCallback((state: NetworkState<T>) => {
     context.dispatch({key, operation, source, state})

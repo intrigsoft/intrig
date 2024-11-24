@@ -21,6 +21,13 @@ export interface IntrigConfig {
 }
 
 export function getConfig(): IntrigConfig {
-  let s = fs.readFileSync(path.resolve(INTRIG_LOCATION, '..', 'intrig.config.json'), 'utf8');
-  return JSON.parse(s) as IntrigConfig;
+  if (fs.existsSync(path.resolve(INTRIG_LOCATION, '..', 'intrig.config.json'))) {
+    let s = fs.readFileSync(path.resolve(INTRIG_LOCATION, '..', 'intrig.config.json'), 'utf8');
+    return JSON.parse(s) as IntrigConfig;
+  } else {
+    return {
+      sources: [],
+      generator: 'next',
+    } as IntrigConfig
+  }
 }

@@ -139,7 +139,7 @@ ${queryParams
 To use the generated async function, import {% code path="${api.id}/${paths.join('/')}/${methodName}/${methodName}" %}\`${methodName}\`{% /code %} into your component as follows:
 
 \`\`\`tsx
-import { ${methodName} } from '@intrig/client-next/src/${api.id}/${paths.join('/')}/${methodName}/${methodName}';
+import { ${methodName} } from '@intrig/client-next/src/${api.id}/${paths.join('/')}/${methodName}/server';
 \`\`\`
 
 #### 2. Using the ${methodName} function in your component.
@@ -170,7 +170,7 @@ export async function MyComponent() {
 To use the generated hook, import {% code path="${api.id}/${paths.join('/')}/${methodName}/${hookName}" %}\`${hookName}\`{% /code %} into your component as follows:
 
 \`\`\`tsx
-import { ${hookName} } from '@intrig/client-next/src/${api.id}/${paths.join('/')}/${methodName}/${hookName}';
+import { ${hookName} } from '@intrig/client-next/src/${api.id}/${paths.join('/')}/${methodName}/client';
 \`\`\`
 
 #### 2. Import utility methods

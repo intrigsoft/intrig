@@ -18,8 +18,8 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
 
   return ts`
   import { z } from 'zod'
-  import {getAxiosInstance} from "@intrig/client-next/src/intrig-middleware";
-    import {transformResponse} from "@intrig/client-next/src/media-type-utils"
+  import {getAxiosInstance} from "@intrig/client-next/intrig-middleware";
+    import {transformResponse} from "@intrig/client-next/media-type-utils"
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${response}"` : ''}
 
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
