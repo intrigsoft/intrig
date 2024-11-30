@@ -1,5 +1,3 @@
-import { T } from 'vitest/dist/reporters-yx5ZTtEV';
-
 /**
  * State of an asynchronous call. Network state follows the state diagram given below.
  *
@@ -201,23 +199,6 @@ export interface NetworkAction<T> {
   handled?: boolean;
 }
 
-/**
- * Represents the result of a network state operation.
- *
- * @typedef {Array} NetworkStateResult
- * @property {NetworkState<T>} 0 - The current state of the network operation.
- * @property {function(P): void} 1 - Function to initiate the network request.
- * @property {function(): void} 2 - Function to clear the current network state.
- *
- * @template P - The type of the parameter for the network request function.
- * @template T - The type of the data in the network state.
- */
-export type NetworkStateResult<P, T> = [
-  NetworkState<T>,
-  (request: P) => void,
-  clear: () => void
-];
-
 type HookWithKey = {
   key: string;
 }
@@ -233,29 +214,69 @@ export type PutHookOp<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, 
 
 export type IntrigHook<P = undefined, B = undefined, T = any> = DeleteHook<P> | GetHook<P, T> | PostHook<P, T, B> | PutHook<P, T, B> | PostHookOp<P, T, B> | PutHookOp<P, T, B> | GetHookOp<P, T> | DeleteHookOp<P>;
 
+/**
+ * Represents the dispatch state of a process.
+ *
+ * @template T The type of the state information.
+ * @interface
+ *
+ * @property {string} state The current state of the dispatch process.
+ */
 export interface DispatchState<T> {
   state: string
 }
 
+/**
+ * Represents a successful dispatch state.
+ *
+ * @template T - Type of the data associated with the dispatch.
+ *
+ * @extends DispatchState<T>
+ *
+ * @property {string} state - The state of the dispatch, always 'success'.
+ */
 export interface SuccessfulDispatch<T> extends DispatchState<T>{
   state: 'success'
 }
 
+/**
+ * Indicates a successful dispatch state.
+ *
+ * @return {DispatchState<T>} An object representing a successful state.
+ */
 export function successfulDispatch<T>(): DispatchState<T> {
   return {
     state: 'success'
   }
 }
 
+/**
+ * Determines if the provided dispatch state represents a successful dispatch.
+ *
+ * @param {DispatchState<T>} value - The dispatch state to check.
+ * @return {value is SuccessfulDispatch<T>} - True if the dispatch state indicates success, false otherwise.
+ */
 export function isSuccessfulDispatch<T>(value: DispatchState<T>): value is SuccessfulDispatch<T> {
   return value.state === 'success'
 }
 
+/**
+ * ValidationError interface represents a specific type of dispatch state
+ * where a validation error has occurred.
+ *
+ * @typeparam T - The type of the data associated with this dispatch state.
+ */
 export interface ValidationError<T> extends DispatchState<T>{
   state: 'validation-error'
   error: any
 }
 
+/**
+ * Generates a ValidationError object.
+ *
+ * @param error The error details that caused the validation to fail.
+ * @return The ValidationError object containing the error state and details.
+ */
 export function validationError<T>(error: any): ValidationError<T> {
   return {
     state: 'validation-error',
@@ -263,6 +284,12 @@ export function validationError<T>(error: any): ValidationError<T> {
   }
 }
 
+/**
+ * Determines if a provided DispatchState object is a ValidationError.
+ *
+ * @param {DispatchState<T>} value - The DispatchState object to evaluate.
+ * @return {boolean} - Returns true if the provided DispatchState object is a ValidationError, otherwise returns false.
+ */
 export function isValidationError<T>(value: DispatchState<T>): value is ValidationError<T> {
   return value.state === 'validation-error'
 }

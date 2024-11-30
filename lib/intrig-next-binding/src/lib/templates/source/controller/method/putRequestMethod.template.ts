@@ -22,9 +22,9 @@ export function putRequestMethodTemplate({source, paths, operationId, response, 
 
   return ts`
   import { z } from 'zod'
-  import {getAxiosInstance} from "@intrig/client-next/intrig-middleware";
-    import {transformResponse} from "@intrig/client-next/media-type-utils";
-    ${requestBody ? `import { ${requestBody} as RequestBody } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
+  import {getAxiosInstance} from "@intrig/client-next/src/intrig-middleware";
+    import {transformResponse} from "@intrig/client-next/src/media-type-utils";
+    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
@@ -35,6 +35,7 @@ export function putRequestMethodTemplate({source, paths, operationId, response, 
     ` : ''}
 
     export const ${camelCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
+          requestBodySchema.parse(data);
           let {${variableExplodeExpression}} = p
           let { data: responseData } = await getAxiosInstance('${source}').request({
             method: 'put',

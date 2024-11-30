@@ -12,10 +12,15 @@ export const navigation = [
   {
     title: 'Core concepts',
     links: [
-      { title: 'Intrig Ideology', href: '/core-concepts/ideology' },
+      // { title: 'Intrig Ideology', href: '/core-concepts/ideology' },
+      { title: 'Introduction to Intrig', href: '/core-concepts/introduction-to-intrig' },
+      { title: 'Core Technologies', href: '/core-concepts/core-technologies' },
+      { title: 'Intrig Generated Code', href: '/core-concepts/intrig-generated-code' },
+      { title: 'Generated Documentation', href: '/core-concepts/generated-documentation' },
       { title: 'State Management', href: '/core-concepts/state-management' },
+      { title: 'Storybook Integration', href: '/core-concepts/storybook-integration' },
       { title: 'CLI Usage', href: '/core-concepts/cli-usage'},
-      { title: 'Patterns and Best Practices', href: '/core-concepts/patterns-and-best-practices' }
+      // { title: 'Patterns and Best Practices', href: '/core-concepts/patterns-and-best-practices' }
     ],
   }
 ]

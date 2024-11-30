@@ -15,8 +15,8 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
 
   return ts`
   import { z } from 'zod'
-    import {useNetworkState} from "@intrig/client-next/intrig-provider"
-    import {NetworkState, PutHook${isParamMandatory ? '' : 'Op'}, error, DispatchState, successfulDispatch, validationError} from "@intrig/client-next/network-state";
+    import {useNetworkState} from "@intrig/client-next/src/intrig-provider"
+    import {NetworkState, PutHook${isParamMandatory ? '' : 'Op'}, error, DispatchState, successfulDispatch, validationError} from "@intrig/client-next/src/network-state";
     ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}

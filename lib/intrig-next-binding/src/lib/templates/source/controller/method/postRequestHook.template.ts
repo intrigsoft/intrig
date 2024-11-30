@@ -23,8 +23,8 @@ export function postRequestHookTemplate({source, paths, operationId, response, r
 
   return ts`
     import { z } from 'zod'
-    import {useNetworkState} from "@intrig/client-next/intrig-provider"
-    import {NetworkState, PostHook${isParamMandatory ? '' : 'Op'}, error, successfulDispatch, validationError} from "@intrig/client-next/src/network-state";
+    import {useNetworkState} from "@intrig/client-next/src/intrig-provider"
+    import {NetworkState, PostHook${isParamMandatory ? '' : 'Op'}, DispatchState, error, successfulDispatch, validationError} from "@intrig/client-next/src/network-state";
     ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
