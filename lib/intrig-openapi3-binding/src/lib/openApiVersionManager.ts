@@ -3,6 +3,7 @@ import * as path from 'path';
 import { promisify } from 'util';
 import * as openApiDiff from 'openapi-diff';
 import { cli } from 'cli-ux';
+import compareSwaggerDocs from './openapi3-diff';
 
 const readdir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
@@ -34,22 +35,14 @@ export async function saveOpenApiDocument(apiName: string, version: string, cont
     const latestContentPath = path.join(apiDir, latestEntry.fileName);
     const latestContent = await readFile(latestContentPath, 'utf8');
 
-    cli.action.start('Comparing OpenAPI documents');
-    const result = await openApiDiff.diffSpecs({
-      sourceSpec: {
-        content: latestContent,
-        location: latestEntry.fileName,
-        format: 'openapi3',
-      },
-      destinationSpec: {
-        content,
-        location: 'new_spec.json',
-        format: 'openapi3',
-      },
-    });
+    cli.action.start('Calculating differences');
+    let differences = compareSwaggerDocs(
+      JSON.parse(latestContent),
+      JSON.parse(content)
+    );
     cli.action.stop();
 
-    if (result.breakingDifferencesFound === false) {
+    if (!Object.keys(differences).length) {
       cli.info('No changes detected. Version not updated.');
       return;
     }
@@ -77,6 +70,8 @@ export async function getLatestVersion(apiName: string): Promise<any> {
     const index: VersionIndex[] = JSON.parse(indexContent);
     if (index.length > 0) {
       const latestFileName = index[index.length - 1].fileName;
+      console.log(
+        `Using latest version: ${latestFileName} (${index[index.length - 1].timestamp})`)
       const latestContent = await readFile(path.join(apiVersionsDir, apiName, latestFileName), 'utf8');
       return JSON.parse(latestContent);
     }

@@ -99,7 +99,7 @@ import { useGetPetById } from '@intrig/client-next/src/petstore/pet/getPetById/u
 #### 2. Import utility methods
 
 ```tsx
-import { isSuccess, isError, isPending } from '@intrig/client-next/src/network-state'
+import { isSuccess, isError, isPending } from '@intrig/client-next'
 ```
 
 #### 3. Define hook variables.

@@ -100,5 +100,6 @@ export function normalize(spec: OpenAPIV3_1.Document) {
         }
       }
     }
+    //TODO implement fix schema types.
   })
 }

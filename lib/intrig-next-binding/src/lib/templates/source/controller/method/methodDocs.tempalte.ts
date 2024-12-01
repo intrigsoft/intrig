@@ -178,7 +178,7 @@ import { ${hookName} } from '@intrig/client-next/src/${api.id}/${paths.join('/')
 These utility methods help in identifying the state of your network request, such as whether it is successful, pending, or has an error.
 
 \`\`\`tsx
-import { isSuccess, isError, isPending } from '@intrig/client-next/src/network-state'
+import { isSuccess, isError, isPending } from '@intrig/client-next'
 \`\`\`
 
 #### 3. Define hook variables.
