@@ -1,58 +1,43 @@
-import {dump, IntrigSourceConfig, RequestProperties} from "@intrig/cli-common";
-import {getRequestTemplate} from "./templates/getRequest.template";
-import {postRequestTemplate} from "./templates/postRequest.template";
-import {octetStreamPostRequestTemplate} from "./templates/octetStreamPostRequest.template";
-import {multipartFormDataPostRequestTemplate} from "./templates/multipartFormdataPostRequest.template";
-import {putRequestTemplate} from "./templates/putRequest.template";
-import {octetStreamPutRequestTemplate} from "./templates/octetStreamPutRequest.template";
-import {multipartFormDataPutRequestTemplate} from "./templates/multipartFormdataPutRequest.template";
-import {deleteRequestTemplate} from "./templates/deleteRequest.template";
+import { dump, IntrigSourceConfig, RequestProperties } from '@intrig/cli-common';
+import { getRequestHookTemplate } from './templates/source/controller/method/getRequestHook.template';
+import { postRequestHookTemplate } from './templates/source/controller/method/postRequestHook.template';
+import { putRequestHookTemplate } from './templates/source/controller/method/putRequestHook.template';
+import { deleteRequestHookTemplate } from './templates/source/controller/method/deleteRequestHook.template';
+import { paramsTemplate } from './templates/source/controller/method/params.template';
+import { clientIndexTemplate } from './templates/source/controller/method/clientIndex.template';
 
 export function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 
   function handleGet(params: RequestProperties) {
-    if (params.responseType !== "application/json") return;
-    dump(getRequestTemplate(params))
+    dump(paramsTemplate(params))
+    dump(getRequestHookTemplate(params))
   }
 
   function handlePost(params: RequestProperties) {
-    if (params.responseType !== "application/json") return;
-    switch (params.contentType) {
-      case "application/json":
-        dump(postRequestTemplate(params))
-        break;
-      case "application/octet-stream":
-        dump(octetStreamPostRequestTemplate(params))
-        break;
-      case "multipart/form-data":
-        dump(multipartFormDataPostRequestTemplate(params));
-        break;
-    }
+    dump(paramsTemplate(params))
+    dump(postRequestHookTemplate(params))
   }
 
   function handlePut(params: RequestProperties) {
-    if (params.responseType !== "application/json") return;
-    switch (params.contentType) {
-      case "application/json":
-        dump(putRequestTemplate(params))
-        break;
-      case "application/octet-stream":
-        dump(octetStreamPutRequestTemplate(params))
-        break;
-      case "multipart/form-data":
-        dump(multipartFormDataPutRequestTemplate(params));
-        break;
-    }
+    dump(paramsTemplate(params))
+    dump(putRequestHookTemplate(params))
   }
 
   function handleDelete(params: RequestProperties) {
-    dump(deleteRequestTemplate(params))
+    dump(paramsTemplate(params))
+    dump(deleteRequestHookTemplate(params))
   }
+
+  function handleIndexes(params: RequestProperties) {
+    dump(clientIndexTemplate(params))
+  }
+
+  const groupedByPath: Record<string, RequestProperties[]> = {}
 
   for (let path of paths) {
     path = {
       ...path,
-      sourcePath: _path
+      sourcePath: _path,
     }
     switch (path.method.toLowerCase()) {
       case "get":
@@ -68,5 +53,11 @@ export function generateHooks(api: IntrigSourceConfig, _path: string, paths: Req
         handleDelete(path);
         break;
     }
+    if ((!path.responseType || path.responseType === 'application/json')
+      && (!path.contentType || path.contentType === 'application/json')) {
+      handleIndexes(path);
+    }
+    groupedByPath[path.requestUrl] = groupedByPath[path.requestUrl] ?? []
+    groupedByPath[path.requestUrl].push(path)
   }
 }

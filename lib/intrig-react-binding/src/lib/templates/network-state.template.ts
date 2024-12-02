@@ -2,7 +2,7 @@ import {CompiledOutput, typescript} from "@intrig/cli-common";
 import * as path from 'path'
 
 export function networkStateTemplate(_path: string): CompiledOutput {
-  const ts = typescript(path.resolve(_path, "src", "lib", "network-state.tsx"))
+  const ts = typescript(path.resolve(_path, "src", "network-state.tsx"))
   return ts`
 /**
  * State of an asynchronous call. Network state follows the state diagram given below.
@@ -213,5 +213,54 @@ export interface NetworkAction<T> {
  * @template T - The type of the data in the network state.
  */
 export type NetworkStateResult<P, T> = [NetworkState<T>, (request: P) => void, clear: () => void]
+
+type HookWithKey = {
+  key: string;
+}
+
+export type DeleteHook<P> = ((key?: string) => [NetworkState<never>, (params: P) => void, () => void]) & HookWithKey;
+export type DeleteHookOp<P> = ((key?: string) => [NetworkState<never>, (params?: P) => void, () => void]) & HookWithKey;
+export type GetHook<P, T> = ((key?: string) => [NetworkState<T>, (params: P) => void, () => void]) & HookWithKey;
+export type GetHookOp<P, T> = ((key?: string) => [NetworkState<T>, (params?: P) => void, () => void]) & HookWithKey;
+export type PostHook<P, B, T> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
+export type PostHookOp<P, B, T> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
+export type PutHook<P, B, T> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
+export type PutHookOp<P, B, T> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
+
+export type IntrigHook<P = undefined, B = undefined, T = any> = DeleteHook<P> | GetHook<P, T> | PostHook<P, T, B> | PutHook<P, T, B> | PostHookOp<P, T, B> | PutHookOp<P, T, B> | GetHookOp<P, T> | DeleteHookOp<P>;
+
+export interface DispatchState<T> {
+  state: string
+}
+
+export interface SuccessfulDispatch<T> extends DispatchState<T>{
+  state: 'success'
+}
+
+export function successfulDispatch<T>(): DispatchState<T> {
+  return {
+    state: 'success'
+  }
+}
+
+export function isSuccessfulDispatch<T>(value: DispatchState<T>): value is SuccessfulDispatch<T> {
+  return value.state === 'success'
+}
+
+export interface ValidationError<T> extends DispatchState<T>{
+  state: 'validation-error'
+  error: any
+}
+
+export function validationError<T>(error: any): ValidationError<T> {
+  return {
+    state: 'validation-error',
+    error
+  }
+}
+
+export function isValidationError<T>(value: DispatchState<T>): value is ValidationError<T> {
+  return value.state === 'validation-error'
+}
   `
 }

@@ -32,7 +32,7 @@ export function packageJsonTemplate(_path: string) {
     "@types/glob": "^8.1.0"
   },
   "_moduleAliases": {
-    "@intrig/client-next": "./src"
+    "@intrig/next": "./src"
   },
   "type": "module"
 }

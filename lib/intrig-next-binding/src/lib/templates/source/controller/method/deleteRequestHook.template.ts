@@ -16,8 +16,8 @@ export function deleteRequestHookTemplate({source, paths, operationId, requestUr
   let {variableExplodeExpression, isParamMandatory} = decodeVariables(variables, source);
 
   return ts`
-    import {useNetworkState} from "@intrig/client-next/src/intrig-provider"
-    import {NetworkState, DeleteHook${isParamMandatory ? '' : 'Op'}, DispatchState, successfulDispatch} from "@intrig/client-next/network-state";
+    import {useNetworkState} from "@intrig/next/src/intrig-provider"
+    import {NetworkState, DeleteHook${isParamMandatory ? '' : 'Op'}, DispatchState, successfulDispatch} from "@intrig/next/network-state";
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
     const operation = "DELETE ${requestUrl}"

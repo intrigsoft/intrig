@@ -8,5 +8,6 @@ export function indexTemplate(_path: string): CompiledOutput {
   return ts`
   export * from './intrig-provider';
   export * from './network-state';
+  export * from './extra';
   `
 }

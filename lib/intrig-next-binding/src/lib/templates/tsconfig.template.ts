@@ -15,7 +15,7 @@ export function tsConfigTemplate(_path: string) {
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@intrig/client-next/*": [
+      "@intrig/next/*": [
         "./src/*"
       ],
       "intrig-hook": ["src/config/intrig"]

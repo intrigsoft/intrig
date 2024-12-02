@@ -4,7 +4,7 @@ import * as path from "path";
 export function paramsTemplate({source, paths, operationId, requestUrl, variables, sourcePath}: RequestProperties) {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `${pascalCase(operationId)}.params.ts`))
 
-  let {variableImports, variableTypes} = decodeVariables(variables, source, "@intrig/client-next/src");
+  let {variableImports, variableTypes} = decodeVariables(variables, source, "@intrig/next/src");
 
   return ts`
      ${variableImports}

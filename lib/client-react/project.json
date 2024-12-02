@@ -3,7 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "lib/client-react/src",
   "projectType": "library",
-  "tags": [],
+  "tags": ["react intrig code-generation"],
   "// targets": "to see all targets run: nx show project client-react --web",
   "targets": {}
 }

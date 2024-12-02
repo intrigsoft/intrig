@@ -6,6 +6,8 @@ export function indexTemplate(_path: string): CompiledOutput {
   const ts = typescript(path.resolve(_path, "src", "index.ts"))
 
   return ts`
-  export * from './lib/intrig-provider'
+  export * from './intrig-provider';
+  export * from './network-state';
+  export * from './extra';
   `
 }

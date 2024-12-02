@@ -1,2 +1,2 @@
-export * from './lib/network-state'
-export * from './lib/intrig-provider'
+export * from './intrig-provider';
+export * from './network-state';

@@ -55,13 +55,13 @@ export async function setupCacheAndInstall(
 
   // Copy all directories in <build>/dist/lib to projects node_modules/@intrig/client-react
   const sourceLibDir = path.join(tempDir, 'dist')
-  let client = 'client-react';
+  let client = 'react';
   switch (generator) {
     case 'next':
-      client = 'client-next';
+      client = 'next';
       break;
     case 'react':
-      client = 'client-react';
+      client = 'react';
       break;
   }
   const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', client, "src")

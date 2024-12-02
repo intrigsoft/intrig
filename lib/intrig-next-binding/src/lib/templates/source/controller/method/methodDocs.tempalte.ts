@@ -139,7 +139,7 @@ ${queryParams
 To use the generated async function, import {% code path="${api.id}/${paths.join('/')}/${methodName}/${methodName}" %}\`${methodName}\`{% /code %} into your component as follows:
 
 \`\`\`tsx
-import { ${methodName} } from '@intrig/client-next/src/${api.id}/${paths.join('/')}/${methodName}/server';
+import { ${methodName} } from '@intrig/next/src/${api.id}/${paths.join('/')}/${methodName}/server';
 \`\`\`
 
 #### 2. Using the ${methodName} function in your component.
@@ -170,7 +170,7 @@ export async function MyComponent() {
 To use the generated hook, import {% code path="${api.id}/${paths.join('/')}/${methodName}/${hookName}" %}\`${hookName}\`{% /code %} into your component as follows:
 
 \`\`\`tsx
-import { ${hookName} } from '@intrig/client-next/src/${api.id}/${paths.join('/')}/${methodName}/client';
+import { ${hookName} } from '@intrig/next/src/${api.id}/${paths.join('/')}/${methodName}/client';
 \`\`\`
 
 #### 2. Import utility methods
@@ -178,7 +178,7 @@ import { ${hookName} } from '@intrig/client-next/src/${api.id}/${paths.join('/')
 These utility methods help in identifying the state of your network request, such as whether it is successful, pending, or has an error.
 
 \`\`\`tsx
-import { isSuccess, isError, isPending } from '@intrig/client-next'
+import { isSuccess, isError, isPending } from '@intrig/next'
 \`\`\`
 
 #### 3. Define hook variables.

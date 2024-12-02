@@ -15,10 +15,10 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
 
   return ts`
   import { z } from 'zod'
-    import {useNetworkState} from "@intrig/client-next/src/intrig-provider"
-    import {NetworkState, PutHook${isParamMandatory ? '' : 'Op'}, error, DispatchState, successfulDispatch, validationError} from "@intrig/client-next";
-    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/client-next/src/${source}/components/schemas/${requestBody}"` : ''}
-    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/client-next/src/${source}/components/schemas/${response}"` : ''}
+    import {useNetworkState} from "@intrig/next/src/intrig-provider"
+    import {NetworkState, PutHook${isParamMandatory ? '' : 'Op'}, error, DispatchState, successfulDispatch, validationError} from "@intrig/next";
+    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/src/${source}/components/schemas/${requestBody}"` : ''}
+    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/src/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
