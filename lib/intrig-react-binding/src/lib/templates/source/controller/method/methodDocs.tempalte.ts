@@ -139,7 +139,7 @@ ${queryParams
 To use the generated hook, import {% code path="${api.id}/${paths.join('/')}/${methodName}/${hookName}" %}\`${hookName}\`{% /code %} into your component as follows:
 
 \`\`\`tsx
-import { ${hookName} } from '@intrig/react/src/${api.id}/${paths.join('/')}/${methodName}/client';
+import { ${hookName} } from '@intrig/react/${api.id}/${paths.join('/')}/${methodName}/client';
 \`\`\`
 
 #### 2. Import utility methods

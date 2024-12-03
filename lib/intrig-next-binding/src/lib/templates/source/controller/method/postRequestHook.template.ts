@@ -23,10 +23,10 @@ export function postRequestHookTemplate({source, paths, operationId, response, r
 
   return ts`
     import { z } from 'zod'
-    import {useNetworkState} from "@intrig/next/src/intrig-provider"
+    import {useNetworkState} from "@intrig/next/intrig-provider"
     import {NetworkState, PostHook${isParamMandatory ? '' : 'Op'}, DispatchState, error, successfulDispatch, validationError} from "@intrig/next";
-    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/src/${source}/components/schemas/${requestBody}"` : ''}
-    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/src/${source}/components/schemas/${response}"` : ''}
+    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"` : ''}
+    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 

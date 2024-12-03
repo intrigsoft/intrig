@@ -17,9 +17,9 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
 
   function createImport(path: RequestProperties) {
     if (path.contentType === "application/json" && path.responseType === "application/json") {
-      return `import { ${camelCase(path.operationId)} } from "@intrig/next/src/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}"`
+      return `import { ${camelCase(path.operationId)} } from "@intrig/next/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}"`
     }
-    return `import { ${camelCase(path.operationId)} as ${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseType)} } from "@intrig/next/src/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseType)}"`
+    return `import { ${camelCase(path.operationId)} as ${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseType)} } from "@intrig/next/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseType)}"`
   }
 
   let imports = new Set<string>()
@@ -31,9 +31,9 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
 
   function getRequestBodyTransformerBlock(path: RequestProperties) {
     imports.add(
-      `import {${path.requestBody}, ${path.requestBody}Schema} from "@intrig/next/src/${source}/components/schemas/${path.requestBody}";`
+      `import {${path.requestBody}, ${path.requestBody}Schema} from "@intrig/next/${source}/components/schemas/${path.requestBody}";`
     )
-    imports.add(`import { transform } from "@intrig/next/src/media-type-utils"`)
+    imports.add(`import { transform } from "@intrig/next/media-type-utils"`)
     return `
       let body = await transform<${path.requestBody}>(request, "${path.contentType}", ${path.requestBody}Schema)
     `

@@ -34,7 +34,10 @@ export function packageJsonTemplate(_path: string) {
   "_moduleAliases": {
     "@intrig/react": "./src"
   },
-  "type": "module"
+  "type": "module",
+  "exports": {
+    "./*": "./src/*"
+  }
 }
   `
 }

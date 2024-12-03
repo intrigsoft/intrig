@@ -22,10 +22,10 @@ export function postRequestMethodTemplate({source, paths, operationId, response,
 
   return ts`
   import { z } from 'zod'
-  import {getAxiosInstance} from "@intrig/next/src/intrig-middleware";
-    import {transformResponse} from "@intrig/next/src/media-type-utils";
-    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/src/${source}/components/schemas/${requestBody}"` : ''}
-    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/src/${source}/components/schemas/${response}"` : ''}
+  import {getAxiosInstance} from "@intrig/next/intrig-middleware";
+    import {transformResponse} from "@intrig/next/media-type-utils";
+    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"` : ''}
+    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
 
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'

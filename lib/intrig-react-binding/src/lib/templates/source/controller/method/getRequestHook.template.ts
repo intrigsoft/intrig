@@ -11,9 +11,9 @@ export function getRequestHookTemplate({source, paths, operationId, response, re
 
   return ts`
     import { z } from 'zod'
-    import {useNetworkState} from "@intrig/react/src/intrig-provider"
+    import {useNetworkState} from "@intrig/react/intrig-provider"
     import {NetworkState, GetHook${isParamMandatory ? '' : 'Op'}, DispatchState, successfulDispatch} from "@intrig/react";
-    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/react/src/${source}/components/schemas/${response}"` : ''}
+    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/react/${source}/components/schemas/${response}"` : ''}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
     ${!response ? `
     type Response = any;

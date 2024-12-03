@@ -9,7 +9,7 @@ export function deleteRequestMethodTemplate({source, paths, operationId, respons
   const modifiedRequestUrl = requestUrl.replace("{", "${")
 
   return ts`
-    import {getAxiosInstance} from "@intrig/next/src/intrig-middleware";
+    import {getAxiosInstance} from "@intrig/next/intrig-middleware";
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
     export const ${camelCase(operationId)}: (p: Params) => Promise<${response ?? 'unknown'}> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {

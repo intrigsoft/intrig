@@ -15,10 +15,10 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
 
   return ts`
   import { z } from 'zod'
-    import {useNetworkState} from "@intrig/react/src/intrig-provider"
+    import {useNetworkState} from "@intrig/react/intrig-provider"
     import {NetworkState, PutHook${isParamMandatory ? '' : 'Op'}, error, DispatchState, successfulDispatch, validationError} from "@intrig/react";
-    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/react/src/${source}/components/schemas/${requestBody}"` : ''}
-    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/react/src/${source}/components/schemas/${response}"` : ''}
+    ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/react/${source}/components/schemas/${requestBody}"` : ''}
+    ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/react/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
