@@ -40,9 +40,19 @@
             "glob": "**/*"
           },
           {
-            "input": "apps/intrig/src/assets",
+            "input": "apps/web",
             "output": "web",
             "glob": "next.config.js"
+          },
+          {
+            "input": "apps/web/src",
+            "output": "web/src",
+            "glob": "**"
+          },
+          {
+            "input": "apps/web/.next",
+            "output": "web/.next",
+            "glob": "**"
           }
         ],
         "generatePackageJson": true,
