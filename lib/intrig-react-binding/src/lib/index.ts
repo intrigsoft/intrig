@@ -4,11 +4,14 @@ import { generateSourceContent } from './generateSourceContent';
 import { postBuild } from './postBuild';
 import { predev } from './predev';
 import { postCompile } from './postcompile';
+import { postInit } from './postInit';
 
 export const adaptor: ContentGeneratorAdaptor = {
   generateSourceContent,
   generateGlobalContent,
   postBuild,
   predev,
-  postCompile
+  postCompile,
+  postInit,
+  preBuild: predev
 }

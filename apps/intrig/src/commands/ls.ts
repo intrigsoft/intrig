@@ -75,8 +75,6 @@ export default class Ls extends Command {
       this.log(chalk.cyan(`\n${emoji('information_source')} Details for source: ${source.name} (ID: ${source.id})`))
       this.log(chalk.grey('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'))
       this.log(`${chalk.bold('Spec URL:')} ${source.specUrl}`)
-      this.log(`${chalk.bold('Dev URL:')} ${source.devUrl}`)
-      this.log(`${chalk.bold('Prod URL:')} ${source.prodUrl}`)
       if (source.regex) {
         this.log(`${chalk.bold('Regex:')} ${source.regex}`)
       }

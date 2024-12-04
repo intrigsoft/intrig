@@ -5,10 +5,7 @@ export interface IntrigSourceConfig {
   id: string;
   name: string;
   specUrl: string;
-  devUrl: string;
-  prodUrl: string;
   regex?: string;
-  sourceDir?: string;
 }
 
 export interface IntrigConfig {
@@ -53,4 +50,6 @@ export interface ContentGeneratorAdaptor {
   postBuild(): Promise<void>
   predev(): Promise<void>
   postCompile(props: PostCompileProps): Promise<void>
+  postInit(): Promise<void>;
+  preBuild(): Promise<void>;
 }

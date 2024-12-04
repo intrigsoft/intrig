@@ -5,7 +5,6 @@ import chalk from 'chalk'
 import { get } from 'node-emoji'
 import simpleGit from 'simple-git'
 import {CONFIG_FILE} from "../util";
-import * as path from 'path'
 import {IntrigConfig, IntrigSourceConfig, ServerInfo} from "@intrig/cli-common";
 import {getServerInfo} from "@intrig/intrig-openapi3-binding";
 
@@ -14,10 +13,7 @@ export default class Add extends Command {
 
   static override flags = {
     source: Flags.string({ char: 's', description: 'OpenAPI specification URL' }),
-    'dev-url': Flags.string({ char: 'd', description: 'Development base URL' }),
-    'prod-url': Flags.string({ char: 'p', description: 'Production base URL' }),
     id: Flags.string({ char: 'i', description: 'Unique ID for the API' }),
-    'source-path': Flags.string({ description: 'Custom source path for generated boilerplate' }),
   }
 
   async run() {
@@ -63,34 +59,12 @@ export default class Add extends Command {
   }
 
   private async promptForSourceDetails(specUrl: string, data: ServerInfo, flags: any): Promise<IntrigSourceConfig> {
-    const serverUrl = data.serverUrls[0]
-
-    const devUrl = flags['dev-url'] || await this.prompt('devUrl', 'What is the development base URL?', serverUrl)
-    const prodUrl = flags['prod-url'] || await this.prompt('prodUrl', 'What is the production base URL?', serverUrl)
-
     const id = flags.id || await this.prompt('id', 'Please enter an ID for the API:', undefined, this.validateId)
-
-    let sourcePath = flags['source-path']
-    if (!sourcePath) {
-      const useDefaultPath = await inquirer.prompt({
-        type: 'confirm',
-        name: 'useDefault',
-        message: `Use default source path (api/${id})?`,
-        default: true,
-      })
-
-      if (!useDefaultPath.useDefault) {
-        sourcePath = await this.prompt('sourcePath', 'Enter custom source path:', undefined, this.validateSourcePath)
-      }
-    }
 
     return {
       id,
       name: data.title,
-      specUrl,
-      devUrl,
-      prodUrl,
-      sourceDir: sourcePath || path.join('api', id),
+      specUrl
     }
   }
 
@@ -108,10 +82,6 @@ export default class Add extends Command {
   private validateId(input: string): boolean | string {
     return /^[a-zA-Z][a-zA-Z0-9_]+$/.test(input) ||
       'Invalid format. The ID should be alphanumeric, start with a letter, and may include underscores.'
-  }
-
-  private validateSourcePath(input: string): boolean | string {
-    return input.trim() !== '' || 'Source path cannot be empty.'
   }
 
   private async addToGit() {
