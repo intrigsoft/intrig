@@ -1,3 +1,4 @@
+"use server"
 import { NetworkAction, NetworkState } from '@intrig/next/network-state';
 import { AxiosProgressEvent } from 'axios';
 import { ZodSchema } from 'zod';

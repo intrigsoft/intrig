@@ -1,3 +1,4 @@
+"use client"
 import {
   error,
   init, IntrigHook,

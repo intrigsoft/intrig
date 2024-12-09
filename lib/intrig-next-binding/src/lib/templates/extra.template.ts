@@ -5,7 +5,8 @@ export function extraTemplate(_path: string, apisToSync: IntrigSourceConfig[]) {
   const ts = typescript(path.resolve(_path, "src", "extra.ts"))
 
   return ts`
-  import {
+  "use client"
+import {
   error,
   init, IntrigHook,
   isError,
@@ -14,9 +15,9 @@ export function extraTemplate(_path: string, apisToSync: IntrigSourceConfig[]) {
   NetworkState,
   pending,
   success
-} from '@intrig/next-client/network-state';
+} from '@intrig/next/network-state';
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
-import { useIntrigContext } from '@intrig/next-client/intrig-context';
+import { useIntrigContext } from '@intrig/next/intrig-context';
 
 /**
  * Converts a given hook into a promise-based function.
@@ -105,7 +106,5 @@ export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(f
     execute,
     clear
   ]
-}
-
-`
+}`
 }

@@ -5,11 +5,12 @@ export function contextTemplate(_path: string, apisToSync: IntrigSourceConfig[])
   const ts = typescript(path.resolve(_path, "src", "intrig-context.ts"))
 
   return ts`
-  import { NetworkAction, NetworkState } from '@intrig/next-client/network-state';
+  "use client"
+import { NetworkAction, NetworkState } from '@intrig/next/network-state';
 import { AxiosProgressEvent } from 'axios';
 import { ZodSchema } from 'zod';
 import { createContext, useContext } from 'react';
-import { DefaultConfigs } from '@intrig/next-client/intrig-provider';
+import { DefaultConfigs } from '@intrig/next/intrig-provider';
 
 type GlobalState = Record<string, NetworkState>;
 
@@ -38,9 +39,9 @@ interface RequestType<T = any> {
 export interface ContextType {
   state: GlobalState;
   filteredState: GlobalState;
-  dispatch: React.Dispatch<NetworkAction<unknown>>;
+  dispatch: React.Dispatch<NetworkAction<unknown, unknown>>;
   configs: DefaultConfigs;
-  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined) => Promise<void>;
+  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<T> | undefined) => Promise<void>;
 }
 
 /**

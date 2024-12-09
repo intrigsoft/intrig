@@ -1,3 +1,4 @@
+"use server"
 import axios, {
   AxiosInstance,
   AxiosResponse,

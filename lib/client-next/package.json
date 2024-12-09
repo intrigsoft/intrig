@@ -21,7 +21,7 @@
     "@types/glob": "^8.1.0"
   },
   "_moduleAliases": {
-    "@intrig/next-client": "./src/lib"
+    "@intrig/next": "./src/lib"
   },
   "type": "module",
   "exports": {
