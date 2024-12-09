@@ -5,23 +5,27 @@ import {
   decodeVariables,
   RequestProperties,
   typescript,
-  generatePostfix
+  generatePostfix, decodeErrorSections
 } from '@intrig/cli-common';
 import * as path from 'path'
 
-export function getRequestMethodTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, responseType}: RequestProperties): CompiledOutput {
+export function getRequestMethodTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, responseType, errorResponses}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `${camelCase(operationId)}${generatePostfix(undefined, responseType)}.ts`))
 
   let {variableExplodeExpression ,isParamMandatory} = decodeVariables(variables, source);
 
   const modifiedRequestUrl = requestUrl.replace("{", "${")
 
+  let { def, imports, schemaValidation } = decodeErrorSections(errorResponses, source, "@intrig/next");
+
   return ts`
-  import { z } from 'zod'
+  import { z, ZodError } from 'zod'
   import {getAxiosInstance} from "@intrig/next/intrig-middleware";
+  import { isAxiosError } from 'axios';
+  import { networkError, responseValidationError } from '@intrig/next/network-state';
     import {transformResponse} from "@intrig/next/media-type-utils"
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"` : ''}
-
+    ${imports}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
     ${!response ? `
@@ -29,7 +33,10 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
     const schema = z.any();
     ` : ''}
 
-    export const ${camelCase(operationId)}: (p: Params) => Promise<Response> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
+    export type _ErrorType = ${def}
+    const errorSchema = ${schemaValidation}
+
+    export const execute${pascalCase(operationId)}: (p: Params) => Promise<Response> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
           let { data } = await getAxiosInstance('${source}').request({
             method: 'get',
             url: \`${modifiedRequestUrl}\`,
@@ -37,6 +44,19 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
           })
 
           return transformResponse(data, "${responseType}", schema);
+    }
+
+    export const ${camelCase(operationId)}: (p: Params) => Promise<Response> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
+      try {
+        return execute${pascalCase(operationId)}({${variableExplodeExpression}});
+      } catch (e) {
+        if (isAxiosError(e) && e.response) {
+          throw networkError(transformResponse(e.response.data, "application/json", errorSchema), e.response.status + "", e.response.request);
+        } else if (e instanceof ZodError) {
+          throw responseValidationError(e)
+        }
+        throw e;
+      }
     }
   `
 }

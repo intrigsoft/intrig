@@ -31,6 +31,11 @@ export interface Variable {
   ref: string
 }
 
+export interface ErrorResponse {
+  response?: string,
+  responseType?: string
+}
+
 export interface RequestProperties {
   method: string
   source: string
@@ -46,4 +51,5 @@ export interface RequestProperties {
   description?: string
   summary?: string
   responseExamples?: Record<string, string>
+  errorResponses?: Record<string, ErrorResponse>
 }

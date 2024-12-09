@@ -1,3 +1,5 @@
+import { ZodError } from 'zod';
+
 /**
  * State of an asynchronous call. Network state follows the state diagram given below.
  *
@@ -292,4 +294,144 @@ export function validationError<T>(error: any): ValidationError<T> {
  */
 export function isValidationError<T>(value: DispatchState<T>): value is ValidationError<T> {
   return value.state === 'validation-error'
+}
+
+/**
+ * Represents an error structure with a specified type and associated data.
+ *
+ * @template T - The type of the data associated with the error.
+ * @template E - The type of the error detail.
+ *
+ * @property {string} type - A string representing the type of the error.
+ */
+export interface IntrigError<T, E> {
+  type: string
+}
+
+/**
+ * Represents an error encountered during a network operation.
+ * Extends from the `IntrigError` interface, adding network-specific properties.
+ *
+ * @template T - The type of the intrinsic data associated with the error.
+ * @template E - The type of the error details, defaulting to `unknown`.
+ *
+ * @property {string} type - A constant property representing the error type, always set to 'network'.
+ * @property {string} statusCode - A string representation of the HTTP status code associated with the error, indicating the nature of the network failure.
+ * @property {E} error - The detailed error information specific to the failure, type extends from the generic E, allowing flexibility in the error details.
+ * @property {any} request - The request object that was attempted when the network error occurred, providing context for what operation failed.
+ */
+export interface NetworkError<T, E = unknown> extends IntrigError<T, E>{
+  type: 'network'
+  statusCode: string
+  error: E
+  request: any
+}
+
+/**
+ * Constructs a network error object.
+ *
+ * @param error The error object corresponding to the network request.
+ * @param statusCode A string representing the HTTP status code returned.
+ * @param request The request object associated with the network operation.
+ * @return A NetworkError object containing the error type, status code, error details, and the original request.
+ */
+export function networkError<T, E>(error: E, statusCode: string, request: any): NetworkError<T, E> {
+  return {
+    type: 'network',
+    statusCode,
+    error,
+    request
+  }
+}
+
+/**
+ * Determines if the provided IntrigError is of type 'network'.
+ *
+ * @param {IntrigError<T, E>} value - The error value to check the type of.
+ * @return {boolean} - Returns true if the error is of type 'network', otherwise false.
+ */
+export function isNetworkError<T, E>(value: IntrigError<T, E>): value is NetworkError<T, E> {
+  return value.type === 'network'
+}
+
+/**
+ * Interface representing a request validation error.
+ *
+ * This error occurs when a validation process on a request fails. It extends the IntrigError interface
+ * by adding specific properties related to request validation.
+ *
+ * @template T - The type of the data associated with the error.
+ * @template E - The optional type of additional error information. Defaults to unknown.
+ *
+ * @extends IntrigError<T, E>
+ *
+ * @property {string} type - A string literal indicating the error type as 'request-validation'.
+ * @property {ZodError} error - An instance of ZodError containing detailed validation error information.
+ */
+export interface RequestValidationError<T, E = unknown> extends IntrigError<T, E>{
+  type: 'request-validation'
+  error: ZodError
+}
+
+/**
+ * Constructs a RequestValidationError object encapsulating the ZodError.
+ *
+ * @param {ZodError} error - The error object resulting from Zod schema validation.
+ * @return {RequestValidationError<T, E>} A RequestValidationError object containing the validation error information.
+ */
+export function requestValidationError<T, E>(error: ZodError): RequestValidationError<T, E> {
+  return {
+    type: 'request-validation',
+    error
+  }
+}
+
+/**
+ * Determines if a given error is of type RequestValidationError.
+ *
+ * @param value The error object to check, which implements the IntrigError interface.
+ * @return A boolean indicating whether the error is a RequestValidationError.
+ */
+export function isRequestValidationError<T, E>(value: IntrigError<T, E>): value is RequestValidationError<T, E> {
+  return value.type === 'request-validation'
+}
+
+/**
+ * ResponseValidationError interface is designed to extend the capabilities of the IntrigError interface,
+ * specifically for handling errors related to response validation.
+ *
+ * @template T - Represents the type of the data or payload associated with the error.
+ * @template E - Represents the type of any additional error information. Defaults to unknown.
+ *
+ * @extends IntrigError
+ *
+ * @property type - A string literal that identifies the type of error as 'response-validation'.
+ * @property error - An instance of ZodError representing the validation error encountered.
+ */
+export interface ResponseValidationError<T, E = unknown> extends IntrigError<T, E>{
+  type: 'response-validation'
+  error: ZodError
+}
+
+/**
+ * Constructs a ResponseValidationError object with a specified error.
+ *
+ * @param {ZodError} error - The validation error encountered during response validation.
+ * @return {ResponseValidationError<T, E>} An error object containing the type of error and the validation error details.
+ */
+export function responseValidationError<T, E>(error: ZodError): ResponseValidationError<T, E> {
+  return {
+    type: 'response-validation',
+    error
+  }
+}
+
+/**
+ * Determines if the given error is a response validation error.
+ *
+ * @param {IntrigError<T, E>} value - The error object to assess.
+ * @return {boolean} True if the error is a response validation error, otherwise false.
+ */
+export function isResponseValidationError<T, E>(value: IntrigError<T, E>): value is ResponseValidationError<T, E> {
+  return value.type === 'response-validation'
 }

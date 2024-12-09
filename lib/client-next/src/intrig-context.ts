@@ -31,9 +31,9 @@ interface RequestType<T = any> {
 export interface ContextType {
   state: GlobalState;
   filteredState: GlobalState;
-  dispatch: React.Dispatch<NetworkAction<unknown>>;
+  dispatch: React.Dispatch<NetworkAction<unknown, unknown>>;
   configs: DefaultConfigs;
-  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined) => Promise<void>;
+  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<T> | undefined) => Promise<void>;
 }
 
 /**

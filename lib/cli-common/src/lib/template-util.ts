@@ -1,4 +1,4 @@
-import {Variable} from "./util";
+import { ErrorResponse, Variable } from './util';
 import {pascalCase} from "./change-case";
 
 export function getVariableName(ref: string) {
@@ -101,4 +101,31 @@ export function generatePostfix(contentType: string, responseType: string) {
     responseType && contentTypePostfixMap[responseType] ? `_${contentTypePostfixMap[responseType]}` : undefined,
   ].filter(Boolean)
     .join('')
+}
+
+export function decodeErrorSections(errorResponses: Record<string, ErrorResponse>, source: string, prefix: string = '@root') {
+  let errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))];
+
+  let imports = errorTypes.map(ref => `import {${ref}, ${ref}Schema } from "${prefix}/${source}/components/schemas/${ref}"`)
+    .join('\n');
+
+  let schemaValidation = "z.any()"
+  switch (errorTypes.length) {
+    case 0:
+      schemaValidation = "z.any()"
+      break;
+    case 1:
+      schemaValidation = `${errorTypes[0]}Schema`
+      break;
+    default:
+      schemaValidation = `z.union([${errorTypes.map(a => `${a}Schema`).join(', ')}])`
+  }
+
+  let s = errorTypes.join(' | ');
+  let def = `${s.trim().length ? s : 'any'}`
+  return {
+    imports,
+    def,
+    schemaValidation,
+  }
 }

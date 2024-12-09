@@ -48,7 +48,7 @@ import {Context, RequestType, GlobalState} from './intrig-context';
  */
 function requestReducer(
   state: GlobalState,
-  action: NetworkAction<unknown>
+  action: NetworkAction<unknown, unknown>
 ): GlobalState {
   return {
     ...state,
@@ -229,7 +229,7 @@ export function StatusTrap({
   );
 
   const dispatch = useCallback(
-    (event: NetworkAction<any>) => {
+    (event: NetworkAction<any, any>) => {
       if (!event.handled) {
         if (shouldHandleEvent(event.state)) {
           setRequests((prev) => [...prev, event.key]);
@@ -292,17 +292,17 @@ export interface NetworkStateProps<T> {
  *          Returns a state object representing the current network state,
  *          a function to execute the network request, and a function to clear the request.
  */
-export function useNetworkState<T>({
+export function useNetworkState<T, E = unknown>({
   key,
   operation,
   source,
   schema,
   debounceDelay: requestDebounceDelay,
 }: NetworkStateProps<T>): [
-  NetworkState<T>,
+  NetworkState<T, E>,
   (request: RequestType) => void,
   clear: () => void,
-  (state: NetworkState<T>) => void
+  (state: NetworkState<T, E>) => void
 ] {
   const context = useContext(Context);
 

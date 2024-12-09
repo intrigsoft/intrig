@@ -31,7 +31,19 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
         if (method.toLowerCase() === "delete") {
           requests.push(params)
         } else {
-          let response = operation.responses?.['200'] as OpenAPIV3_1.ResponseObject;
+          let errorResponses = Object.fromEntries(Object.entries(operation.responses ?? {})
+            .filter(([k]) => k[0] != "2")
+            .map(([k, v]) => {
+              let [statusCode, mediaTypeOb] = Object.entries((v as OpenAPIV3_1.ResponseObject)?.content)
+                .filter(([k]) => ["*/*", "application/json"].includes(k))[0];
+              let schema = mediaTypeOb?.schema as OpenAPIV3_1.ReferenceObject;
+              return [statusCode, {
+                response: schema?.$ref?.split("/")?.pop(),
+                responseType: k
+              }];
+            }));
+
+          let response = operation.responses?.['200'] as OpenAPIV3_1.ResponseObject ?? operation.responses?.['201'] as OpenAPIV3_1.ResponseObject;
           for (let [mediaType, content] of Object.entries(response?.content ?? {})) {
             let ref = content.schema as OpenAPIV3_1.ReferenceObject;
 
@@ -39,6 +51,7 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
               ...params,
               response: ref.$ref.split("/").pop(),
               responseType: mediaType,
+              errorResponses,
               responseExamples: content.examples ? Object.fromEntries(
                 Object.entries(content.examples)
                   .map(([k, v]) => ([k, JSON.stringify(v)])))

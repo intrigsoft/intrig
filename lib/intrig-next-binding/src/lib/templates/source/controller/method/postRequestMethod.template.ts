@@ -5,10 +5,10 @@ import {
   decodeVariables,
   RequestProperties,
   typescript,
-  decodeDispatchParams, getDataTransformer, generatePostfix
+  decodeDispatchParams, getDataTransformer, generatePostfix, decodeErrorSections
 } from '@intrig/cli-common';
 import * as path from 'path'
-export function postRequestMethodTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType}: RequestProperties): CompiledOutput {
+export function postRequestMethodTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses}: RequestProperties): CompiledOutput {
 
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `${camelCase(operationId)}${generatePostfix(contentType, responseType)}.ts`))
 
@@ -20,14 +20,18 @@ export function postRequestMethodTemplate({source, paths, operationId, response,
 
   let finalRequestBodyBlock = getDataTransformer(contentType)
 
+  let { def, imports, schemaValidation } = decodeErrorSections(errorResponses, source, "@intrig/next");
+
   return ts`
-  import { z } from 'zod'
+  import { z, ZodError } from 'zod'
+import { isAxiosError } from 'axios';
+import { networkError, responseValidationError } from '@intrig/next/network-state';
   import {getAxiosInstance} from "@intrig/next/intrig-middleware";
     import {transformResponse} from "@intrig/next/media-type-utils";
     ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"` : ''}
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
-
+    ${imports}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
 
     ${!response ? `
@@ -35,7 +39,10 @@ export function postRequestMethodTemplate({source, paths, operationId, response,
     const schema = z.any();
     ` : ''}
 
-    export const ${camelCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
+    export type _ErrorType = ${def}
+    const errorSchema = ${schemaValidation}
+
+    export const execute${pascalCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
           requestBodySchema.parse(data);
           let {${variableExplodeExpression}} = p
           let { data: responseData } = await getAxiosInstance('${source}').request({
@@ -49,6 +56,19 @@ export function postRequestMethodTemplate({source, paths, operationId, response,
           })
 
           return transformResponse(responseData, "${responseType}", schema);
+    }
+
+    export const ${camelCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
+      try {
+        return execute${pascalCase(operationId)}(data, p);
+      } catch (e) {
+        if (isAxiosError(e) && e.response) {
+          throw networkError(transformResponse(e.response.data, "application/json", errorSchema), e.response.status + "", e.response.request);
+        } else if (e instanceof ZodError) {
+          throw responseValidationError(e)
+        }
+        throw e;
+      }
     }
   `
 }
