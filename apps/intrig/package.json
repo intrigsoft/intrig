@@ -1,5 +1,5 @@
 {
-  "name": "@intrig/cli",
+  "name": "intrig",
   "version": "1.0.0",
   "description": "",
   "main": "eslint.config.js",
@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/intrigsoft/intrig.git"
   },
-  "private": true,
+  "private": false,
   "bin": {
     "intrig": "./bin/run.js"
   },
@@ -21,10 +21,14 @@
   "dependencies": {
     "@oclif/core": "^4.0.28",
     "open": "^10.1.0",
-    "openapi-diff": "^0.23.7"
+    "openapi-diff": "^0.23.7",
+    "prettier": "^2.8.8"
   },
   "devDependencies": {
     "@types/node": "^18.19.55",
     "ts-node": "^10.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
