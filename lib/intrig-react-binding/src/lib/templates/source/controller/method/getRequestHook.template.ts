@@ -1,13 +1,15 @@
-import { camelCase, CompiledOutput, generatePostfix, typescript } from '@intrig/cli-common';
+import { camelCase, CompiledOutput, decodeErrorSections, generatePostfix, typescript } from '@intrig/cli-common';
 import * as path from 'path'
 import {decodeVariables, pascalCase, RequestProperties} from "@intrig/cli-common";
 
-export function getRequestHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, responseType}: RequestProperties): CompiledOutput {
+export function getRequestHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, responseType, errorResponses}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(undefined, responseType)}.ts`))
 
   const modifiedRequestUrl = `/api/${source}${requestUrl.replace("{", "${")}`
 
   let {variableExplodeExpression, isParamMandatory} = decodeVariables(variables, source);
+
+  let { def, imports, schemaValidation } = decodeErrorSections(errorResponses, source, "@intrig/react");
 
   return ts`
     import { z } from 'zod'
@@ -15,20 +17,24 @@ export function getRequestHookTemplate({source, paths, operationId, response, re
     import {NetworkState, GetHook${isParamMandatory ? '' : 'Op'}, DispatchState, successfulDispatch} from "@intrig/react";
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/react/${source}/components/schemas/${response}"` : ''}
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
+    ${imports}
     ${!response ? `
     type Response = any;
     const schema = z.any();
     ` : ''}
+    export type _ErrorType = ${def}
+    const errorSchema = ${schemaValidation}
 
     const operation = "GET ${requestUrl}| -> ${responseType}"
     const source = "${source}"
 
-    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response>, (params: Params${isParamMandatory ? '' : ' | undefined'}) => DispatchState<any>, () => void] {
-      let [state, dispatch, clear] = useNetworkState<Response>({
+    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response, _ErrorType>, (params: Params${isParamMandatory ? '' : ' | undefined'}) => DispatchState<any>, () => void] {
+      let [state, dispatch, clear] = useNetworkState<Response, _ErrorType>({
         key,
         operation,
         source,
-        schema
+        schema,
+        errorSchema
       });
 
       return [

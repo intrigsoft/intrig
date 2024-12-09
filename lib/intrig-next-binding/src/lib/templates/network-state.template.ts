@@ -3,8 +3,7 @@ import * as path from 'path'
 
 export function networkStateTemplate(_path: string): CompiledOutput {
   const ts = typescript(path.resolve(_path, "src", "network-state.tsx"))
-  return ts`
-  import { ZodError } from 'zod';
+  return ts`import { ZodError } from 'zod';
 
 /**
  * State of an asynchronous call. Network state follows the state diagram given below.
@@ -207,19 +206,6 @@ export interface NetworkAction<T, E> {
   handled?: boolean;
 }
 
-/**
- * Represents the result of a network state operation.
- *
- * @typedef {Array} NetworkStateResult
- * @property {NetworkState<T>} 0 - The current state of the network operation.
- * @property {function(P): void} 1 - Function to initiate the network request.
- * @property {function(): void} 2 - Function to clear the current network state.
- *
- * @template P - The type of the parameter for the network request function.
- * @template T - The type of the data in the network state.
- */
-export type NetworkStateResult<P, T> = [NetworkState<T>, (request: P) => void, clear: () => void]
-
 type HookWithKey = {
   key: string;
 }
@@ -314,7 +300,6 @@ export function validationError<T>(error: any): ValidationError<T> {
 export function isValidationError<T>(value: DispatchState<T>): value is ValidationError<T> {
   return value.state === 'validation-error'
 }
-
 
 /**
  * Represents an error structure with a specified type and associated data.

@@ -40,7 +40,7 @@ import {Context, RequestType, GlobalState} from './intrig-context';
  */
 function requestReducer(
   state: GlobalState,
-  action: NetworkAction<unknown>
+  action: NetworkAction<unknown, unknown>
 ): GlobalState {
   return {
     ...state,
@@ -79,7 +79,7 @@ export function IntrigProvider({
   }, [configs]);
 
   const contextValue = useMemo(() => {
-    async function execute<T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined) {
+    async function execute<T, E = unknown>(request: RequestType, dispatch: (state: NetworkState<T, E>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<E> | undefined) {
       try {
         dispatch(pending());
         let response = await axiosInstances[request.source].request(request);
@@ -98,13 +98,16 @@ export function IntrigProvider({
             dispatch(success(response.data));
           }
         } else {
+          let { data, error: validationError } = errorSchema?.safeParse(response.data ?? {}) ?? {};
+          //todo: handle error validation error.
           dispatch(
-            error(response.data ?? response.statusText, response.status)
+            error(data ?? response.data ?? response.statusText, response.status)
           );
         }
       } catch (e: any) {
         if (isAxiosError(e)) {
-          dispatch(error(e.response?.data, e.response?.status, request));
+          let { data, error: validationError } = errorSchema?.safeParse(e.response?.data ?? {}) ?? {};
+          dispatch(error(data ?? e.response?.data, e.response?.status, request));
         } else {
           dispatch(error(e));
         }
@@ -219,7 +222,7 @@ export function StatusTrap({
   );
 
   const dispatch = useCallback(
-    (event: NetworkAction<any>) => {
+    (event: NetworkAction<any, any>) => {
       if (!event.handled) {
         if (shouldHandleEvent(event.state)) {
           setRequests((prev) => [...prev, event.key]);
@@ -263,6 +266,7 @@ export interface NetworkStateProps<T> {
   operation: string;
   source: string;
   schema?: ZodSchema<T>;
+  errorSchema?: ZodSchema<T>;
   debounceDelay?: number;
 }
 
@@ -282,17 +286,18 @@ export interface NetworkStateProps<T> {
  *          Returns a state object representing the current network state,
  *          a function to execute the network request, and a function to clear the request.
  */
-export function useNetworkState<T>({
+export function useNetworkState<T, E = unknown>({
   key,
   operation,
   source,
   schema,
+  errorSchema,
   debounceDelay: requestDebounceDelay,
 }: NetworkStateProps<T>): [
-  NetworkState<T>,
+  NetworkState<T, E>,
   (request: RequestType) => void,
   clear: () => void,
-  (state: NetworkState<T>) => void
+  (state: NetworkState<T, E>) => void
 ] {
   const context = useContext(Context);
 
@@ -346,7 +351,7 @@ export function useNetworkState<T>({
         signal: abortController.signal,
       };
 
-      await context.execute(requestConfig, dispatch, schema);
+      await context.execute(requestConfig, dispatch, schema, errorSchema);
     },
     [networkState, context.dispatch, axios]
   );

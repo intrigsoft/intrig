@@ -89,7 +89,7 @@ export function IntrigProvider({
   }, [configs]);
 
   const contextValue = useMemo(() => {
-    async function execute<T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined) {
+    async function execute<T, E = unknown>(request: RequestType, dispatch: (state: NetworkState<T, E>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<E> | undefined) {
       try {
         dispatch(pending());
         let response = await axiosInstance.request(request);
@@ -108,13 +108,16 @@ export function IntrigProvider({
             dispatch(success(response.data));
           }
         } else {
+          let { data, error: validationError } = errorSchema?.safeParse(response.data ?? {}) ?? {};
+          //todo: handle error validation error.
           dispatch(
-            error(response.data ?? response.statusText, response.status)
+            error(data ?? response.data ?? response.statusText, response.status)
           );
         }
       } catch (e: any) {
         if (isAxiosError(e)) {
-          dispatch(error(e.response?.data, e.response?.status, request));
+          let { data, error: validationError } = errorSchema?.safeParse(e.response?.data ?? {}) ?? {};
+          dispatch(error(data ?? e.response?.data, e.response?.status, request));
         } else {
           dispatch(error(e));
         }
@@ -273,6 +276,7 @@ export interface NetworkStateProps<T> {
   operation: string;
   source: string;
   schema?: ZodSchema<T>;
+  errorSchema?: ZodSchema<T>;
   debounceDelay?: number;
 }
 
@@ -297,6 +301,7 @@ export function useNetworkState<T, E = unknown>({
   operation,
   source,
   schema,
+  errorSchema,
   debounceDelay: requestDebounceDelay,
 }: NetworkStateProps<T>): [
   NetworkState<T, E>,
@@ -356,7 +361,7 @@ export function useNetworkState<T, E = unknown>({
         signal: abortController.signal,
       };
 
-      await context.execute(requestConfig, dispatch, schema);
+      await context.execute(requestConfig, dispatch, schema, errorSchema);
     },
     [networkState, context.dispatch, axios]
   );

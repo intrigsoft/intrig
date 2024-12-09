@@ -23,14 +23,14 @@ import { ZodError } from 'zod';
  *
  * </pre>
  */
-export interface NetworkState<T = unknown> {
+export interface NetworkState<T = unknown, E = unknown> {
   state: 'init' | 'pending' | 'success' | 'error';
 }
 
 /**
  * Network call is not yet started
  */
-export interface InitState<T> extends NetworkState<T> {
+export interface InitState<T, E = unknown> extends NetworkState<T, E> {
   state: 'init';
 }
 
@@ -38,7 +38,7 @@ export interface InitState<T> extends NetworkState<T> {
  * Checks whether the state is init state
  * @param state
  */
-export function isInit<T>(state: NetworkState<T>): state is InitState<T> {
+export function isInit<T, E = unknown>(state: NetworkState<T, E>): state is InitState<T, E> {
   return state.state === 'init';
 }
 
@@ -48,7 +48,7 @@ export function isInit<T>(state: NetworkState<T>): state is InitState<T> {
  * @template T The type of the state.
  * @return {InitState<T>} An object representing the initial state.
  */
-export function init<T>(): InitState<T> {
+export function init<T, E = unknown>(): InitState<T, E> {
   return {
     state: 'init',
   };
@@ -57,7 +57,7 @@ export function init<T>(): InitState<T> {
 /**
  * Network call is not yet completed
  */
-export interface PendingState<T> extends NetworkState<T> {
+export interface PendingState<T, E = unknown> extends NetworkState<T, E> {
   state: 'pending';
   progress?: Progress;
 }
@@ -83,7 +83,7 @@ export interface Progress {
  * Checks whether the state is pending state
  * @param state
  */
-export function isPending<T>(state: NetworkState<T>): state is PendingState<T> {
+export function isPending<T, E = unknown>(state: NetworkState<T, E>): state is PendingState<T, E> {
   return state.state === 'pending';
 }
 
@@ -92,9 +92,9 @@ export function isPending<T>(state: NetworkState<T>): state is PendingState<T> {
  *
  * @return {PendingState<T>} An object representing the pending state.
  */
-export function pending<T>(
+export function pending<T, E = unknown>(
   progress: Progress | undefined = undefined
-): PendingState<T> {
+): PendingState<T, E> {
   return {
     state: 'pending',
     progress,
@@ -104,7 +104,7 @@ export function pending<T>(
 /**
  * Network call is completed with success state
  */
-export interface SuccessState<T> extends NetworkState<T> {
+export interface SuccessState<T, E = unknown> extends NetworkState<T, E> {
   state: 'success';
   data: T;
 }
@@ -113,7 +113,7 @@ export interface SuccessState<T> extends NetworkState<T> {
  * Checks whether the state is success response
  * @param state
  */
-export function isSuccess<T>(state: NetworkState<T>): state is SuccessState<T> {
+export function isSuccess<T, E = unknown>(state: NetworkState<T, E>): state is SuccessState<T, E> {
   return state.state === 'success';
 }
 
@@ -123,7 +123,7 @@ export function isSuccess<T>(state: NetworkState<T>): state is SuccessState<T> {
  * @param {T} data - The data to be included in the success state.
  * @return {SuccessState<T>} An object representing a success state containing the provided data.
  */
-export function success<T>(data: T): SuccessState<T> {
+export function success<T, E = unknown>(data: T): SuccessState<T, E> {
   return {
     state: 'success',
     data,
@@ -133,9 +133,9 @@ export function success<T>(data: T): SuccessState<T> {
 /**
  * Network call is completed with error response
  */
-export interface ErrorState<T> extends NetworkState<T> {
+export interface ErrorState<T, E = unknown> extends NetworkState<T, E> {
   state: 'error';
-  error: any;
+  error: E;
   statusCode?: number;
   request?: any;
 }
@@ -144,7 +144,7 @@ export interface ErrorState<T> extends NetworkState<T> {
  * Checks whether the state is error state
  * @param state
  */
-export function isError<T>(state: NetworkState<T>): state is ErrorState<T> {
+export function isError<T, E = unknown>(state: NetworkState<T, E>): state is ErrorState<T, E> {
   return state.state === 'error';
 }
 
@@ -155,8 +155,8 @@ export function isError<T>(state: NetworkState<T>): state is ErrorState<T> {
  * @param {string} [statusCode] - An optional status code associated with the error.
  * @return {ErrorState<T>} An object representing the error state.
  */
-export function error<T>(
-  error: any,
+export function error<T, E = unknown>(
+  error: E,
   statusCode?: number,
   request?: any
 ): ErrorState<T> {
@@ -179,7 +179,7 @@ export function error<T>(
  * @property {string} operation - The operation being performed when the error occurred.
  * @property {string} key - A unique key identifying the specific error instance.
  */
-export interface ErrorWithContext<T = unknown> extends ErrorState<T> {
+export interface ErrorWithContext<T = unknown, E = unknown> extends ErrorState<T, E> {
   source: string;
   operation: string;
   key: string;
@@ -193,11 +193,11 @@ export interface ErrorWithContext<T = unknown> extends ErrorState<T> {
  * @property {NetworkState<any>} state - The current state of the network action
  * @property {string} key - The unique identifier for the network action
  */
-export interface NetworkAction<T> {
+export interface NetworkAction<T, E> {
   key: string;
   source: string;
   operation: string;
-  state: NetworkState<T>;
+  state: NetworkState<T, E>;
   handled?: boolean;
 }
 
@@ -205,14 +205,14 @@ type HookWithKey = {
   key: string;
 }
 
-export type DeleteHook<P> = ((key?: string) => [NetworkState<never>, (params: P) => void, () => void]) & HookWithKey;
-export type DeleteHookOp<P> = ((key?: string) => [NetworkState<never>, (params?: P) => void, () => void]) & HookWithKey;
-export type GetHook<P, T> = ((key?: string) => [NetworkState<T>, (params: P) => void, () => void]) & HookWithKey;
-export type GetHookOp<P, T> = ((key?: string) => [NetworkState<T>, (params?: P) => void, () => void]) & HookWithKey;
-export type PostHook<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
-export type PostHookOp<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
-export type PutHook<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params: P) => void, () => void]) & HookWithKey;
-export type PutHookOp<P, T, B> = ((key?: string) => [NetworkState<T>, (body: B, params?: P) => void, () => void]) & HookWithKey;
+export type DeleteHook<P, E = unknown> = ((key?: string) => [NetworkState<never, E>, (params: P) => void, () => void]) & HookWithKey;
+export type DeleteHookOp<P, E = unknown> = ((key?: string) => [NetworkState<never, E>, (params?: P) => void, () => void]) & HookWithKey;
+export type GetHook<P, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params: P) => void, () => void]) & HookWithKey;
+export type GetHookOp<P, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params?: P) => void, () => void]) & HookWithKey;
+export type PostHook<P, T, B, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params: P) => void, () => void]) & HookWithKey;
+export type PostHookOp<P, T, B, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params?: P) => void, () => void]) & HookWithKey;
+export type PutHook<P, T, B, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params: P) => void, () => void]) & HookWithKey;
+export type PutHookOp<P, T, B, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params?: P) => void, () => void]) & HookWithKey;
 
 export type IntrigHook<P = undefined, B = undefined, T = any> = DeleteHook<P> | GetHook<P, T> | PostHook<P, T, B> | PutHook<P, T, B> | PostHookOp<P, T, B> | PutHookOp<P, T, B> | GetHookOp<P, T> | DeleteHookOp<P>;
 

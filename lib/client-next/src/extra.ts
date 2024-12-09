@@ -7,9 +7,9 @@ import {
   NetworkState,
   pending,
   success
-} from '@intrig/next-client/network-state';
+} from '@intrig/next/network-state';
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
-import { useIntrigContext } from '@intrig/next-client/intrig-context';
+import { useIntrigContext } from '@intrig/next/intrig-context';
 
 /**
  * Converts a given hook into a promise-based function.

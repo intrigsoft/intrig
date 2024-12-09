@@ -1,8 +1,8 @@
-import { NetworkAction, NetworkState } from '@intrig/next-client/network-state';
+import { NetworkAction, NetworkState } from '@intrig/next/network-state';
 import { AxiosProgressEvent } from 'axios';
 import { ZodSchema } from 'zod';
 import { createContext, useContext } from 'react';
-import { DefaultConfigs } from '@intrig/next-client/intrig-provider';
+import { DefaultConfigs } from '@intrig/next/intrig-provider';
 
 type GlobalState = Record<string, NetworkState>;
 
