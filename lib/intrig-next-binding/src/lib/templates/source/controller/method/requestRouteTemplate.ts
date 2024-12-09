@@ -81,9 +81,9 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
   function createMethod(name: string, blocks: Set<string>) {
     if (!blocks.size) return ""
     return ts`
-        export async function ${name}(request: Request): Promise<NextResponse> {
+        export async function ${name}(request: Request, paramOb: { params: Record<string, string> }): Promise<NextResponse> {
           try {
-            let params = request.params
+            let params = paramOb?.params;
             ${[...blocks].join('\n')}
             ${["POST", "PUT"].includes(name) ? `return new NextResponse(null, { status: 204 });` : ``}
           } catch (e) {
