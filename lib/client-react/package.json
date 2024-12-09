@@ -6,10 +6,13 @@
   "private": false,
   "exports": {
     ".": {
-      "import": "./index.mjs",
-      "require": "./index.js"
+      "import": "./src/index.js",
+      "types": "./src/index.d.ts"
     },
-    "./*": "./src/*"
+    "./*": {
+      "import": "./src/*.js",
+      "types": "./src/*.d.ts"
+    }
   },
   "dependencies": {
     "module-alias": "^2.2.2",

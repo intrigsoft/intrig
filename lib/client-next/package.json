@@ -25,6 +25,13 @@
   },
   "type": "module",
   "exports": {
-    "./*": "./src/*"
+    ".": {
+      "import": "./src/index.js",
+      "types": "./src/index.d.ts"
+    },
+    "./*": {
+      "import": "./src/*.js",
+      "types": "./src/*.d.ts"
+    }
   }
 }

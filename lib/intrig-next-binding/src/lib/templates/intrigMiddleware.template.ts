@@ -6,14 +6,26 @@ export function intrigMiddlewareTemplate(_path: string) {
 
   return ts`
 import axios from 'axios';
-import { requestInterceptor } from 'intrig-hook';
 
-export function getAxiosInstance(key: string) {
-  let axiosInstance = axios.create({
-    baseURL: process.env[${"`${key.toUpperCase()}_API_URL`"}],
-  });
+export async function getAxiosInstance(key: string) {
+  let insightHook;
+  try {
+    // @ts-ignore
+    insightHook = require('intrig-hook');
+  } catch (error) {
+    console.warn('intrig-hook is not available. Proceeding without request interceptor.', error);
+  }
 
-  axiosInstance.interceptors.request.use(requestInterceptor);
+  const baseURL = process.env[${"`${key.toUpperCase()}_API_URL`"}];
+  if (!baseURL) {
+    throw new Error(${"`Environment variable ${key.toUpperCase()}_API_URL is not defined.`"});
+  }
+
+  const axiosInstance = axios.create({ baseURL });
+
+  if (insightHook?.requestInterceptor) {
+    axiosInstance.interceptors.request.use(insightHook.requestInterceptor);
+  }
 
   return axiosInstance;
 }

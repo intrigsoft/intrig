@@ -64,8 +64,8 @@ export function generateHooks(api: IntrigSourceConfig, _path: string, paths: Req
         handleDelete(path);
         break;
     }
-    if ((!path.responseType || path.responseType === 'application/json')
-      && (!path.contentType || path.contentType === 'application/json')) {
+    if ((!path.responseType || path.responseType === 'application/json' || path.responseType === '*/*')
+      && (!path.contentType || path.contentType === 'application/json' || path.contentType === '*/*')) {
       handleIndexes(path);
     }
     groupedByPath[path.requestUrl] = groupedByPath[path.requestUrl] ?? []
