@@ -67,14 +67,21 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
               requests.push(params)
             } else {
               let requestBody = operation.requestBody as OpenAPIV3_1.RequestBodyObject;
-              Object.entries(requestBody?.content ?? {}).forEach(([contentType, content]) => {
-                let schema = content?.schema as OpenAPIV3_1.ReferenceObject;
-                requests.push({
-                  ...params,
-                  contentType,
-                  requestBody: schema?.$ref?.split("/").pop(),
+              if (
+                !requestBody ||
+                !requestBody.content ||
+                !Object.keys(requestBody.content).length) {
+                requests.push(params)
+              } else {
+                Object.entries(requestBody?.content ?? {}).forEach(([contentType, content]) => {
+                  let schema = content?.schema as OpenAPIV3_1.ReferenceObject;
+                  requests.push({
+                    ...params,
+                    contentType,
+                    requestBody: schema?.$ref?.split("/").pop(),
+                  })
                 })
-              })
+              }
             }
           }
         }

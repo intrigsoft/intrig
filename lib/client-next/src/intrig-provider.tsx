@@ -264,12 +264,12 @@ export function StatusTrap({
   );
 }
 
-export interface NetworkStateProps<T> {
+export interface NetworkStateProps<T, E = unknown> {
   key: string;
   operation: string;
   source: string;
   schema?: ZodSchema<T>;
-  errorSchema?: ZodSchema<T>;
+  errorSchema?: ZodSchema<E>;
   debounceDelay?: number;
 }
 

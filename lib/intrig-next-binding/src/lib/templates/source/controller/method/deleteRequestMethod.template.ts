@@ -14,23 +14,25 @@ export function deleteRequestMethodTemplate({source, paths, operationId, respons
 
   let {variableExplodeExpression, variableImports, variableTypes, isParamMandatory} = decodeVariables(variables, source);
 
-  const modifiedRequestUrl = requestUrl.replace("{", "${")
+  const modifiedRequestUrl = requestUrl.replace(/\{/g, "${")
 
   let { def, imports, schemaValidation } = decodeErrorSections(errorResponses, source, "@intrig/next");
 
   return ts`
+    import { z, ZodError } from 'zod'
     import {getAxiosInstance} from "@intrig/next/intrig-middleware";
     import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'
     ${imports}
     import { isAxiosError } from 'axios';
     import { networkError, responseValidationError } from '@intrig/next/network-state';
-    import { ZodError } from 'zod';
+    import { transformResponse } from '@intrig/next/media-type-utils';
 
     export type _ErrorType = ${def}
     const errorSchema = ${schemaValidation}
 
     export const execute${pascalCase(operationId)}: (p: Params) => Promise<${response ?? 'unknown'}> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
-          let result = await getAxiosInstance('${source}').request({
+          let axiosInstance = await getAxiosInstance('${source}')
+          let result = await axiosInstance.request({
             method: 'delete',
             url: \`${modifiedRequestUrl}\`,
             params

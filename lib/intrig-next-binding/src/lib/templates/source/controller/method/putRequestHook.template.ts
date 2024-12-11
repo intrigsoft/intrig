@@ -1,7 +1,7 @@
 import {
   camelCase,
   CompiledOutput,
-  decodeErrorSections,
+  decodeErrorSections, extractParams,
   generatePostfix,
   getDataTransformer,
   typescript
@@ -9,14 +9,16 @@ import {
 import * as path from 'path'
 import {decodeDispatchParams, decodeVariables, pascalCase, RequestProperties} from "@intrig/cli-common";
 
-export function putRequestHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses}: RequestProperties): CompiledOutput {
+export function putRequestHookTemplate(properties: RequestProperties): CompiledOutput {
+  let {source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses} = properties;
+
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}.ts`))
 
-  const modifiedRequestUrl = `/api/${source}${requestUrl.replace("{", "${")}`
+  const modifiedRequestUrl = `/api/${source}${requestUrl.replace(/\{/g, "${")}`
 
   let {variableExplodeExpression, variableImports, variableTypes, isParamMandatory} = decodeVariables(variables, source);
 
-  let {dispatchParamExpansion, dispatchParams} = decodeDispatchParams(operationId, requestBody, isParamMandatory);
+  let {dispatchParamExpansion, dispatchParams, shape, shapeImport} = extractParams(properties);
 
   let { def, imports, schemaValidation } = decodeErrorSections(errorResponses, source, "@intrig/next");
 
@@ -25,7 +27,7 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
   return ts`
   import { z } from 'zod'
     import {useNetworkState} from "@intrig/next/intrig-provider"
-    import {NetworkState, PutHook${isParamMandatory ? '' : 'Op'}, error, DispatchState, successfulDispatch, validationError} from "@intrig/next";
+    import {NetworkState, ${shapeImport}, error, DispatchState, successfulDispatch, validationError} from "@intrig/next";
     ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"` : ''}
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"` : ''}
     ${contentType === "application/x-www-form-urlencoded" ? `import * as qs from "qs"` : ''}
@@ -71,8 +73,8 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
               "Content-Type": "${contentType}",
             },
             params,
-            ${finalRequestBodyBlock},
-            key: \`${"${source}: ${operation}"}\`
+            key: \`${"${source}: ${operation}"}\`,
+            ${requestBody ? finalRequestBodyBlock : ''}
           })
           return successfulDispatch();
         },
@@ -82,8 +84,6 @@ export function putRequestHookTemplate({source, paths, operationId, response, re
 
     use${pascalCase(operationId)}Hook.key = \`${"${source}: ${operation}"}\`
 
-    export const use${pascalCase(operationId)}: PutHook${isParamMandatory ? '' : 'Op'}<Params, RequestBody, Response> = use${pascalCase(operationId)}Hook;
-
-
+    export const use${pascalCase(operationId)}: ${shape} = use${pascalCase(operationId)}Hook;
   `
 }

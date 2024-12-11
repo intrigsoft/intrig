@@ -111,7 +111,7 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string;
     }
   } else if (schema.format === 'date-time' && !schema.pattern) {
     tsType = 'Date';
-    zodSchema = 'z.date()';
+    zodSchema = 'z.coerce.date()';
     zodSchema += `.transform((val) => {
         const parsedDateTime = new Date(val);
         if (isNaN(parsedDateTime.getTime())) {
@@ -188,7 +188,7 @@ function handleObjectSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<strin
       const { zodSchema, imports: propImports } = openApiSchemaToZod(value as OpenAPIV3_1.SchemaObject);
       imports = new Set([...imports, ...propImports]);
       const isRequired = updatedRequiredFields.includes(key);
-      return `${key}: ${isRequired ? zodSchema : zodSchema.includes('.optional()') ? zodSchema : zodSchema + '.optional()'}`;
+      return `${key}: ${isRequired ? zodSchema : zodSchema.includes('.optional().nullable()') ? zodSchema : zodSchema + '.optional().nullable()'}`;
     });
 
     return {
@@ -197,7 +197,7 @@ function handleObjectSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<strin
       imports,
     };
   }
-  return { tsType: 'Record<string, unknown>', zodSchema: 'z.object({})', imports: new Set() };
+  return { tsType: 'any', zodSchema: 'z.any()', imports: new Set() };
 }
 
 function handleComplexSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<string>): { tsType: string; zodSchema: string; imports: Set<string> } {

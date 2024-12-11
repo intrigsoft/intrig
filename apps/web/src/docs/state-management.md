@@ -1,14 +1,14 @@
-### Intrig Compatibility Utilities Documentation
+## Intrig Compatibility Utilities Documentation
 
 The following documentation covers two key utilities provided for compatibility in the `intrig` library. These utilities allow you to convert network state hooks into promise-based functions and manage the network state of promise-based functions seamlessly.
 
-#### `useAsPromise`
+### `useAsPromise`
 
 **Description:** Converts a given hook into a promise-based function, allowing you to use the hook's state in an asynchronous flow.
 
 **Import Path:**
 ```typescript
-import { useAsPromise } from '@intrig/next-client/network-state';
+import { useAsPromise } from '@intrig/next';
 ```
 
 **Parameters:**
@@ -23,7 +23,7 @@ import { useAsPromise } from '@intrig/next-client/network-state';
 **Usage Example:**
 ```jsx
 import React from 'react';
-import { useAsPromise } from '@intrig/next-client/network-state';
+import { useAsPromise } from '@intrig/next';
 
 const MyComponent = ({ someHook }) => {
   const [fetchDataAsPromise, clearState] = useAsPromise(someHook);
@@ -54,13 +54,13 @@ The `useAsPromise` utility simplifies the use of hooks within promise-based work
 **Use Cases:**
 - `useAsPromise` is particularly useful when you need to integrate the backend result as a promise with some third-party libraries, such as validation libraries, that require a promise-based approach.
 
-#### `useAsNetworkState`
+### `useAsNetworkState`
 
 **Description:** A custom hook that manages and returns the network state of a promise-based function. This utility provides a way to execute the function and handle network states like pending, success, or error.
 
 **Import Path:**
 ```typescript
-import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intrig/next-client/network-state';
+import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intrig/next';
 ```
 
 **Parameters:**
@@ -76,7 +76,7 @@ import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intri
 **Usage Example:**
 ```jsx
 import React from 'react';
-import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intrig/next-client/network-state';
+import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intrig/next';
 
 const MyComponent = ({ fetchDataFunction }) => {
   const [state, execute, clear] = useAsNetworkState(fetchDataFunction);
@@ -124,7 +124,7 @@ Consider using `useAsNetworkState` to manage a local storage access operation th
 
 ```jsx
 import React from 'react';
-import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intrig/next-client/network-state';
+import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intrig/next';
 
 const LocalStorageComponent = () => {
   const [state, execute, clear] = useAsNetworkState(async (key) => {

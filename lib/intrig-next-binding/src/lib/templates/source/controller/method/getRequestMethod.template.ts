@@ -14,7 +14,7 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
 
   let {variableExplodeExpression ,isParamMandatory} = decodeVariables(variables, source);
 
-  const modifiedRequestUrl = requestUrl.replace("{", "${")
+  const modifiedRequestUrl = requestUrl.replace(/\{/g, "${")
 
   let { def, imports, schemaValidation } = decodeErrorSections(errorResponses, source, "@intrig/next");
 
@@ -37,7 +37,8 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
     const errorSchema = ${schemaValidation}
 
     export const execute${pascalCase(operationId)}: (p: Params) => Promise<Response> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
-          let { data } = await getAxiosInstance('${source}').request({
+          let axiosInstance = await getAxiosInstance('${source}')
+          let { data } = await axiosInstance.request({
             method: 'get',
             url: \`${modifiedRequestUrl}\`,
             params

@@ -1,4 +1,4 @@
-import { ErrorResponse, Variable } from './util';
+import { ErrorResponse, RequestProperties, Variable } from './util';
 import {pascalCase} from "./change-case";
 
 export function getVariableName(ref: string) {
@@ -54,6 +54,85 @@ export function getDispatchParamExpansion(requestBody?: string, isParamMandatory
   ].filter(Boolean).join(', ');
 }
 
+export function extractParams(properties: RequestProperties): {
+  shape: string
+  shapeImport: string
+  dispatchParams: string
+  dispatchParamExpansion: string
+} {
+  let paramMandatory = isParamMandatory(properties.variables);
+
+  if (properties.response) {
+    if (properties.requestBody) {
+      if (paramMandatory) {
+        return {
+          shape: `BinaryFunctionHook<Params, RequestBody, Response, _ErrorType>`,
+          shapeImport: `BinaryFunctionHook`,
+          dispatchParamExpansion: `data, p`,
+          dispatchParams: "data: RequestBody, params: Params"
+        }
+      } else {
+        return {
+          shape: `BinaryFunctionHook<Params, RequestBody, Response, _ErrorType>`,
+          shapeImport: `BinaryFunctionHook`,
+          dispatchParamExpansion: `data, p = {}`,
+          dispatchParams: "data: RequestBody, params?: Params"
+        }
+      }
+    } else {
+      if (paramMandatory) {
+        return {
+          shape: `UnaryFunctionHook<Params, Response, _ErrorType>`,
+          shapeImport: `UnaryFunctionHook`,
+          dispatchParamExpansion: `p`,
+          dispatchParams: "params: Params"
+        }
+      } else {
+        return {
+          shape: `UnaryFunctionHook<Params, Response, _ErrorType>`,
+          shapeImport: `UnaryFunctionHook`,
+          dispatchParamExpansion: `p = {}`,
+          dispatchParams: "params?: Params"
+        }
+      }
+    }
+  } else {
+    if (properties.requestBody) {
+      if (paramMandatory) {
+        return {
+          shape: `BinaryProduceHook<Params, RequestBody, _ErrorType>`,
+          shapeImport: `BinaryProduceHook`,
+          dispatchParamExpansion: `data, p`,
+          dispatchParams: "data: RequestBody, params: Params"
+        }
+      } else {
+        return {
+          shape: `BinaryProduceHook<Params, RequestBody, _ErrorType>`,
+          shapeImport: `BinaryProduceHook`,
+          dispatchParamExpansion: `data, p = {}`,
+          dispatchParams: "data: RequestBody, params?: Params"
+        }
+      }
+    } else {
+      if (paramMandatory) {
+        return {
+          shape: `UnaryProduceHook<Params, _ErrorType>`,
+          shapeImport: `UnaryProduceHook`,
+          dispatchParamExpansion: `p`,
+          dispatchParams: "params: Params"
+        }
+      } else {
+        return {
+          shape: `UnaryProduceHook<Params, _ErrorType>`,
+          shapeImport: `UnaryProduceHook`,
+          dispatchParamExpansion: `p = {}`,
+          dispatchParams: "params?: Params"
+        }
+      }
+    }
+  }
+}
+
 export function decodeDispatchParams(operationId: string, requestBody?: string, isParamMandatory?: boolean) {
   return {
     dispatchParams: getDispatchParams(operationId, requestBody, isParamMandatory),
@@ -72,7 +151,7 @@ export function getDataTransformer(contentType?: string) {
     case "multipart/form-data":
       finalRequestBodyBlock = `data: (function(){
         let formData = new FormData()
-        Object.keys(data).forEach(key => formData.append(key, data[key]))
+        Object.entries(data).filter(a => !!a[1]).forEach(([key, value]) => formData.append(key, value))
         return formData;
       })()`
       break;

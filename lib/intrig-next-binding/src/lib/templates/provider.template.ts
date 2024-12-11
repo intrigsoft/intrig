@@ -5,7 +5,7 @@ export function providerTemplate(_path: string, apisToSync: IntrigSourceConfig[]
 
   const ts = typescript(path.resolve(_path, "src", "intrig-provider.tsx"))
   return ts`
-  "use client"
+"use client"
 import {
   createContext,
   PropsWithChildren,
@@ -271,12 +271,12 @@ export function StatusTrap({
   );
 }
 
-export interface NetworkStateProps<T> {
+export interface NetworkStateProps<T, E = unknown> {
   key: string;
   operation: string;
   source: string;
   schema?: ZodSchema<T>;
-  errorSchema?: ZodSchema<T>;
+  errorSchema?: ZodSchema<E>;
   debounceDelay?: number;
 }
 
@@ -449,6 +449,5 @@ export function useCentralPendingStateHandling() {
 
   return result;
 }
-
-  `
+`
 }

@@ -16,7 +16,7 @@ export function putRequestMethodTemplate({source, paths, operationId, response, 
 
   let {dispatchParamExpansion, dispatchParams} = decodeDispatchParams(operationId, requestBody, isParamMandatory);
 
-  const modifiedRequestUrl = requestUrl.replace("{", "${")
+  const modifiedRequestUrl = requestUrl.replace(/\{/g, "${")
 
   let finalRequestBodyBlock = getDataTransformer(contentType)
 
@@ -43,16 +43,18 @@ import { networkError, responseValidationError } from '@intrig/next/network-stat
     const errorSchema = ${schemaValidation}
 
     export const execute${pascalCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
-          requestBodySchema.parse(data);
+          ${requestBody ? `requestBodySchema.parse(data);` : ''}
           let {${variableExplodeExpression}} = p
-          let { data: responseData } = await getAxiosInstance('${source}').request({
+
+          let axiosInstance = await getAxiosInstance('${source}')
+          let { data: responseData } = await axiosInstance.request({
             method: 'put',
             url: \`${modifiedRequestUrl}\`,
             headers: {
               "Content-Type": "${contentType}",
             },
             params,
-            ${finalRequestBodyBlock}
+            ${requestBody ? finalRequestBodyBlock : ''}
           })
 
           return transformResponse(responseData, "${responseType}", schema);
@@ -60,7 +62,7 @@ import { networkError, responseValidationError } from '@intrig/next/network-stat
 
     export const ${camelCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
       try {
-        return execute${pascalCase(operationId)}(data, p);
+        return execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p);
       } catch (e) {
         if (isAxiosError(e) && e.response) {
           throw networkError(transformResponse(e.response.data, "application/json", errorSchema), e.response.status + "", e.response.request);

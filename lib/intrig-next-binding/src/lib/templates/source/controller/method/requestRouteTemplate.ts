@@ -30,6 +30,11 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
   let deleteBlocks = new Set<string>()
 
   function getRequestBodyTransformerBlock(path: RequestProperties) {
+    if (!path.requestBody || path.requestBody === "undefined") {
+      return `
+      let body = request
+      `
+    }
     imports.add(
       `import {${path.requestBody}, ${path.requestBody}Schema} from "@intrig/next/${source}/components/schemas/${path.requestBody}";`
     )
@@ -44,16 +49,22 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
       case "get":
         imports.add(createImport(path))
         getBlocks.add(ts`
-        let response = await ${getFunctionName(path)}(params ?? {})
+        let response = await ${getFunctionName(path)}({
+          ...(params ?? {}) as any,
+          ...Object.fromEntries(request.nextUrl.searchParams.entries())
+        } as any)
         return NextResponse.json(response, { status: 200})
         `.content)
         break;
       case "post":
         imports.add(createImport(path))
         postBlocks.add(ts`
-        if (request.headers.get('Content-Type') === "${path.contentType}") {
+        if (request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
-          let response = await ${getFunctionName(path)}(body, params ?? {})
+          let response = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
+          ...(params ?? {}) as any,
+          ...Object.fromEntries(request.nextUrl.searchParams.entries())
+        } as any)
           return NextResponse.json(response, { status: 200})
         }
         `.content)
@@ -61,16 +72,22 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
       case "delete":
         imports.add(createImport(path))
         deleteBlocks.add(ts`
-        let response = await ${getFunctionName(path)}(params ?? {})
+        let response = await ${getFunctionName(path)}({
+          ...(params ?? {}) as any,
+          ...Object.fromEntries(request.nextUrl.searchParams.entries())
+        } as any)
         return NextResponse.json(response, { status: 200})
         `.content)
         break;
       case "put":
         imports.add(createImport(path))
         putBlocks.add(ts`
-        if (request.headers.get('Content-Type') === "${path.contentType}") {
+        if (request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
-          let response = await ${getFunctionName(path)}(body, params ?? {})
+          let response = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
+          ...(params ?? {}) as any,
+          ...Object.fromEntries(request.nextUrl.searchParams.entries())
+        } as any)
           return NextResponse.json(response, { status: 200})
         }
         `.content)
@@ -81,7 +98,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
   function createMethod(name: string, blocks: Set<string>) {
     if (!blocks.size) return ""
     return ts`
-        export async function ${name}(request: Request, paramOb: { params: Record<string, string> }): Promise<NextResponse> {
+        export async function ${name}(request: NextRequest, paramOb: { params: Record<string, string> }): Promise<NextResponse> {
           try {
             let params = paramOb?.params;
             ${[...blocks].join('\n')}
@@ -109,7 +126,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
   }
 
   return ts`
-    import {NextResponse} from "next/server";
+    import {NextRequest, NextResponse} from "next/server";
     import {isAxiosError} from "axios";
     import { ZodError } from 'zod'
 

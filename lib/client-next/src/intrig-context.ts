@@ -34,7 +34,7 @@ export interface ContextType {
   filteredState: GlobalState;
   dispatch: React.Dispatch<NetworkAction<unknown, unknown>>;
   configs: DefaultConfigs;
-  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<T> | undefined) => Promise<void>;
+  execute: <T, E = unknown>(request: RequestType, dispatch: (state: NetworkState<T, E>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<E> | undefined) => Promise<void>;
 }
 
 /**
