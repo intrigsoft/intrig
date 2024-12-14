@@ -18,6 +18,7 @@ export const navigation = [
       { title: 'Intrig Generated Code', href: '/core-concepts/intrig-generated-code' },
       { title: 'Generated Documentation', href: '/core-concepts/generated-documentation' },
       { title: 'State Management', href: '/core-concepts/state-management' },
+      { title: 'Utility Functions', href: '/core-concepts/utility-functions' },
       { title: 'Storybook Integration', href: '/core-concepts/storybook-integration' },
       { title: 'CLI Usage', href: '/core-concepts/cli-usage'},
       // { title: 'Patterns and Best Practices', href: '/core-concepts/patterns-and-best-practices' }

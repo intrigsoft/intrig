@@ -1,173 +1,91 @@
-## Intrig Compatibility Utilities Documentation
+# A Word About NetworkState
 
-The following documentation covers two key utilities provided for compatibility in the `intrig` library. These utilities allow you to convert network state hooks into promise-based functions and manage the network state of promise-based functions seamlessly.
-
-### `useAsPromise`
-
-**Description:** Converts a given hook into a promise-based function, allowing you to use the hook's state in an asynchronous flow.
-
-**Import Path:**
-```typescript
-import { useAsPromise } from '@intrig/next';
-```
-
-**Parameters:**
-- `hook: IntrigHook<P, B, T>` - The hook function that is to be converted to a promise.
-- `key: string` (optional) - A key to uniquely identify the hook instance. Defaults to `'default'`.
-
-**Returns:**
-- A tuple containing:
-  1. `(...params: Parameters<ReturnType<IntrigHook<P, B, T>>[1]>) => Promise<T>` - A function that invokes the hook as a promise.
-  2. `() => void` - A function to clear the state of the hook.
-
-**Usage Example:**
-```jsx
-import React from 'react';
-import { useAsPromise } from '@intrig/next';
-
-const MyComponent = ({ someHook }) => {
-  const [fetchDataAsPromise, clearState] = useAsPromise(someHook);
-
-  const handleClick = async () => {
-    try {
-      const response = await fetchDataAsPromise({ param: 'value' });
-      console.log('Response:', response);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  return (
-    <div>
-      <button onClick={handleClick}>Fetch Data</button>
-      <button onClick={clearState}>Clear State</button>
-    </div>
-  );
-};
-
-export default MyComponent;
-```
-
-**Explanation:**
-The `useAsPromise` utility simplifies the use of hooks within promise-based workflows, ideal for integrating `intrig` hooks with asynchronous logic.
-
-**Use Cases:**
-- `useAsPromise` is particularly useful when you need to integrate the backend result as a promise with some third-party libraries, such as validation libraries, that require a promise-based approach.
-
-### `useAsNetworkState`
-
-**Description:** A custom hook that manages and returns the network state of a promise-based function. This utility provides a way to execute the function and handle network states like pending, success, or error.
-
-**Import Path:**
-```typescript
-import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intrig/next';
-```
-
-**Parameters:**
-- `fn: F` - A promise-based function whose network state is to be managed. The function must return a promise.
-- `key: string` (optional) - A unique identifier for the network state. Defaults to `'default'`.
-
-**Returns:**
-- A tuple containing:
-  1. `NetworkState<T>` - The current network state.
-  2. `(...params: Parameters<F>) => void` - A function to execute the promise-based function.
-  3. `() => void` - A function to clear the state.
-
-**Usage Example:**
-```jsx
-import React from 'react';
-import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intrig/next';
-
-const MyComponent = ({ fetchDataFunction }) => {
-  const [state, execute, clear] = useAsNetworkState(fetchDataFunction);
-
-  const handleFetch = () => {
-    execute({ param: 'value' });
-  };
-
-  return (
-    <div>
-      {isInit(state) && (
-        <button onClick={handleFetch}>Start Request</button>
-      )}
-
-      {isPending(state) && <p>Loading...</p>}
-
-      {isSuccess(state) && (
-        <div>
-          <p>Data: {JSON.stringify(state.data)}</p>
-          <button onClick={clear}>Clear State</button>
-        </div>
-      )}
-
-      {isError(state) && (
-        <div>
-          <p>Error: {state.error.message}</p>
-          <button onClick={handleFetch}>Retry</button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default MyComponent;
-```
-
-**Explanation:**
-`useAsNetworkState` offers a complete solution to manage the lifecycle of promise-based functions, ensuring that you can handle different states like pending, success, and error intuitively. By using utility functions (`isInit`, `isPending`, `isSuccess`, `isError`), you can safely interact with `NetworkState` and make your code more readable and type-safe. It integrates well with the `intrig` context, making it easier to manage network operations in a React environment.
-
-**Use Cases:**
-- `useAsNetworkState` is ideal when you have promise-based APIs such as local storage access, SQLite access, or any other asynchronous data access that needs to be tracked and managed effectively.
-
-**Improved Example:**
-Consider using `useAsNetworkState` to manage a local storage access operation that is asynchronous. For instance, if you need to fetch data from `localStorage` or `SQLite` and want to manage the state of this asynchronous operation (e.g., loading, success, error), `useAsNetworkState` provides a seamless solution.
-
-```jsx
-import React from 'react';
-import { useAsNetworkState, isInit, isPending, isSuccess, isError } from '@intrig/next';
-
-const LocalStorageComponent = () => {
-  const [state, execute, clear] = useAsNetworkState(async (key) => {
-    const value = await localStorage.getItem(key);
-    if (!value) {
-      throw new Error('Item not found');
-    }
-    return value;
-  });
-
-  const handleFetch = () => {
-    execute('myKey');
-  };
-
-  return (
-    <div>
-      {isInit(state) && (
-        <button onClick={handleFetch}>Fetch from Local Storage</button>
-      )}
-
-      {isPending(state) && <p>Loading data from localStorage...</p>}
-
-      {isSuccess(state) && (
-        <div>
-          <p>Data: {state.data}</p>
-          <button onClick={clear}>Clear State</button>
-        </div>
-      )}
-
-      {isError(state) && (
-        <div>
-          <p>Error: {state.error.message}</p>
-          <button onClick={handleFetch}>Retry</button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default LocalStorageComponent;
-```
+By nature, network calls are asynchronous. Therefore, in most HTTP clients, network call results are modeled using promises. Promises work well with JavaScript, yet in React components, they can lead to confusion. Intrig prefers states over promises, as handling state is more natural within React. States are better suited for managing network requests in React components because they integrate seamlessly with React's behavior, making it easier to trigger re-renders and manage UI updates as the network request progresses.
 
 ---
 
-These utilities (`useAsPromise` and `useAsNetworkState`) provide essential tools for integrating and managing hooks and asynchronous functions within the `intrig` ecosystem. They enhance flexibility and improve compatibility, helping developers to manage stateful operations more effectively.
+## Network State
+
+Intrig introduces a new generic type `NetworkState<T>`. It follows a predefined state flow, as described below.
+
+**Network State Diagram**
+
+![Network State Diagram](state-diagram.png)
+
+- **Init**: This state indicates that the network call has not yet been initiated.
+- **Pending**: Once the call is initiated, the `NetworkState` moves to the Pending state. Loaders can be rendered during this state.
+- **Success**: The `NetworkState` moves to this state upon the successful completion of the network call. This state contains a property called `data` which holds the result of the execution, typically of type `T`, where `T` represents the expected response data type.
+- **Error**: The `NetworkState` moves to this state if the network call fails. This state contains metadata about the failure.
+
+---
+
+## Typesafe Utilities
+
+Some utility functions contain additional information related to the operation, such as the current state of the network request, any associated metadata, and helpful methods to interact with the state. To extract this information, Intrig provides a set of utility functions, as described below:
+
+### isInit
+
+This function checks whether the `NetworkState` is in the init state. Usage is shown below:
+
+```jsx
+function MyComponent() {
+    const [state] = useYourGeneratedHook();
+
+    if (isInit(state)) {
+        return <InitStateContent />;
+    }
+
+    return null;
+}
+```
+
+### isPending
+
+This function checks whether the `NetworkState` is in the pending state. Loaders can usually be rendered in this state.
+
+```jsx
+function MyComponent() {
+    const [state] = useYourGeneratedHook();
+
+    if (isPending(state)) {
+        return <Loader />;
+    }
+
+    return null;
+}
+```
+
+### isSuccess
+
+This function checks whether the `NetworkState` is in the success state. This state contains the result in the `data` property, as shown below:
+
+```jsx
+function MyComponent() {
+    const [state] = useYourGeneratedHook(); 
+
+    // To ensure type safety, always explicitly check that the state is in the Success state before accessing properties like `data`.
+    //console.log(state.data); <- this reesults an error
+    if (isSuccess(state)) {
+        return <SuccessContent data={state.data}/>;
+    }
+
+    return null;
+}
+```
+
+### isError
+
+This function checks whether the `NetworkState` is in the error state. This state contains the error in the `error` property, as shown below:
+
+```jsx
+function MyComponent() {
+    const [state] = useYourGeneratedHook();
+
+    if (isError(state)) {
+        return <Error error={state.error}/>;
+    }
+
+    return null;
+}
+```
 
