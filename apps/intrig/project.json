@@ -52,7 +52,8 @@
           {
             "input": "apps/web/.next",
             "output": "web/.next",
-            "glob": "**"
+            "glob": "**",
+            "ignore": ["cache/.tsbuildinfo"]
           }
         ],
         "generatePackageJson": true,
