@@ -1,4 +1,5 @@
 import {CompiledOutput} from "./types";
+//@ts-ignore
 import prettier from 'prettier'
 
 export function markdownLiteral(path: string) {

@@ -13,7 +13,7 @@ import { Highlight, themes } from 'prism-react-renderer'
 import prettier from 'prettier/standalone';
 // @ts-ignore
 import parserTypescript from 'prettier/parser-typescript';
-import { pascalCase, camelCase } from 'change-case';
+import { pascalCase, camelCase } from '@/lib/change-case';
 import { CheckIcon, ClipboardIcon } from '@heroicons/react/24/outline';
 
 export interface RequestProperties {
