@@ -153,7 +153,7 @@ export function requestHookTemplate({source, paths, operationId, response, reque
             ${requestBody ? finalRequestBodyBlock : ''}
           })
           return successfulDispatch();
-      })
+      }, [dispatch])
 
       return [
         state,
