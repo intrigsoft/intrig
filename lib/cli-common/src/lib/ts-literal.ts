@@ -1,5 +1,6 @@
 import {stripMargin} from "./strip-margin";
 import {CompiledOutput} from "./types";
+//@ts-ignore
 import * as prettier from 'prettier'
 
 export function typescript(path: string) {

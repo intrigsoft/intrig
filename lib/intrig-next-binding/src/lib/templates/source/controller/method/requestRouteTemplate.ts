@@ -59,7 +59,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
       case "post":
         imports.add(createImport(path))
         postBlocks.add(ts`
-        if (request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
+        if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
           let response = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
           ...(params ?? {}) as any,
@@ -82,7 +82,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
       case "put":
         imports.add(createImport(path))
         putBlocks.add(ts`
-        if (request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
+        if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
           let response = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
           ...(params ?? {}) as any,

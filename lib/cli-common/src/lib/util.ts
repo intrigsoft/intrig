@@ -1,8 +1,8 @@
 import {OpenAPIV3_1} from "openapi-types";
 import ReferenceObject = OpenAPIV3_1.ReferenceObject;
-import {CompiledOutput} from "@intrig/cli-common";
 import * as fs from 'fs'
 import * as path from 'path'
+import { CompiledOutput } from './types';
 
 export function isRef(ob: any): ob is ReferenceObject {
   return ob?.$ref !== undefined;

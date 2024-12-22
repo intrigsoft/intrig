@@ -1,3 +1,14 @@
+## 1.0.4 (2024-12-19)
+
+### 🩹 Fixes
+
+- Refactor case conversion utilities and update imports ([784e5ef](https://github.com/intrigsoft/intrig/commit/784e5ef))
+- **next, insight:** Add ReactClientComponentEditor and code builder integration ([d50a23c](https://github.com/intrigsoft/intrig/commit/d50a23c))
+
+### ❤️  Thank You
+
+- tiran
+
 ## 1.0.3 (2024-12-11)
 
 This was a version bump only, there were no code changes.

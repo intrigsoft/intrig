@@ -14,6 +14,7 @@ import { Link } from '@/catalyst/link';
 import { TabbedFence } from '@/components/TabbedFence';
 import { CodeViewer, DataTypeViewer } from '@/components/DataTypeViewer';
 import { HierarchyView } from '@/components/HierarchyView';
+import { ReactClientComponentEditor } from '@/components/ReactClientComponentEditor';
 
 let documentSlugifyMap = new Map()
 const config: Config = {
@@ -167,6 +168,18 @@ const config: Config = {
         filter: { type: String }
       },
       render: HierarchyView as any
+    },
+    codeBuilder: {
+      attributes: {
+        data: { type: 'Object' }
+      },
+      render: ReactClientComponentEditor as any
+    },
+    serverside: {
+      render: (({children}: {children: any}) => <div className={'bg-teal-700 bg-opacity-10 px-5 py-2 border-l-2 border-teal-950'}>{children}</div>) as any
+    },
+    clientside: {
+      render: (({children}: {children: any}) => <div className={'bg-purple-700 bg-opacity-5 px-5 py-2 border-l-2 border-l-purple-950'}>{children}</div>) as any
     }
   }
 }

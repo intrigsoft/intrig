@@ -183,7 +183,7 @@ export function generatePostfix(contentType: string, responseType: string) {
 }
 
 export function decodeErrorSections(errorResponses: Record<string, ErrorResponse>, source: string, prefix: string = '@root') {
-  let errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))];
+  let errorTypes = Array.from(new Set(Object.values(errorResponses ?? {}).map(a => a.response)));
 
   let imports = errorTypes.map(ref => `import {${ref}, ${ref}Schema } from "${prefix}/${source}/components/schemas/${ref}"`)
     .join('\n');

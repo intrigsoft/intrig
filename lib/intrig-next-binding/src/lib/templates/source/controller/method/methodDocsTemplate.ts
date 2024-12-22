@@ -6,7 +6,7 @@ import {
 import * as path from 'path';
 import yaml from 'yaml';
 
-export function methodDocsTempalte(
+export function methodDocsTemplate(
   api: IntrigSourceConfig,
   _path: string,
   endpoints: RequestProperties[]
@@ -134,6 +134,8 @@ ${queryParams
 ---
 ## Server side integration.
 
+{% serverside %}
+
 #### 1. Import async function.
 
 To use the generated async function, import {% code path="${api.id}/${paths.join('/')}/${methodName}/${methodName}" %}\`${methodName}\`{% /code %} into your component as follows:
@@ -162,8 +164,12 @@ export async function MyComponent() {
 }
 \`\`\`
 
+{% /serverside %}
+
 ---
 ## Client side integration
+
+{% clientside %}
 
 #### 1. Import hook.
 
@@ -222,7 +228,7 @@ let petById = useMemo(() => {
 }, [${methodName}Resp])
 \`\`\`
 
-#### 5.2 Perform actions when the response is successful using \`useEffect\`.
+##### 5.2 Perform actions when the response is successful using \`useEffect\`.
 
 Use \`useEffect\` to perform actions whenever the response becomes successful.
 
@@ -238,7 +244,7 @@ useEffect(() => {
 }, [${methodName}Resp])
 \`\`\`
 
-#### 5.3 Handle the pending state
+##### 5.3 Handle the pending state
 
 Render a loading state while the request is pending.
 
@@ -248,7 +254,7 @@ if (isPending(${methodName}Resp)) {
 }
 \`\`\`
 
-#### 5.4 Handle errors.
+##### 5.4 Handle errors.
 
 Render an error message if the request fails.
 
@@ -258,7 +264,7 @@ if (isError(${methodName}Resp)) {
 }
 \`\`\`
 
-#### 5.5 Use the response within JSX.
+##### 5.5 Use the response within JSX.
 
 Render the response data or error message conditionally within your JSX.
 
@@ -268,6 +274,8 @@ return <>
   {isError(${methodName}Resp) && <span className={'error'}>{${methodName}Resp.error}</span>}
 </>
 \`\`\`
+
+{% /clientside %}
 
   `;
 

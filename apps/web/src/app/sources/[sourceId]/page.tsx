@@ -1,7 +1,6 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs from 'fs';
+import * as path from 'path';
 import { Documentation } from '@/components/Documentation';
-import { NextRequest } from 'next/server';
 import { INTRIG_LOCATION } from '@/const/locations';
 
 export const dynamic = 'force-dynamic';
