@@ -6,7 +6,7 @@ import {
 import * as path from 'path';
 import yaml from 'yaml';
 
-export function methodDocsTempalte(
+export function methodDocsTemplate(
   api: IntrigSourceConfig,
   _path: string,
   endpoints: RequestProperties[]

@@ -17,23 +17,20 @@ interface VersionIndex {
   timestamp: string;
 }
 
-export async function saveOpenApiDocument(apiName: string, version: string, content: string): Promise<void> {
+export async function saveOpenApiDocument(apiName: string, content: string): Promise<void> {
   const apiDir = path.join(apiVersionsDir, apiName);
   if (!fs.existsSync(apiDir)) {
     fs.mkdirSync(apiDir, { recursive: true });
   }
 
-  const indexPath = path.join(apiDir, indexFileName);
-  let index: VersionIndex[] = [];
-  if (fs.existsSync(indexPath)) {
-    const indexContent = await readFile(indexPath, 'utf8');
-    index = JSON.parse(indexContent);
-  }
+  const latestFileName = `${apiName}-latest.json`;
+  const previousFileName = `${apiName}-previous.json`;
+  const latestFilePath = path.join(apiDir, latestFileName);
+  const previousFilePath = path.join(apiDir, previousFileName);
 
-  const latestEntry = index.length > 0 ? index[index.length - 1] : null;
-  if (latestEntry) {
-    const latestContentPath = path.join(apiDir, latestEntry.fileName);
-    const latestContent = await readFile(latestContentPath, 'utf8');
+  // Check if latest file exists and compare content
+  if (fs.existsSync(latestFilePath)) {
+    const latestContent = await readFile(latestFilePath, 'utf8');
 
     cli.action.start('Calculating differences');
     let differences = compareSwaggerDocs(
@@ -43,49 +40,81 @@ export async function saveOpenApiDocument(apiName: string, version: string, cont
     cli.action.stop();
 
     if (!Object.keys(differences).length) {
-      cli.info('No changes detected. Version not updated.');
+      cli.info('No changes detected. Operation aborted.');
       return;
     }
+
+    // Move the latest file to previous file
+    cli.action.start('Archiving the latest document as previous');
+    fs.renameSync(latestFilePath, previousFilePath);
+    cli.action.stop();
   }
 
-  const timestamp = new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15);
-  const fileName = `${apiName}_${version}_${timestamp}.json`;
-  const filePath = path.join(apiDir, fileName);
-
+  // Save the new latest document
   cli.action.start('Saving OpenAPI document');
-  await writeFile(filePath, content);
-
-  // Update index file
-  index.push({ fileName, timestamp });
-  await writeFile(indexPath, JSON.stringify(index, null, 2));
+  await writeFile(latestFilePath, content);
   cli.action.stop();
 
-  cli.info(`Saved OpenAPI document: ${indexPath}${fileName}`);
+  cli.info(`Saved OpenAPI document: ${latestFilePath}`);
 }
 
 export async function getLatestVersion(apiName: string): Promise<any> {
-  const indexPath = path.join(apiVersionsDir, apiName, indexFileName);
-  if (fs.existsSync(indexPath)) {
-    const indexContent = await readFile(indexPath, 'utf8');
-    const index: VersionIndex[] = JSON.parse(indexContent);
-    if (index.length > 0) {
-      const latestFileName = index[index.length - 1].fileName;
-      console.log(
-        `Using latest version: ${latestFileName} (${index[index.length - 1].timestamp})`)
-      const latestContent = await readFile(path.join(apiVersionsDir, apiName, latestFileName), 'utf8');
-      return JSON.parse(latestContent);
-    }
+  const latestFilePath = path.join(apiVersionsDir, apiName, `${apiName}-latest.json`);
+
+  if (fs.existsSync(latestFilePath)) {
+    console.log(`Using latest version: ${latestFilePath}`);
+    const latestContent = await readFile(latestFilePath, 'utf8');
+    return JSON.parse(latestContent);
   }
+
   throw new Error('No versions available for this API.');
 }
 
-export async function listVersions(apiName: string): Promise<VersionIndex[]> {
-  const indexPath = path.join(apiVersionsDir, apiName, indexFileName);
-  if (!fs.existsSync(indexPath)) {
-    throw new Error('No versions available for this API.');
+export async function baselineVersion(apiName: string, version: string): Promise<void> {
+  const apiDir = path.join(apiVersionsDir, apiName);
+  if (!fs.existsSync(apiDir)) {
+    fs.mkdirSync(apiDir, { recursive: true });
   }
 
-  const indexContent = await readFile(indexPath, 'utf8');
-  const index: VersionIndex[] = JSON.parse(indexContent);
-  return index;
+  const latestFileName = `${apiName}-latest.json`;
+  const previousFileName = `${apiName}-previous.json`;
+  const versionedFileName = `${apiName}-${version}.json`;
+  const latestFilePath = path.join(apiDir, latestFileName);
+  const previousFilePath = path.join(apiDir, previousFileName);
+  const versionedFilePath = path.join(apiDir, versionedFileName);
+  const metaInfoPath = path.join(apiDir, 'metaInfo.json');
+
+  if (!fs.existsSync(latestFilePath)) {
+    throw new Error('No latest version available to baseline.');
+  }
+
+  // Move the latest file to previous file
+  cli.action.start('Archiving the latest document as previous');
+  if (fs.existsSync(previousFilePath)) {
+    fs.unlinkSync(previousFilePath); // Remove existing previous file if exists
+  }
+  fs.copyFileSync(latestFilePath, previousFilePath);
+  cli.action.stop();
+
+  // Copy the latest file to the versioned file
+  cli.action.start(`Saving versioned document: ${versionedFileName}`);
+  fs.copyFileSync(latestFilePath, versionedFilePath);
+  cli.action.stop();
+
+  // Update metaInfo file
+  let metaInfo = [];
+  if (fs.existsSync(metaInfoPath)) {
+    const metaInfoContent = await readFile(metaInfoPath, 'utf8');
+    metaInfo = JSON.parse(metaInfoContent);
+  }
+
+  metaInfo.push({
+    version,
+    fileName: versionedFileName,
+    timestamp: new Date().toISOString(),
+  });
+
+  await writeFile(metaInfoPath, JSON.stringify(metaInfo, null, 2));
+
+  cli.info(`Baseline created for version: ${version}`);
 }

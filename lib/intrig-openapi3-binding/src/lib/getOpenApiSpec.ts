@@ -49,13 +49,13 @@ export async function syncOpenApiSpec(url: string, id: string, config: IntrigCon
   cli.action.stop()
 
   cli.action.start(`Saving OpenAPI spec`)
-  await saveOpenApiDocument(id, normalized.info.version, JSON.stringify(normalized, null, 2));
+  await saveOpenApiDocument(id, JSON.stringify(normalized, null, 2));
   cli.action.stop()
 }
 
 export async function getOpenApiSpecFromFile(id: string): Promise<OpenAPIV3_1.Document> {
   try {
-    cli.action.start(`Fetching OpenAPI spec from git`)
+    cli.action.start(`Using saved OpenAPI spec from ${id}`)
     return await getLatestVersion(id);
   } catch (e: any) {
     cli.action.stop()
