@@ -83,6 +83,7 @@ export function requestHookTemplate({source, paths, operationId, response, reque
 
   let imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
+  imports.add(`import { useCallback } from 'react'`)
   imports.add(`import {useNetworkState, NetworkState, DispatchState, error, successfulDispatch, validationError, encode} from "@intrig/next"`)
 
   let hookShape = extractHookShape(response, requestBody, imports);
@@ -131,10 +132,8 @@ export function requestHookTemplate({source, paths, operationId, response, reque
         errorSchema
       });
 
-      return [
-        state,
-        (${paramExpression}) => {
-          let { ${paramExplode}} = p
+      let doExecute = useCallback<(${paramType}) => DispatchState<any>>((${paramExpression}) => {
+        let { ${paramExplode}} = p
 
           ${requestBody ? `
           const validationResult = requestBodySchema.safeParse(data);
@@ -154,7 +153,11 @@ export function requestHookTemplate({source, paths, operationId, response, reque
             ${requestBody ? finalRequestBodyBlock : ''}
           })
           return successfulDispatch();
-        },
+      })
+
+      return [
+        state,
+        doExecute,
         clear
       ]
     }

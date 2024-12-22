@@ -205,12 +205,12 @@ type HookWithKey = {
   key: string;
 }
 
-export type UnitHook<E = unknown> = ((key?: string) => [NetworkState<never, E>, (params?: Record<string, any>) => void, () => void]) & HookWithKey;
-export type ConstantHook<T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params?: Record<string, any>) => void, () => void]) & HookWithKey;
-export type UnaryProduceHook<P, E = unknown> = ((key?: string) => [NetworkState<never, E>, (params: P) => void, () => void]) & HookWithKey;
-export type UnaryFunctionHook<P, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params: P) => void, () => void]) & HookWithKey;
-export type BinaryProduceHook<P, B, E = unknown> = ((key?: string) => [NetworkState<never, E>, (body: B, params: P) => void, () => void]) & HookWithKey;
-export type BinaryFunctionHook<P, B, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params: P) => void, () => void]) & HookWithKey;
+export type UnitHook<E = unknown> = ((key?: string) => [NetworkState<never, E>, (params?: Record<string, any>) => DispatchState<any>, () => void]) & HookWithKey;
+export type ConstantHook<T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params?: Record<string, any>) => DispatchState<any>, () => void]) & HookWithKey;
+export type UnaryProduceHook<P, E = unknown> = ((key?: string) => [NetworkState<never, E>, (params: P) => DispatchState<any>, () => void]) & HookWithKey;
+export type UnaryFunctionHook<P, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params: P) => DispatchState<any>, () => void]) & HookWithKey;
+export type BinaryProduceHook<P, B, E = unknown> = ((key?: string) => [NetworkState<never, E>, (body: B, params: P) => DispatchState<any>, () => void]) & HookWithKey;
+export type BinaryFunctionHook<P, B, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params: P) => DispatchState<any>, () => void]) & HookWithKey;
 
 export type IntrigHook<P = undefined, B = undefined, T = any, E = unknown> = UnitHook<E> | ConstantHook<T, E> | UnaryProduceHook<P, E> | UnaryFunctionHook<P, T, E> | BinaryProduceHook<P, B, E> | BinaryFunctionHook<P, B, T, E>;
 
