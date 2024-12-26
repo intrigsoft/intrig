@@ -18,10 +18,14 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
 
   let { def, imports, schemaValidation } = decodeErrorSections(errorResponses, source, "@intrig/next");
 
+  let responseTypeBlock = responseType.startsWith("application/vnd") || responseType === "application/octet-stream"
+    ? `responseType: 'arraybuffer'`
+    : ``
+
   return ts`
   import { z, ZodError } from 'zod'
   import {getAxiosInstance} from "@intrig/next/intrig-middleware";
-  import { isAxiosError } from 'axios';
+  import { isAxiosError, AxiosResponseHeaders } from 'axios';
   import { networkError, responseValidationError } from '@intrig/next/network-state';
     import {transformResponse} from "@intrig/next/media-type-utils"
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"` : ''}
@@ -36,20 +40,25 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
     export type _ErrorType = ${def}
     const errorSchema = ${schemaValidation}
 
-    export const execute${pascalCase(operationId)}: (p: Params) => Promise<Response> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
+    export const execute${pascalCase(operationId)}: (p: Params) => Promise<{data: Response, headers: AxiosResponseHeaders}> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
           let axiosInstance = await getAxiosInstance('${source}')
-          let { data } = await axiosInstance.request({
+          let { data, headers } = await axiosInstance.request({
             method: 'get',
             url: \`${modifiedRequestUrl}\`,
-            params
+            params,
+            ${responseTypeBlock}
           })
 
-          return transformResponse(data, "${responseType}", schema);
+          return {
+            data,
+            headers
+          };
     }
 
     export const ${camelCase(operationId)}: (p: Params) => Promise<Response> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
       try {
-        return execute${pascalCase(operationId)}({${variableExplodeExpression}});
+        let { data } = execute${pascalCase(operationId)}({${variableExplodeExpression}});
+        return transformResponse(data, "${responseType}", schema)
       } catch (e) {
         if (isAxiosError(e) && e.response) {
           throw networkError(transformResponse(e.response.data, "application/json", errorSchema), e.response.status + "", e.response.request);

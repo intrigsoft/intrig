@@ -22,10 +22,14 @@ export function putRequestMethodTemplate({source, paths, operationId, response, 
 
   let { def, imports, schemaValidation } = decodeErrorSections(errorResponses, source, "@intrig/next");
 
+  let responseTypeBlock = responseType.startsWith("application/vnd") || responseType === "application/octet-stream"
+    ? `responseType: 'arraybuffer'`
+    : undefined
+
   return ts`
   import { z, ZodError } from 'zod'
-import { isAxiosError } from 'axios';
-import { networkError, responseValidationError } from '@intrig/next/network-state';
+  import { isAxiosError, AxiosResponseHeaders } from 'axios';
+  import { networkError, responseValidationError } from '@intrig/next/network-state';
   import {getAxiosInstance} from "@intrig/next/intrig-middleware";
     import {transformResponse} from "@intrig/next/media-type-utils";
     ${requestBody ? `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"` : ''}
@@ -42,27 +46,34 @@ import { networkError, responseValidationError } from '@intrig/next/network-stat
     export type _ErrorType = ${def}
     const errorSchema = ${schemaValidation}
 
-    export const execute${pascalCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
+    export const execute${pascalCase(operationId)}: (${dispatchParams}) => Promise<{data: Response, headers: AxiosResponseHeaders}> = async (${dispatchParamExpansion}) => {
           ${requestBody ? `requestBodySchema.parse(data);` : ''}
           let {${variableExplodeExpression}} = p
 
           let axiosInstance = await getAxiosInstance('${source}')
-          let { data: responseData } = await axiosInstance.request({
+          let { data: responseData, headers } = await axiosInstance.request({
             method: 'put',
             url: \`${modifiedRequestUrl}\`,
             headers: {
               "Content-Type": "${contentType}",
             },
             params,
-            ${requestBody ? finalRequestBodyBlock : ''}
+            ${[
+    requestBody && finalRequestBodyBlock,
+    responseTypeBlock,
+  ].filter(Boolean).join(',\n')}
           })
 
-          return transformResponse(responseData, "${responseType}", schema);
+          return {
+            data: responseData,
+            headers
+          }
     }
 
     export const ${camelCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
       try {
-        return execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p);
+        let {data, headers} = execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p);
+        return transformResponse(data, "${responseType}", schema);
       } catch (e) {
         if (isAxiosError(e) && e.response) {
           throw networkError(transformResponse(e.response.data, "application/json", errorSchema), e.response.status + "", e.response.request);

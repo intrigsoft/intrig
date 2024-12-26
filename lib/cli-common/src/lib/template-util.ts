@@ -202,6 +202,7 @@ export function decodeErrorSections(errorResponses: Record<string, ErrorResponse
 
   let s = errorTypes.join(' | ');
   let def = `${s.trim().length ? s : 'any'}`
+
   return {
     imports,
     def,
