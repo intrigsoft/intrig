@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Highlight, themes } from 'prism-react-renderer'
 import { ClipboardIcon, CheckIcon } from '@heroicons/react/24/outline'
 
@@ -24,6 +24,13 @@ export function Fence({
     }
   }
 
+  const content = useMemo(() => {
+    if (Array.isArray(children)) {
+      return children.join(' ')
+    }
+    return children
+  }, [children]);
+
   return (
     <div className="relative group">
       <button
@@ -37,7 +44,7 @@ export function Fence({
         )}
       </button>
       <Highlight
-        code={children.trimEnd()}
+        code={content.trimEnd()}
         language={language}
         theme={{plain: {}, styles: []}}
       >
