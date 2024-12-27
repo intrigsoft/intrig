@@ -1,3 +1,13 @@
+## 1.0.5 (2024-12-27)
+
+### 🚀 Features
+
+- **next, insight:** Add nx and next.js dependencies to package.json ([a0e2973](https://github.com/intrigsoft/intrig/commit/a0e2973))
+
+### ❤️  Thank You
+
+- tiran
+
 ## 1.0.4 (2024-12-19)
 
 ### 🩹 Fixes
