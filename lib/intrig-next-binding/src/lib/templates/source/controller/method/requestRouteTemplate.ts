@@ -44,16 +44,26 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
     `
   }
 
+  function getNextResponse(path: RequestProperties) {
+    if (path.responseType?.startsWith("application/vnd")) {
+      return `new NextResponse(response, { status: 200, headers })`
+    }
+    if (path.responseType === "application/octet-stream") {
+      return `new NextResponse(response, { status: 200, headers })`
+    }
+    return `NextResponse.json(response, { status: 200, headers})`
+  }
+
   for (let path of paths) {
     switch (path.method.toLowerCase()) {
       case "get":
         imports.add(createImport(path))
         getBlocks.add(ts`
-        let response = await ${getFunctionName(path)}({
+        let { data: response, headers } = await ${getFunctionName(path)}({
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
-        return NextResponse.json(response, { status: 200})
+        return ${getNextResponse(path)}
         `.content)
         break;
       case "post":
@@ -61,22 +71,22 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
         postBlocks.add(ts`
         if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
-          let response = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
+          let { data: response, headers } = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
-          return NextResponse.json(response, { status: 200})
+          return ${getNextResponse(path)}
         }
         `.content)
         break;
       case "delete":
         imports.add(createImport(path))
         deleteBlocks.add(ts`
-        let response = await ${getFunctionName(path)}({
+        let { data: response, headers } = await ${getFunctionName(path)}({
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
-        return NextResponse.json(response, { status: 200})
+        return ${getNextResponse(path)}
         `.content)
         break;
       case "put":
@@ -84,11 +94,11 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
         putBlocks.add(ts`
         if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
-          let response = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
+          let { data: response, headers } = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
-          return NextResponse.json(response, { status: 200})
+          return ${getNextResponse(path)}
         }
         `.content)
         break;
