@@ -25,7 +25,7 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
   return ts`
   import { z, ZodError } from 'zod'
   import {getAxiosInstance} from "@intrig/next/intrig-middleware";
-  import { isAxiosError, AxiosResponseHeaders } from 'axios';
+  import { isAxiosError } from 'axios';
   import { networkError, responseValidationError } from '@intrig/next/network-state';
     import {transformResponse} from "@intrig/next/media-type-utils"
     ${response ? `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"` : ''}
@@ -40,7 +40,7 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
     export type _ErrorType = ${def}
     const errorSchema = ${schemaValidation}
 
-    export const execute${pascalCase(operationId)}: (p: Params) => Promise<{data: Response, headers: AxiosResponseHeaders}> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
+    export const execute${pascalCase(operationId)}: (p: Params) => Promise<{data: Response, headers: any}> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
           let axiosInstance = await getAxiosInstance('${source}')
           let { data, headers } = await axiosInstance.request({
             method: 'get',
@@ -57,8 +57,8 @@ export function getRequestMethodTemplate({source, paths, operationId, response, 
 
     export const ${camelCase(operationId)}: (p: Params) => Promise<Response> = async ({${variableExplodeExpression}} ${isParamMandatory ? '' : ' = {}'}) => {
       try {
-        let { data } = execute${pascalCase(operationId)}({${variableExplodeExpression}});
-        return transformResponse(data, "${responseType}", schema)
+        let { data: responseData } = await execute${pascalCase(operationId)}({${variableExplodeExpression}});
+        return transformResponse(responseData, "${responseType}", schema)
       } catch (e) {
         if (isAxiosError(e) && e.response) {
           throw networkError(transformResponse(e.response.data, "application/json", errorSchema), e.response.status + "", e.response.request);

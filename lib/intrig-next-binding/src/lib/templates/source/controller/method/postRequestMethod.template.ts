@@ -28,7 +28,7 @@ export function postRequestMethodTemplate({source, paths, operationId, response,
 
   return ts`
   import { z, ZodError } from 'zod'
-import { isAxiosError, AxiosResponseHeaders } from 'axios';
+import { isAxiosError } from 'axios';
 import { networkError, responseValidationError } from '@intrig/next/network-state';
   import {getAxiosInstance} from "@intrig/next/intrig-middleware";
     import {transformResponse} from "@intrig/next/media-type-utils";
@@ -46,7 +46,7 @@ import { networkError, responseValidationError } from '@intrig/next/network-stat
     export type _ErrorType = ${def}
     const errorSchema = ${schemaValidation}
 
-    export const execute${pascalCase(operationId)}: (${dispatchParams}) => Promise<{data: Response, headers: AxiosResponseHeaders}> = async (${dispatchParamExpansion}) => {
+    export const execute${pascalCase(operationId)}: (${dispatchParams}) => Promise<{data: Response, headers: any}> = async (${dispatchParamExpansion}) => {
           ${requestBody ? `requestBodySchema.parse(data);` : ''}
           let {${variableExplodeExpression}} = p
 
@@ -72,8 +72,8 @@ import { networkError, responseValidationError } from '@intrig/next/network-stat
 
     export const ${camelCase(operationId)}: (${dispatchParams}) => Promise<Response> = async (${dispatchParamExpansion}) => {
       try {
-        let {data, headers} = execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p);
-        return transformResponse(data, "${responseType}", schema);
+        let {data: responseData, headers} = await execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p);
+        return transformResponse(responseData, "${responseType}", schema);
       } catch (e) {
         if (isAxiosError(e) && e.response) {
           throw networkError(transformResponse(e.response.data, "application/json", errorSchema), e.response.status + "", e.response.request);
