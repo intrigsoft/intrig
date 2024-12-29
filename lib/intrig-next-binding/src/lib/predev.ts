@@ -8,6 +8,11 @@ export async function predev() {
   const gitignorePath = path.resolve('.gitignore');
 
   try {
+
+    cli.action.start('Removing existing generated routes...');
+    fs.removeSync(destDir);
+    cli.action.stop();
+
     cli.action.start('Copying generated routes to main project...');
     await fs.copy(sourceDir, destDir, { overwrite: true });
     cli.action.stop(`Routes successfully copied to ${destDir}.`);
