@@ -8,9 +8,9 @@ import { requestMethodTemplate } from './templates/source/controller/method/requ
 
 export function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 
-  function handleIndexes(params: RequestProperties) {
-    dump(clientIndexTemplate(params))
-    dump(serverIndexTemplate(params))
+  function handleIndexes(requestUrl: string, paths: RequestProperties[]) {
+    dump(clientIndexTemplate(paths))
+    dump(serverIndexTemplate(paths))
   }
 
   const groupedByPath: Record<string, RequestProperties[]> = {}
@@ -23,15 +23,13 @@ export function generateHooks(api: IntrigSourceConfig, _path: string, paths: Req
     dump(paramsTemplate(path))
     dump(requestHookTemplate(path))
     dump(requestMethodTemplate(path))
-    if ((!path.responseType || path.responseType === 'application/json' || path.responseType === '*/*')
-      && (!path.contentType || path.contentType === 'application/json' || path.contentType === '*/*')) {
-      handleIndexes(path);
-    }
+
     groupedByPath[path.requestUrl] = groupedByPath[path.requestUrl] ?? []
     groupedByPath[path.requestUrl].push(path)
   }
 
   for (let [requestUrl, matchingPaths] of Object.entries(groupedByPath)) {
+    handleIndexes(requestUrl, matchingPaths);
     dump(requestRouteTemplate(requestUrl, matchingPaths))
   }
 }
