@@ -18,11 +18,17 @@ export default class Insight extends Command {
       description: 'Port to run the Next.js server on',
       default: 7007,
     }),
+    debug: Flags.boolean({
+      char: 'd',
+      description: 'Enable debug mode to show server-side logs',
+      default: false,
+    }),
   }
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Insight);
     const port = flags.port;
+    const debug = flags.debug;
     const hostname = process.env.HOST || 'localhost';
 
     const open = await import('open');
@@ -33,7 +39,7 @@ export default class Insight extends Command {
 
     // Start the Next.js server
     const startServer = async () => {
-      const nextApp = next({ dev, dir, quiet: true });
+      const nextApp = next({ dev, dir, quiet: !debug });
       const handle = nextApp.getRequestHandler();
 
       await nextApp.prepare();
@@ -44,7 +50,15 @@ export default class Insight extends Command {
       });
 
       server.listen(port, hostname, () => {
-        open.default(`http://${hostname}:${port}`)
+        console.log(`> Server started at http://${hostname}:${port}`); // Always log server start
+        if (debug) {
+          console.log('Debug mode enabled. Server-side logs will be displayed.');
+        }
+        open.default(`http://${hostname}:${port}`);
+      });
+
+      server.on('error', (err) => {
+        console.error('Server encountered an error:', err);
       });
     };
 

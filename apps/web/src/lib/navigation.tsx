@@ -43,6 +43,9 @@ export function NavigationProvider({children}: PropsWithChildren) {
       .then(resp => {
         setNavigations(resp.data)
       })
+      .catch(err => {
+        console.error(err)
+      })
   }, []);
 
   return <Ctx.Provider value={{
