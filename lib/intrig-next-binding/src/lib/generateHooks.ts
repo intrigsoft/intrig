@@ -5,6 +5,7 @@ import { clientIndexTemplate } from './templates/source/controller/method/client
 import { serverIndexTemplate } from './templates/source/controller/method/serverIndex.template';
 import { requestHookTemplate } from './templates/source/controller/method/requestHook.template';
 import { requestMethodTemplate } from './templates/source/controller/method/requestMethod.template';
+import { downloadHookTemplate } from './templates/source/controller/method/download.template';
 
 export function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 
@@ -26,6 +27,10 @@ export function generateHooks(api: IntrigSourceConfig, _path: string, paths: Req
 
     groupedByPath[path.requestUrl] = groupedByPath[path.requestUrl] ?? []
     groupedByPath[path.requestUrl].push(path)
+
+    if (!(path.responseType === 'application/json' || path.responseType === '*/*')) {
+      dump(downloadHookTemplate(path))
+    }
   }
 
   for (let [requestUrl, matchingPaths] of Object.entries(groupedByPath)) {
