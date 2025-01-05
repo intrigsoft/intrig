@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import React, { cloneElement, isValidElement, PropsWithChildren, ReactNode, useMemo } from 'react';
 import Markdoc, { Config, nodes as defaultNodes, Tag } from '@markdoc/markdoc';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -15,6 +15,9 @@ import { TabbedFence } from '@/components/TabbedFence';
 import { CodeViewer, DataTypeViewer } from '@/components/DataTypeViewer';
 import { HierarchyView } from '@/components/HierarchyView';
 import { ReactClientComponentEditor } from '@/components/ReactClientComponentEditor';
+import * as changeCase from 'change-case';
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
+import ReactCodeBuilder from '@/components/ReactCodeBuilder';
 
 let documentSlugifyMap = new Map()
 const config: Config = {
@@ -175,11 +178,43 @@ const config: Config = {
       },
       render: ReactClientComponentEditor as any
     },
+    'code-builder': {
+      attributes: {
+        path: { type: String }
+      },
+      render: ReactCodeBuilder as any
+    },
     serverside: {
       render: (({children}: {children: any}) => <div className={'bg-teal-700 bg-opacity-10 px-5 py-2 border-l-2 border-teal-950'}>{children}</div>) as any
     },
     clientside: {
       render: (({children}: {children: any}) => <div className={'bg-purple-700 bg-opacity-5 px-5 py-2 border-l-2 border-l-purple-950'}>{children}</div>) as any
+    },
+    tab: {
+      attributes: {
+        title: { type: String }
+      },
+      render: (({children, title}: {children: any, title: string}) => {
+        return <TabPanel key={title} aria-label={title}>{children}</TabPanel>
+      }) as any
+    },
+    tabs: {
+      attributes: {
+        defaultTab: { type: String }
+      },
+      render: (({children, defaultTab}: {children: any, defaultTab?: string}) => {
+        return <TabGroup defaultIndex={children.findIndex((child: any) => child.props.title === defaultTab) ?? 0}>
+          <TabList>
+            <div className={'flex dark:bg-gray-950 bg-gray-200 bg-opacity-50 rounded-full mb-1 w-fit space-x-2'}>
+              {children.map((child: any) => <Tab key={child.props.title}
+                                                 className={"px-4 border rounded-full data-[selected]:border-teal-700 border-transparent focus-visible:border-gray-600"}>
+                {child.props.title}
+              </Tab>)}
+            </div>
+          </TabList>
+          <TabPanels>{children}</TabPanels>
+        </TabGroup>
+      }) as any
     }
   }
 }
@@ -194,17 +229,57 @@ export interface DocumentationProps {
   filePath: string,
   content?: string,
   variables?: Record<string, any>
+  partials?: Record<string, string>
 }
 
-export function Documentation({ filePath, content: defaultContent, variables = {} }: DocumentationProps) {
+export function Documentation({ filePath, content: defaultContent, variables = {}, partials={} }: DocumentationProps) {
 
-  let _config: Config = {
-    ...config,
-    variables: {
-      ...variables,
-      _filePath: filePath
+  const _config: Config = useMemo(() => {
+    let functions = Object.fromEntries(Object.entries(changeCase)
+      .map(([key, value]) => {
+        return [key, {
+          transform(parameters: any) {
+            let string = parameters[0]
+
+            return typeof string === 'string' ? value(string) : string
+          }
+        }]
+      }));
+
+    let _partials = Object.fromEntries(Object.entries(partials).map(([key, value]) => {
+      return [key, Markdoc.parse(value)]
+    }));
+
+    return {
+      ...config,
+      variables: {
+        ...config.variables,
+        ...variables,
+        _filePath: filePath
+      },
+      functions: {
+        ...config.functions,
+        ...functions,
+        upperCase: {
+          transform(parameters: Record<string, any>, config: Config): any {
+            let string = parameters[0]
+            return typeof string === 'string' ? string.toUpperCase() : string
+          }
+        },
+        lowerCase: {
+          transform(parameters: Record<string, any>, config: Config): any {
+            let string = parameters[0]
+            return typeof string === 'string' ? string.toLowerCase() : string
+          }
+        }
+      },
+      partials: {
+        ...config.partials,
+        ..._partials
+      }
     }
-  }
+
+  }, [filePath, variables, partials]);
 
   const source = defaultContent ?? fs.readFileSync(path.join(filePath), 'utf8');
   const ast = Markdoc.parse(source);

@@ -19,7 +19,7 @@ export function generateSourceTemplates(api: IntrigSourceConfig, _path: string, 
   })
 
   Object.values(categorizedPaths).forEach(pathList => {
-    dump(methodDocsTemplate(api, _path, pathList))
+    methodDocsTemplate(api, _path, pathList).forEach(dump)
     dump(metaInfoTemplate(api, _path, pathList))
   })
 

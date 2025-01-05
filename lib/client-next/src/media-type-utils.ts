@@ -1,6 +1,47 @@
 import { ZodSchema } from 'zod';
 import { XMLParser } from 'fast-xml-parser';
 
+type Encoders = {
+  [k: string]: <T>(request: T,
+                   mediaType: string,
+                   schema: ZodSchema) => Promise<any>;
+};
+
+const encoders: Encoders = {};
+
+function encode<T>(request: T, mediaType: string, schema: ZodSchema) {
+  if (encoders[mediaType]) {
+    return encoders[mediaType](request, mediaType, schema);
+  }
+  return request;
+}
+
+encoders['application/json'] = async (request, mediaType, schema) => {
+  return request;
+}
+
+encoders['multipart/form-data'] = async (request, mediaType, schema) => {
+  let formData = new FormData();
+  for (let key in request) {
+    const value = request[key];
+    formData.append(key, value instanceof Blob || typeof value === 'string' ? value : String(value));
+  }
+  return formData;
+}
+
+encoders['application/octet-stream'] = async (request, mediaType, schema) => {
+  return request;
+}
+
+encoders['application/x-www-form-urlencoded'] = async (request, mediaType, schema) => {
+  let formData = new FormData();
+  for (let key in request) {
+    const value = request[key];
+    formData.append(key, value instanceof Blob || typeof value === 'string' ? value : String(value));
+  }
+  return formData;
+}
+
 type Transformers = {
   [k: string]: <T>(
     request: Request,

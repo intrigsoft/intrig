@@ -8,11 +8,23 @@ import {
 } from '@intrig/cli-common';
 import * as path from 'path'
 
-export function serverIndexTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, responseType}: RequestProperties): CompiledOutput {
+export function serverIndexTemplate(requestProperties: RequestProperties[]): CompiledOutput {
+
+  const {source, paths, operationId, response, requestUrl, variables, sourcePath, responseType, contentType} = requestProperties[0]
 
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `server.ts`))
 
+  if (requestProperties.length === 1) return ts`
+    export { ${camelCase(operationId)} } from './${camelCase(operationId)}${generatePostfix(contentType, responseType)}'
+  `
+
+  let exports = requestProperties
+    .map(({contentType, responseType}) => {
+      return `export { ${camelCase(operationId)} as ${camelCase(operationId)}${generatePostfix(contentType, responseType)} } from './${camelCase(operationId)}${generatePostfix(contentType, responseType)}'`
+    })
+    .join('\n');
+
   return ts`
-    export * from './${camelCase(operationId)}'
+    ${exports}
   `
 }

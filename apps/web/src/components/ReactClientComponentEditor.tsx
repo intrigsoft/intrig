@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useMemo, useState } from 'react';
+import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import { ErrorResponse, Variable } from '../../../../lib/cli-common/src';
 import { Controller, useForm } from 'react-hook-form';
 import { ErrorMessage, Field, Label } from '@/catalyst/fieldset';
@@ -14,7 +14,10 @@ import prettier from 'prettier/standalone';
 // @ts-ignore
 import parserTypescript from 'prettier/parser-typescript';
 import { pascalCase, camelCase } from '@/lib/change-case';
-import { CheckIcon, ClipboardIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, ClipboardIcon, InformationCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { Fieldset, Legend, Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 export interface RequestProperties {
   method: string
@@ -47,6 +50,7 @@ interface Spec {
   successMemo?: boolean;
   errorMemo?: boolean;
   successEffect?: boolean;
+  successCached?: boolean;
   errorEffect?: boolean;
 }
 
@@ -55,6 +59,9 @@ export interface ReactClientComponentEditorProps {
 }
 
 export function ReactClientComponentEditor({ config }: ReactClientComponentEditorProps) {
+
+  let pathname = usePathname();
+
   let {
     handleSubmit,
     register,
@@ -96,6 +103,7 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
     let useEffectHookPresent = false
     let useMemoHookPresent = false
     let useCallbackHookPresent = false
+    let useStateHookPresent = false
 
     let methodName = camelCase(config.operationId);
     let hookName = `use${pascalCase(config.operationId)}`;
@@ -159,7 +167,7 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
     if (data.errorMemo) isErrorPresent = true
     if (data.successMemo || data.errorMemo) useMemoHookPresent = true
 
-    let effectBlock = `useEffect(() => {
+    let effectBlock = registerBlock(`useEffect(() => {
       ${data.successEffect ? `if (isSuccess(${data.responseName})) {
         //Do something with ${data.responseName}.data
         console.log(${data.responseName}.data)
@@ -168,9 +176,28 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
         //Do something with ${data.responseName}.error
         console.error(${data.responseName}.error)
       }` : ''}
-    }, [${data.responseName}])`
+    }, [${data.responseName}])`, 'effectBlock')
     if (data.errorEffect) isErrorPresent = true
     if (data.errorEffect || data.successEffect) useEffectHookPresent = true
+
+    let successEffectBlock = ''
+    let successStateBlock = ''
+    if (data.successCached) {
+      successEffectBlock = registerBlock(`
+      useEffect(() => {
+        if (isSuccess(${data.responseName})) {
+          setSuccessData(${data.responseName}.data)
+        } else if (isError(${data.responseName})) {
+          setSuccessData(undefined)
+        }
+      }, [${data.responseName}])`, 'successEffectBlock')
+
+      successStateBlock = registerBlock(`let [successData, setSuccessData] = useState()`, 'successStateBlock')
+
+      useStateHookPresent = true
+      useEffectHookPresent = true
+      inlineSuccessPresent = false
+    }
 
     let errorBlock = data.errorBlock === 'explicit' ? registerBlock(`if (isError(${data.responseName})) {
       return <div>{${data.responseName}}</div>
@@ -191,6 +218,7 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
       useEffectHookPresent ? 'useEffect' : undefined,
       useMemoHookPresent ? 'useMemo' : undefined,
       useCallbackHookPresent ? 'useCallback' : undefined,
+      useStateHookPresent ? 'useState' : undefined,
     ].filter(Boolean).join(', ');
 
     let hookDefinition = registerBlock(`let [${hookParams.join(',')}] = ${hookName}()`, 'hookDef')
@@ -213,9 +241,11 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
       ${declaration} {
         ${hookDefinition}
 
+        ${successStateBlock}
         ${isFetchPresent ? defaultFetchHook : ''}
         ${isClearPresent ? defaultCleanupHook : ''}
 
+        ${successEffectBlock}
         ${successMemoBlock}
         ${errorMemoBlock}
         ${data.successEffect || data.errorEffect ? effectBlock : ''}
@@ -227,8 +257,9 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
 
         return <>
           ${data.pendingBlock === 'inline' ? `{isPending(${data.responseName}) && <div>loading...</div>}` : ''}
-          ${inlineSuccessPresent ? `{isSuccess(${data.responseName}) && <div>{${data.responseName}.data}</div>}` : ''}
-          ${data.successMemo ? `{data && <div>{data}</div>}` : ''}
+          ${inlineSuccessPresent ? `{isSuccess(${data.responseName}) && <div>{JSON.stringify(${data.responseName}.data)}</div>}` : ''}
+          ${data.successMemo ? `{data && <div>JSON.stringify({data})</div>}` : ''}
+          ${data.successCached ? `{successData && <div>{JSON.stringify(successData)}</div>}` : ''}
           ${inlineErrorBlock}
         </>
       }
@@ -243,6 +274,12 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
   return <>
     <div className="min-w-0 max-w-2xl flex-auto px-4 py-16 lg:max-w-none lg:pl-8 lg:pr-0 xl:px-16 prose">
       <div className="relative group">
+        <div className={'flex items-center justify-start align-top dark:text-gray-200'}>
+          <Link href={pathname.substring(0, pathname.lastIndexOf("/"))} className={'pr-2'}>
+            <ArrowLeftIcon className={'h-5 w-5 text-white'}/>
+          </Link>
+          <h6 className={'flex dark:text-gray-200'}>`use{pascalCase(config.operationId)}` Usage</h6>
+        </div>
         <Highlight language={'tsx'} code={content.formatted} theme={{plain: {}, styles: []}}>
           {({ className, style, tokens, getTokenProps }) => <pre className={className} style={style}>
           <code>
@@ -267,96 +304,170 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
       </div>
     </div>
     <div
-      className="hidden xl:sticky xl:top-[4.75rem] xl:-mr-6 xl:block xl:h-[calc(100vh-4.75rem)] xl:flex-none xl:overflow-y-auto xl:py-16 xl:pr-6">
-      <form onSubmit={handleSubmit(console.log)} className="space-y-4">
-        <Field>
-          <Label>Component Name</Label>
-          <Input aria-invalid={!!errors.componentName} {...register('componentName', {
-            pattern: { value: /^[A-Z][a-zA-Z0-9]*$/, message: 'Invalid component name' },
-            onBlur: (e) => setValue('componentName', e.target.value.trim())
-          })} />
-          {errors.componentName ? <ErrorMessage>{errors.componentName.message}</ErrorMessage> : <></>}
-        </Field>
-        <Field>
-          <Label>Component Type</Label>
-          <Select {
-                    ...register('componentType')
-                  }>
-            <option value="named-function">Named Function</option>
-            <option value="const-expression">Const Expression</option>
-          </Select>
-        </Field>
-        <Field>
-          <Label>Response Name</Label>
-          <Input aria-invalid={!!errors.responseName} {...register('responseName', {
-            pattern: { value: /^[A-Za-z][a-zA-Z0-9]*$/, message: 'Invalid response name' },
-            onBlur: (e) => setValue('responseName', e.target.value.trim())
-          })} />
-          {errors.responseName ? <ErrorMessage>{errors.responseName.message}</ErrorMessage> : <></>}
-        </Field>
-        <CheckboxGroup>
-          <Controller control={control} name={'fetchOnMount'} render={({ field }) => {
-            return <CheckboxField className={'ml-4'}>
-              <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />
-              <Label>Fetch on mount</Label>
-            </CheckboxField>;
-          }} />
-          <Controller control={control} name={'fetchOnCallback'} render={({ field }) => {
-            return <CheckboxField className={'ml-4'}>
-              <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />
-              <Label>Fetch on callback</Label>
-            </CheckboxField>;
-          }} />
-          <Controller control={control} name={'cleanupOnUnmount'} render={({ field }) => {
-            return <CheckboxField className={'ml-4'}>
-              <Switch checked={field.value} onChange={(checked) => field.onChange(checked)}></Switch>
-              <Label>Clean-up on unmount</Label>
-            </CheckboxField>;
-          }} />
-        </CheckboxGroup>
-        <Field>
-          <Label>Pending Block</Label>
-          <Select {...register('pendingBlock')}>
-            <option value="none">None</option>
-            <option value="explicit">Explicit</option>
-            <option value="inline">Inline</option>
-          </Select>
-        </Field>
-        <Field>
-          <Label>Error Block</Label>
-          <Select {...register('errorBlock')}>
-            <option value="none">None</option>
-            <option value="explicit">Explicit</option>
-            <option value="inline">Inline</option>
-          </Select>
-        </Field>
-        <CheckboxGroup>
-          <Controller control={control} name={'successMemo'} render={({ field }) => {
-            return <CheckboxField className={'ml-4'}>
-              <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />
-              <Label>Extract success response as memo</Label>
-            </CheckboxField>;
-          }} />
-          <Controller control={control} name={'successEffect'} render={({ field }) => {
-            return <CheckboxField className={'ml-4'}>
-              <Switch checked={field.value} onChange={(checked) => field.onChange(checked)}></Switch>
-              <Label>Act upon success response</Label>
-            </CheckboxField>;
-          }} />
-          <Controller control={control} name={'errorMemo'} render={({ field }) => {
-            return <CheckboxField className={'ml-4'}>
-              <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />
-              <Label>Extract error response as memo</Label>
-            </CheckboxField>;
-          }} />
-          <Controller control={control} name={'errorEffect'} render={({ field }) => {
-            return <CheckboxField className={'ml-4'}>
-              <Switch checked={field.value} onChange={(checked) => field.onChange(checked)}></Switch>
-              <Label>Act upon error response</Label>
-            </CheckboxField>;
-          }} />
-        </CheckboxGroup>
-      </form>
+      className="hidden xl:sticky xl:top-[4.75rem] xl:-mr-6 xl:block xl:h-[calc(100vh-4.75rem)] xl:flex-none xl:overflow-y-visible xl:py-16 xl:pr-6">
+      <Fieldset>
+        <form onSubmit={handleSubmit(console.log)} className="space-y-4">
+          <Field>
+            <Label className={'flex'}>Component Name
+              <InfoIconButton>
+                Name of the component. Must be a valid JavaScript function name.
+              </InfoIconButton>
+            </Label>
+            <Input aria-invalid={!!errors.componentName} {...register('componentName', {
+              pattern: { value: /^[A-Z][a-zA-Z0-9]*$/, message: 'Invalid component name' },
+              onBlur: (e) => setValue('componentName', e.target.value.trim())
+            })} />
+            {errors.componentName ? <ErrorMessage>{errors.componentName.message}</ErrorMessage> : <></>}
+          </Field>
+          <Field>
+            <Label className={'flex'}>Component Type
+              <InfoIconButton>
+                Component can be either a named function or a const expression.
+              </InfoIconButton>
+            </Label>
+            <Select {
+                      ...register('componentType')
+                    }>
+              <option value="named-function">Named Function</option>
+              <option value="const-expression">Const Expression</option>
+            </Select>
+          </Field>
+          <Field>
+            <Label className={'flex'}>Response Name
+              <InfoIconButton>
+                Name of the response variable. Must be a valid JavaScript variable name.
+              </InfoIconButton>
+            </Label>
+            <Input aria-invalid={!!errors.responseName} {...register('responseName', {
+              pattern: { value: /^[A-Za-z][a-zA-Z0-9]*$/, message: 'Invalid response name' },
+              onBlur: (e) => setValue('responseName', e.target.value.trim())
+            })} />
+            {errors.responseName ? <ErrorMessage>{errors.responseName.message}</ErrorMessage> : <></>}
+          </Field>
+          <CheckboxGroup>
+            <Controller control={control} name={'fetchOnMount'} render={({ field }) => {
+              return <CheckboxField className={'ml-4'}>
+                <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />
+                <Label className={'flex'}>Execute on mount
+                <InfoIconButton location={'2/3'}>
+                  Executes the action on mount. Useful for fetching data on page load.
+                </InfoIconButton>
+                </Label>
+              </CheckboxField>;
+            }} />
+            <Controller control={control} name={'fetchOnCallback'} render={({ field }) => {
+              return <CheckboxField className={'ml-4'}>
+                <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />
+                <Label className={'flex'}>Execute on callback
+                  <InfoIconButton location={'2/3'}>
+                    Executes the action on callback. Useful for fetching data on user interaction such as form submission or search.
+                  </InfoIconButton>
+                </Label>
+              </CheckboxField>;
+            }} />
+            <Controller control={control} name={'cleanupOnUnmount'} render={({ field }) => {
+              return <CheckboxField className={'ml-4'}>
+                <Switch checked={field.value} onChange={(checked) => field.onChange(checked)}></Switch>
+                <Label className={'flex'}>Clean-up on unmount
+                  <InfoIconButton location={'2/3'}>
+                    Cleans up the action on unmount. Cleaning up the obsolete data is a good practice to avoid memory leaks.
+                  </InfoIconButton>
+                </Label>
+              </CheckboxField>;
+            }} />
+          </CheckboxGroup>
+          <Field>
+            <Label className={'flex'}>Pending Block
+              <InfoIconButton>
+                Block to be displayed while the request is pending. Useful for displaying a loading indicator.
+                <br />
+                <br />
+                <strong>None</strong> - No block is displayed.
+                <br />
+                <strong>Explicit</strong> - Block is displayed explicitly.
+                <br />
+                <strong>Inline</strong> - Block is displayed inline.
+              </InfoIconButton>
+            </Label>
+            <Select {...register('pendingBlock')}>
+              <option value="none">None</option>
+              <option value="explicit">Explicit</option>
+              <option value="inline">Inline</option>
+            </Select>
+          </Field>
+          <Field>
+            <Label className={'flex'}>Error Block
+              <InfoIconButton>
+                Block to be displayed if the request fails. Useful for displaying an error message.
+                <br />
+                <br />
+                <strong>None</strong> - No block is displayed.
+                <br />
+                <strong>Explicit</strong> - Block is displayed explicitly.
+                <br />
+                <strong>Inline</strong> - Block is displayed inline.
+              </InfoIconButton>
+            </Label>
+            <Select {...register('errorBlock')}>
+              <option value="none">None</option>
+              <option value="explicit">Explicit</option>
+              <option value="inline">Inline</option>
+            </Select>
+          </Field>
+          <CheckboxGroup>
+            <Controller control={control} name={'successMemo'} render={({ field }) => {
+              return <CheckboxField className={'ml-4'}>
+                <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />
+                <Label className={'flex'}>Extract success response as memo
+                  <InfoIconButton location={'0'}>
+                    Extracts the success response as a memo. Useful for if you need to use the response in multiple places.
+                  </InfoIconButton>
+                </Label>
+              </CheckboxField>;
+            }} />
+            <Controller control={control} name={'successEffect'} render={({ field }) => {
+              return <CheckboxField className={'ml-4'}>
+                <Switch checked={field.value} onChange={(checked) => field.onChange(checked)}></Switch>
+                <Label className={'flex'}>Act upon success response
+                  <InfoIconButton location={'0'}>
+                    Acts upon the success response. Useful for if you need to perform some action on success such as displaying a success message.
+                  </InfoIconButton>
+                </Label>
+              </CheckboxField>;
+            }} />
+            <Controller control={control} name={'successCached'} render={({ field }) => {
+              return <CheckboxField className={'ml-4'}>
+                <Switch checked={field.value} onChange={(checked) => field.onChange(checked)}></Switch>
+                <Label className={'flex'}>Cache success response
+                  <InfoIconButton location={'0'}>
+                    Caches the success response. This effectively skips pending state and keeps the previous response in memory. Useful for seamless transitions between data fetching.
+                  </InfoIconButton>
+                </Label>
+              </CheckboxField>;
+            }} />
+            <Controller control={control} name={'errorMemo'} render={({ field }) => {
+              return <CheckboxField className={'ml-4'}>
+                <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />
+                <Label className={'flex'}>Extract error response as memo
+                  <InfoIconButton location={'0'}>
+                    Extracts the error response as a memo. Useful for if you need to use the error response in multiple places.
+                  </InfoIconButton>
+                </Label>
+              </CheckboxField>;
+            }} />
+            <Controller control={control} name={'errorEffect'} render={({ field }) => {
+              return <CheckboxField className={'ml-4'}>
+                <Switch checked={field.value} onChange={(checked) => field.onChange(checked)}></Switch>
+                <Label className={'flex'}>Act upon error response
+                  <InfoIconButton location={'0'}>
+                    Acts upon the error response. Useful for if you need to perform some action on error such as displaying an error message.
+                  </InfoIconButton>
+                </Label>
+              </CheckboxField>;
+            }} />
+          </CheckboxGroup>
+        </form>
+      </Fieldset>
     </div>
   </>;
 }
@@ -385,4 +496,20 @@ function CopyButton({ content }: { content: string }) {
       <ClipboardIcon className="h-5 w-5 text-white" />
     )}
   </button>
+}
+
+interface InfoIconProps {
+  children: React.ReactNode;
+  location?: '1/2' | '2/3' | '3/4' | '0'
+}
+
+function InfoIconButton({children, location = '1/2'}: InfoIconProps) {
+  return <Popover className="relative">
+    <PopoverButton className="text-gray-400 hover:text-blue-500 rounded-full opacity-50 group-hover:opacity-100 transition-opacity duration-200 ml-2">
+      <InformationCircleIcon className="h-5 w-5 dark:text-white" />
+    </PopoverButton>
+    <PopoverPanel className={`absolute z-[150] -ml-4 mt-3 transform w-[350px] max-w-md lg:ml-0 lg:right-${location} lg:-translate-x-${location} bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-200 dark:border-gray-700`}>
+      {children}
+    </PopoverPanel>
+  </Popover>
 }
