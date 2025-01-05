@@ -1,35 +1,13 @@
 import { dump, IntrigSourceConfig, RequestProperties } from '@intrig/cli-common';
-import { getRequestHookTemplate } from './templates/source/controller/method/getRequestHook.template';
-import { postRequestHookTemplate } from './templates/source/controller/method/postRequestHook.template';
-import { putRequestHookTemplate } from './templates/source/controller/method/putRequestHook.template';
-import { deleteRequestHookTemplate } from './templates/source/controller/method/deleteRequestHook.template';
 import { paramsTemplate } from './templates/source/controller/method/params.template';
 import { clientIndexTemplate } from './templates/source/controller/method/clientIndex.template';
+import { requestHookTemplate } from './templates/source/controller/method/requestHook.template';
+import { downloadHookTemplate } from './templates/source/controller/method/download.template';
 
 export function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 
-  function handleGet(params: RequestProperties) {
-    dump(paramsTemplate(params))
-    dump(getRequestHookTemplate(params))
-  }
-
-  function handlePost(params: RequestProperties) {
-    dump(paramsTemplate(params))
-    dump(postRequestHookTemplate(params))
-  }
-
-  function handlePut(params: RequestProperties) {
-    dump(paramsTemplate(params))
-    dump(putRequestHookTemplate(params))
-  }
-
-  function handleDelete(params: RequestProperties) {
-    dump(paramsTemplate(params))
-    dump(deleteRequestHookTemplate(params))
-  }
-
-  function handleIndexes(params: RequestProperties) {
-    dump(clientIndexTemplate(params))
+  function handleIndexes(requestUrl: string, paths: RequestProperties[]) {
+    dump(clientIndexTemplate(paths))
   }
 
   const groupedByPath: Record<string, RequestProperties[]> = {}
@@ -39,25 +17,18 @@ export function generateHooks(api: IntrigSourceConfig, _path: string, paths: Req
       ...path,
       sourcePath: _path,
     }
-    switch (path.method.toLowerCase()) {
-      case "get":
-        handleGet(path);
-        break;
-      case "post":
-        handlePost(path);
-        break;
-      case "put":
-        handlePut(path);
-        break;
-      case "delete":
-        handleDelete(path);
-        break;
-    }
-    if ((!path.responseType || path.responseType === 'application/json')
-      && (!path.contentType || path.contentType === 'application/json')) {
-      handleIndexes(path);
-    }
+    dump(paramsTemplate(path))
+    dump(requestHookTemplate(path))
+
     groupedByPath[path.requestUrl] = groupedByPath[path.requestUrl] ?? []
     groupedByPath[path.requestUrl].push(path)
+
+    if (!(path.responseType === 'application/json' || path.responseType === '*/*')) {
+      dump(downloadHookTemplate(path))
+    }
+  }
+
+  for (let [requestUrl, matchingPaths] of Object.entries(groupedByPath)) {
+    handleIndexes(requestUrl, matchingPaths);
   }
 }

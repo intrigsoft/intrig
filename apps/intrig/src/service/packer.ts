@@ -4,14 +4,15 @@ import { exec } from 'child_process'
 import { promisify } from 'util'
 import cli from 'cli-ux'
 import {detectPackageManager} from "nypm";
-import { ContentGeneratorAdaptor } from '@intrig/cli-common';
+import { ContentGeneratorAdaptor, IntrigSourceConfig } from '@intrig/cli-common';
 
-const execAsync = promisify(exec)
+const execAsync = promisify(exec);
 
 export async function setupCacheAndInstall(
   generateData: (path: string) => Promise<void>,
   generator: string,
-  adaptor: ContentGeneratorAdaptor): Promise<void> {
+  adaptor: ContentGeneratorAdaptor,
+  apisToSync: IntrigSourceConfig[]): Promise<void> {
   // const tempDir = path.join(os.tmpdir(), 'intrig_generated')
 
   const tempDir = path.join('.intrig', 'generated')
@@ -53,7 +54,6 @@ export async function setupCacheAndInstall(
   }
   cli.action.stop()
 
-  // Copy all directories in <build>/dist/lib to projects node_modules/@intrig/client-react
   const sourceLibDir = path.join(tempDir, 'dist')
   let client = 'react';
   switch (generator) {
@@ -66,43 +66,22 @@ export async function setupCacheAndInstall(
   }
   const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', client, "src")
 
-  if (await fs.pathExists(targetLibDir)) {
-    cli.action.start('Removing existing target library files')
-    try {
-      await fs.readdir(targetLibDir).then(async (files) => {
-        for (const file of files) {
-          if (file !== 'package.json' && !file.endsWith('.md')) {
-            await fs.remove(path.join(targetLibDir, file))
-          }
-        }
-      })
-    } catch (e) {
-      console.error('Failed to remove existing target library files', e)
-    }
-    cli.action.stop()
-  }
+  apisToSync.forEach(api => {
+    cli.action.start(`Copying ${api.id} to ${targetLibDir}`)
 
-  cli.action.start('Copying built libraries to project directory')
-  try {
-    await fs.copy(sourceLibDir, targetLibDir, {
-      filter: (src) => !src.includes('api')
-    })
-  } catch (e) {
-    console.error('Failed to copy built libraries', e)
-  }
-  cli.action.stop()
+    let sourceSourceDir = path.join(sourceLibDir, api.id)
+    let targetSourceDir = path.join(targetLibDir, api.id)
+
+    if (fs.existsSync(targetSourceDir)) {
+      fs.removeSync(targetSourceDir)
+    }
+
+    fs.copySync(sourceSourceDir, targetSourceDir)
+    cli.action.stop()
+  })
 
   await adaptor?.postCompile({
     tempDir,
     targetLibDir
   })
-
-  // Clean up the temp directory
-  // cli.action.start('Cleaning up the temp directory')
-  // try {
-  //   await fs.remove(tempDir)
-  // } catch (e) {
-  //   console.error('Failed to clean up temp directory', e)
-  // }
-  // cli.action.stop()
 }

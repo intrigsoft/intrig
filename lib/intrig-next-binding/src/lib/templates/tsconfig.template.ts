@@ -14,6 +14,7 @@ export function tsConfigTemplate(_path: string) {
     "esModuleInterop": true,
     "moduleResolution": "node",
     "baseUrl": ".",
+    "sourceMap": true,
     "paths": {
       "@intrig/next/*": [
         "./src/*"
