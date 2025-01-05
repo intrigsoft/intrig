@@ -393,7 +393,7 @@ function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
  * It filters the state to retain error states and maps them to a structured error object with additional context information.
  * @return {Object[]} An array of objects representing the error states with context information such as source, operation, and key.
  */
-export function useCentralErrorHandling() {
+export function useCentralError() {
   const ctx = useContext(Context);
 
   return useMemo(() => {
@@ -417,7 +417,7 @@ export function useCentralErrorHandling() {
  *
  * @return {NetworkState} The aggregated network state based on the pending states and their progress.
  */
-export function useCentralPendingStateHandling() {
+export function useCentralPendingState() {
   const ctx = useContext(Context);
 
   const result: NetworkState = useMemo(() => {

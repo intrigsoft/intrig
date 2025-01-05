@@ -214,17 +214,6 @@ export type BinaryFunctionHook<P, B, T, E = unknown> = ((key?: string) => [Netwo
 
 export type IntrigHook<P = undefined, B = undefined, T = any, E = unknown> = UnitHook<E> | ConstantHook<T, E> | UnaryProduceHook<P, E> | UnaryFunctionHook<P, T, E> | BinaryProduceHook<P, B, E> | BinaryFunctionHook<P, B, T, E>;
 
-// export type DeleteHook<P, E = unknown> = ((key?: string) => [NetworkState<never, E>, (params: P) => void, () => void]) & HookWithKey;
-// export type DeleteHookOp<P, E = unknown> = ((key?: string) => [NetworkState<never, E>, (params?: P) => void, () => void]) & HookWithKey;
-// export type GetHook<P, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params: P) => void, () => void]) & HookWithKey;
-// export type GetHookOp<P, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params?: P) => void, () => void]) & HookWithKey;
-// export type PostHook<P, B, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params: P) => void, () => void]) & HookWithKey;
-// export type PostHookOp<P, B, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params?: P) => void, () => void]) & HookWithKey;
-// export type PutHook<P, B, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params: P) => void, () => void]) & HookWithKey;
-// export type PutHookOp<P, B, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params?: P) => void, () => void]) & HookWithKey;
-//
-// export type IntrigHook2<P = undefined, B = undefined, T = any> = DeleteHook<P> | GetHook<P, T> | PostHook<P, T, B> | PutHook<P, T, B> | PostHookOp<P, T, B> | PutHookOp<P, T, B> | GetHookOp<P, T> | DeleteHookOp<P>;
-
 /**
  * Represents the dispatch state of a process.
  *

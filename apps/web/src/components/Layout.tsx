@@ -11,6 +11,8 @@ import { MobileNavigation } from '@/components/MobileNavigation'
 import { Navigation } from '@/components/Navigation'
 import { Search } from '@/components/Search'
 import { ThemeSelector } from '@/components/ThemeSelector'
+import { Dropdown, DropdownButton, DropdownItem, DropdownMenu } from '@/catalyst/dropdown';
+import AppSelector from '@/components/AppSelector';
 
 function GitHubIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -51,6 +53,7 @@ function Header() {
           <Logomark className="h-9 w-9 lg:hidden" />
           <Logo className="hidden h-9 w-auto fill-slate-700 lg:block dark:fill-sky-100" />
         </Link>
+        <AppSelector/>
       </div>
       <div className="-my-5 mr-6 sm:mr-8 md:mr-0">
         <Search />

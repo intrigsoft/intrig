@@ -24,5 +24,5 @@ export function Logomark(props: React.ComponentPropsWithoutRef<'svg'>) {
 // }
 
 export function Logo(props: React.ComponentPropsWithoutRef<'svg'>) {
-  return <IntrigLogo height={60} width={200} {...props}/>
+  return <IntrigLogo height={60} width={200} {...props} style={{filter: 'blur(0.5)'}} />
 }
