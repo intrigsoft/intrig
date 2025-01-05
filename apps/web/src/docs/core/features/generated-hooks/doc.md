@@ -34,23 +34,32 @@ Users do not need to memorize or calculate the path manually. Intrig Insight pro
 The generated hooks follow a standard signature:
 
 ```tsx
-const [networkState, action, clear] = useHook(<key: string>);
+const [networkState, action, clear] = useHook(options: IntrigHookOptions<P, B>);
 ```
 
 - **`networkState`**: An instance of `NetworkState` that manages the current state of the network request.
-
-- **`action`**: A function to execute the desired action. It can have one of the following signatures:
-
-  - `(p: Params) => DispatchState`
-  - `(b: Body, p: Params) => DispatchState`
-
-  When users need to execute an action, they call this function with the appropriate parameters.
-
+- **`action`**: A function to execute the desired action. The generated method signature dynamically adjusts based on the OpenAPI3 endpoint information to determine whether a body is required or not.
 - **`clear`**: A cleanup function that clears the current state of the hook.
 
-### Key Parameter
+### Hook Options
 
-The `key` parameter allows managing multiple states for the same hook in a controlled manner. By assigning a unique key, users can isolate and manage different instances of the hook state independently. This feature is particularly useful in scenarios where the same hook is utilized in different contexts or components simultaneously.
+Instead of multiple specific option types, the hook now accepts a single `IntrigHookOptions` type, simplifying its structure.
+
+```tsx
+export type IntrigHookOptions<P = undefined, B = undefined> = {
+  key?: string;
+  fetchOnMount?: boolean;
+  clearOnUnmount?: boolean;
+  params?: P;
+  body?: B;
+};
+```
+
+- **`key`**: Allows managing multiple states for the same hook in a controlled manner.
+- **`fetchOnMount`**: Determines if the hook should fetch data automatically upon component mount.
+- **`clearOnUnmount`**: Ensures that the state is cleared when the component unmounts.
+- **`params`**: Used when `fetchOnMount` is `true`, providing default parameters for the API request.
+- **`body`**: If required by the endpoint, the body is automatically included in the generated method signature based on OpenAPI3 specifications.
 
 ## Usage Patterns
 
@@ -60,7 +69,7 @@ In scenarios where you need to fetch data as soon as the component loads, you ca
 
 ```tsx
 useEffect(() => {
-  action();
+  action(/* parameters */);
 }, []);
 ```
 
@@ -74,8 +83,27 @@ function ItemList() {
   const [, fetchItems] = useGetItems();
 
   useEffect(() => {
-    fetchItems();
+    fetchItems({ /* body */ }, { /*params*/ });
   }, [fetchItems]);
+
+  return <><Children /></>;
+}
+```
+
+Or you can simply enable fetchOnLoad with required parameters.
+
+```tsx
+const [, ] = useGetItems({ fetchOnLoad: true, params: {/*params*/}, body: { /* body */ }});
+```
+
+#### Full Component Example
+
+```tsx
+import React, { useEffect } from 'react';
+import { useGetItems } from '@intrig/generated/hooks';
+
+function ItemList() {
+  const [, ] = useGetItems({ fetchOnLoad: true, params: {/*params*/}, body: { /* body */ }});
 
   return <><Children /></>;
 }
@@ -105,6 +133,25 @@ function ItemList() {
   useEffect(() => {
     return clear;
   }, [clear]);
+
+  return <><Children /></>;
+}
+```
+
+Or you can simply enable `clearOnUnload` in hook options.
+
+```tsx
+const [, , ] = useGetItems({ clearOnUnload: true });
+```
+
+#### Full Component Example
+
+```tsx
+import React, { useEffect } from 'react';
+import { useGetItems } from '@intrig/generated/hooks';
+
+function ItemList() {
+  const [, , clear] = useGetItems({ clearOnUnload: true });
 
   return <><Children /></>;
 }
@@ -374,6 +421,19 @@ function UpdateNotification() {
 ```
 
 This pattern is particularly useful for notifying users or triggering additional actions after an operation completes.
+
+### 10. Managing multiple hook instances with `key`
+
+The key parameter helps maintain multiple instances of the same hook with different results, ensuring they do not override each other.
+
+#### Example:
+
+```tsx
+const [networkState1] = useGetItems({ key: 'instance1', params: { filter: 'A' } });
+const [networkState2] = useGetItems({ key: 'instance2', params: { filter: 'B' } });
+```
+
+In this example, `networkState1` and `networkState2` maintain independent results for different filters.
 
 ---
 

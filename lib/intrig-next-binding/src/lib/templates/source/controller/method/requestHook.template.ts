@@ -9,22 +9,34 @@ import {
 } from '@intrig/cli-common';
 import path from 'path';
 
-function extractHookShape(response: string, requestBody: string, imports: Set<string>) {
+function extractHookShapeAndOptionsShape(response: string, requestBody: string, imports: Set<string>) {
   if (!!response) {
     if (requestBody) {
-      imports.add(`import { BinaryFunctionHook } from "@intrig/next"`);
-      return `BinaryFunctionHook<Params, RequestBody, Response, _ErrorType>`;
+      imports.add(`import { BinaryFunctionHook, BinaryHookOptions } from "@intrig/next"`);
+      return {
+        hookShape: `BinaryFunctionHook<Params, RequestBody, Response, _ErrorType>`,
+        optionsShape: `BinaryHookOptions<Params, RequestBody>`
+      };
     } else {
-      imports.add(`import { UnaryFunctionHook } from "@intrig/next"`);
-      return `UnaryFunctionHook<Params, Response, _ErrorType>`;
+      imports.add(`import { UnaryFunctionHook, UnaryHookOptions } from "@intrig/next"`);
+      return {
+        hookShape: `UnaryFunctionHook<Params, Response, _ErrorType>`,
+        optionsShape: `UnaryHookOptions<Params>`
+      };
     }
   } else {
     if (requestBody) {
-      imports.add(`import { BinaryProduceHook } from "@intrig/next"`);
-      return `BinaryProduceHook<Params, RequestBody, _ErrorType>`;
+      imports.add(`import { BinaryProduceHook, BinaryHookOptions } from "@intrig/next"`);
+      return {
+        hookShape: `BinaryProduceHook<Params, RequestBody, _ErrorType>`,
+        optionsShape: `BinaryHookOptions<Params, RequestBody>`
+      };
     } else {
-      imports.add(`import { UnaryProduceHook } from "@intrig/next"`);
-      return `UnaryProduceHook<Params, _ErrorType>`;
+      imports.add(`import { UnaryProduceHook, UnaryHookOptions } from "@intrig/next"`);
+      return {
+        hookShape: `UnaryProduceHook<Params, _ErrorType>`,
+        optionsShape: `UnaryHookOptions<Params>`
+      };
     }
   }
 }
@@ -83,10 +95,10 @@ export function requestHookTemplate({source, paths, operationId, response, reque
 
   let imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
-  imports.add(`import { useCallback } from 'react'`)
+  imports.add(`import { useCallback, useEffect } from 'react'`)
   imports.add(`import {useNetworkState, NetworkState, DispatchState, error, successfulDispatch, validationError, encode} from "@intrig/next"`)
 
-  let hookShape = extractHookShape(response, requestBody, imports);
+  let { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
 
   let { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
 
@@ -123,9 +135,9 @@ export function requestHookTemplate({source, paths, operationId, response, reque
     const operation = "${method.toUpperCase()} ${requestUrl}| ${contentType} -> ${responseType}"
     const source = "${source}"
 
-    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response, _ErrorType>, (${paramType}) => DispatchState<any>, () => void] {
+    function use${pascalCase(operationId)}Hook(options: ${optionsShape} = {}): [NetworkState<Response, _ErrorType>, (${paramType}) => DispatchState<any>, () => void] {
       let [state, dispatch, clear] = useNetworkState<Response, _ErrorType>({
-        key,
+        key: options?.key ?? 'default',
         operation,
         source,
         schema,
@@ -154,6 +166,18 @@ export function requestHookTemplate({source, paths, operationId, response, reque
           })
           return successfulDispatch();
       }, [dispatch])
+
+      useEffect(() => {
+        if (options.fetchOnMount) {
+          doExecute(options.params!, ${requestBody ? `options.body!` : ''});
+        }
+
+        return () => {
+          if (options.clearOnUnmount) {
+            clear();
+          }
+        }
+      }, [])
 
       return [
         state,
