@@ -1,6 +1,6 @@
-import { error, init, NetworkState, pending, success } from '@intrig/next/network-state';
+import { error, init, NetworkState, pending, success } from '@intrig/react/network-state';
 import { useCallback, useId, useMemo } from 'react';
-import { useIntrigContext } from '@intrig/next/intrig-context';
+import { useIntrigContext } from '@intrig/react/intrig-context';
 
 /**
  * A custom hook that integrates a promise-based operation with a network state management system.

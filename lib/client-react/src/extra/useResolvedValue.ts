@@ -7,7 +7,7 @@ import {
   UnaryProduceHook,
   UnitHook,
   UnitHookOptions
-} from '@intrig/next/network-state';
+} from '@intrig/react/network-state';
 import { useEffect, useState } from 'react';
 
 /**
