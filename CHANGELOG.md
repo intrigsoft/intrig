@@ -1,3 +1,28 @@
+## 1.0.6 (2025-01-06)
+
+### 🚀 Features
+
+- **insight:** Add API reference docs, navigation improvements, and fixes ([37defa1](https://github.com/intrigsoft/intrig/commit/37defa1))
+- **next:** Add support for generating download hooks ([fe9eb76](https://github.com/intrigsoft/intrig/commit/fe9eb76))
+- **next:** Refactor hook options and enhance generated hook capabilities ([18c4c66](https://github.com/intrigsoft/intrig/commit/18c4c66))
+- **next, insight:** Refactor components and improve documentation handling ([bf42680](https://github.com/intrigsoft/intrig/commit/bf42680))
+
+### 🩹 Fixes
+
+- **insight:** Add dynamic route handling and debug mode support ([0e05a9e](https://github.com/intrigsoft/intrig/commit/0e05a9e))
+- **insight:** Enhance navigation, add "Explore" tab, and update file watcher. ([539c7d2](https://github.com/intrigsoft/intrig/commit/539c7d2))
+- **insight:** Update `web` build input and add Next.js server config ([8fb1e10](https://github.com/intrigsoft/intrig/commit/8fb1e10))
+- **next:** Refactor hooks generation to support multiple response types. ([e697d85](https://github.com/intrigsoft/intrig/commit/e697d85))
+- **next:** Refactor predev script to remove and copy routes cleanly. ([63db9ec](https://github.com/intrigsoft/intrig/commit/63db9ec))
+- **next:** Refactor request handling and library file management. ([f24f68a](https://github.com/intrigsoft/intrig/commit/f24f68a))
+- **next, insight:** Refactor hooks and encoding for improved type safety. ([ca260f8](https://github.com/intrigsoft/intrig/commit/ca260f8))
+- **next, insight:** Add missing dependency to useEffect hook ([7b8af44](https://github.com/intrigsoft/intrig/commit/7b8af44))
+- **react:** Switch imports from @intrig/next to @intrig/react. ([6efe881](https://github.com/intrigsoft/intrig/commit/6efe881))
+
+### ❤️  Thank You
+
+- tiran
+
 ## 1.0.5 (2024-12-27)
 
 ### 🚀 Features
