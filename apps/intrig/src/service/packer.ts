@@ -66,19 +66,31 @@ export async function setupCacheAndInstall(
   }
   const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', client, "src")
 
-  apisToSync.forEach(api => {
-    cli.action.start(`Copying ${api.id} to ${targetLibDir}`)
-
-    let sourceSourceDir = path.join(sourceLibDir, api.id)
-    let targetSourceDir = path.join(targetLibDir, api.id)
-
-    if (fs.existsSync(targetSourceDir)) {
-      fs.removeSync(targetSourceDir)
+  if (await fs.pathExists(targetLibDir)) {
+    cli.action.start('Removing existing target library files')
+    try {
+      await fs.readdir(targetLibDir).then(async (files) => {
+        for (const file of files) {
+          if (file !== 'package.json' && !file.endsWith('.md')) {
+            await fs.remove(path.join(targetLibDir, file))
+          }
+        }
+      })
+    } catch (e) {
+      console.error('Failed to remove existing target library files', e)
     }
-
-    fs.copySync(sourceSourceDir, targetSourceDir)
     cli.action.stop()
-  })
+  }
+
+  cli.action.start('Copying built libraries to project directory')
+  try {
+    await fs.copy(sourceLibDir, targetLibDir, {
+      filter: (src) => !src.includes('api')
+    })
+  } catch (e) {
+    console.error('Failed to copy built libraries', e)
+  }
+  cli.action.stop()
 
   await adaptor?.postCompile({
     tempDir,

@@ -56,15 +56,17 @@ function extractErrorParams(errorTypes: string[]) {
   }
 }
 
-export function requestMethodTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses}: RequestProperties): CompiledOutput {
+export function requestMethodTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties): CompiledOutput {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `${camelCase(operationId)}${generatePostfix(contentType, responseType)}.ts`))
 
-  const modifiedRequestUrl = `/api/${source}${requestUrl.replace(/\{/g, "${")}`
+  const modifiedRequestUrl = `${requestUrl.replace(/\{/g, "${")}`
 
   let imports = new Set<string>();
   imports.add(`import { z, ZodError } from 'zod'`);
   imports.add(`import { isAxiosError } from 'axios';`);
-  imports.add(`import { networkError, responseValidationError, getAxiosInstance, transformResponse } from '@intrig/next';`);
+  imports.add(`import {getAxiosInstance} from '@intrig/next/intrig-middleware'`);
+  imports.add(`import {transformResponse, encode} from '@intrig/next/media-type-utils'`)
+  imports.add(`import { networkError, responseValidationError } from '@intrig/next';`);
 
   let { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
 
@@ -86,7 +88,7 @@ export function requestMethodTemplate({source, paths, operationId, response, req
     "...params"
   ].join(",")
 
-  let finalRequestBodyBlock = requestBody ? `body: encode(data, "${contentType}", requestBodySchema)` : ''
+  let finalRequestBodyBlock = requestBody ? `data: encode(data, "${contentType}", requestBodySchema)` : ''
 
   let responseTypeBlock = responseType && (responseType.startsWith("application/vnd") || responseType === "application/octet-stream")
     ? `responseType: 'arraybuffer'`
@@ -108,7 +110,7 @@ export function requestMethodTemplate({source, paths, operationId, response, req
 
           let axiosInstance = await getAxiosInstance('${source}')
           let { data: responseData, headers } = await axiosInstance.request({
-            method: 'post',
+            method: '${method}',
             url: \`${modifiedRequestUrl}\`,
             headers: {
               ${contentType ? `"Content-Type": "${contentType}",` : ''}
@@ -128,7 +130,7 @@ export function requestMethodTemplate({source, paths, operationId, response, req
 
     export const ${camelCase(operationId)}: (${paramType}) => Promise<Response> = async (${paramExpression}) => {
       try {
-        let { data: responseData, headers } = execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p);
+        let { data: responseData, headers } = await execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p);
         return transformResponse(responseData, "${responseType}", schema);
       } catch (e) {
         if (isAxiosError(e) && e.response) {

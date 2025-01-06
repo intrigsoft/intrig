@@ -3,8 +3,8 @@ import * as path from "path";
 
 export function requestRouteTemplate(requestUrl: string, paths: RequestProperties[]) {
   let parts = requestUrl
-    .replace("{", "[")
-    .replace("}", "]")
+    .replace(/\{/g, "[")
+    .replace(/\}/g, "]")
     .split('/')
 
   let {source, sourcePath} = paths[0]

@@ -14,20 +14,26 @@ type Encoders = {
                    schema: ZodSchema) => Promise<any>;
 };
 
-const encoders: Encoders = {};
+type EncodersSync = {
+  [k: string]: <T>(request: T,
+                   mediaType: string,
+                   schema: ZodSchema) => any;
+};
 
-function encode<T>(request: T, mediaType: string, schema: ZodSchema) {
+const encoders: EncodersSync = {};
+
+export function encode<T>(request: T, mediaType: string, schema: ZodSchema) {
   if (encoders[mediaType]) {
     return encoders[mediaType](request, mediaType, schema);
   }
   return request;
 }
 
-encoders['application/json'] = async (request, mediaType, schema) => {
+encoders['application/json'] = (request, mediaType, schema) => {
   return request;
 }
 
-encoders['multipart/form-data'] = async (request, mediaType, schema) => {
+encoders['multipart/form-data'] = (request, mediaType, schema) => {
   let formData = new FormData();
   for (let key in request) {
     const value = request[key];
@@ -36,11 +42,11 @@ encoders['multipart/form-data'] = async (request, mediaType, schema) => {
   return formData;
 }
 
-encoders['application/octet-stream'] = async (request, mediaType, schema) => {
+encoders['application/octet-stream'] = (request, mediaType, schema) => {
   return request;
 }
 
-encoders['application/x-www-form-urlencoded'] = async (request, mediaType, schema) => {
+encoders['application/x-www-form-urlencoded'] = (request, mediaType, schema) => {
   let formData = new FormData();
   for (let key in request) {
     const value = request[key];

@@ -96,7 +96,8 @@ export function requestHookTemplate({source, paths, operationId, response, reque
   let imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
   imports.add(`import { useCallback, useEffect } from 'react'`)
-  imports.add(`import {useNetworkState, NetworkState, DispatchState, error, successfulDispatch, validationError, encode} from "@intrig/next"`)
+  imports.add(`import {useNetworkState, NetworkState, DispatchState, error, successfulDispatch, validationError} from "@intrig/next"`)
+  imports.add(`import { encode } from "@intrig/next/media-type-utils"`)
 
   let { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
 
@@ -120,7 +121,7 @@ export function requestHookTemplate({source, paths, operationId, response, reque
     "...params"
   ].join(",")
 
-  let finalRequestBodyBlock = requestBody ? `body: encode(data, "${contentType}", requestBodySchema)` : ''
+  let finalRequestBodyBlock = requestBody ? `data: encode(data, "${contentType}", requestBodySchema)` : ''
 
   return ts`
     ${[...imports].join('\n')}
