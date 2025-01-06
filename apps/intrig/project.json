@@ -40,7 +40,7 @@
             "glob": "**/*"
           },
           {
-            "input": "apps/web",
+            "input": "apps/web/server",
             "output": "web",
             "glob": "next.config.js"
           },
