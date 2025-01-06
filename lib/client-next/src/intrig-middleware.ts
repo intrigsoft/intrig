@@ -1,4 +1,5 @@
 import axios from 'axios';
+//@ts-ignore
 let insightHook = await import('intrig-hook');
 
 export async function getAxiosInstance(key: string) {
