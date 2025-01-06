@@ -114,12 +114,7 @@ export function NavigationProvider({children}: PropsWithChildren) {
       return sourcesNavigation
     }
     return docsNavigation
-  }, []);
-
-  useEffect(() => {
-
-
-  }, [pathname]);
+  }, [sourcesNavigation, pathname]);
 
   return <Ctx.Provider value={{
     navigation: [
@@ -133,4 +128,8 @@ export function NavigationProvider({children}: PropsWithChildren) {
 export function getNavigation() {
   const ctx = useContext(Ctx);
   return ctx.navigation;
+}
+
+export function useNavigation() {
+  return getNavigation();
 }

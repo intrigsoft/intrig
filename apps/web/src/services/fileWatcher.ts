@@ -27,9 +27,8 @@ if (!global.generatedContentWatcher) {
   const watcher = chokidar.watch(directoryToWatch, {
     persistent: true,
     awaitWriteFinish: true,
-    interval: 100,
+    interval: 1000,
     binaryInterval: 1000
-
   });
 
   watcher

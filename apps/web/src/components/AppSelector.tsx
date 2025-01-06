@@ -21,6 +21,11 @@ const APP_MAPPING: AppInfo[] = [
     name: 'API',
     path: '/api-reference/',
     match: '/api-reference'
+  },
+  {
+    name: 'Explore',
+    path: '/sources/',
+    match: '/sources'
   }
 ]
 
