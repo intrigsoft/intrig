@@ -64,9 +64,7 @@ export const apiNavigation: Navigation[] = [
       { title: "isError", href: "/api-reference/functions/is-error" },
       { title: "error", href: "/api-reference/functions/error" },
       { title: "isValidationError", href: "/api-reference/functions/is-validation-error" },
-      { title: "isSuccessfulDispatch", href: "/api-reference/functions/is-successful-dispatch" },
-      { title: "validationError", href: "/api-reference/functions/validation-error" },
-      { title: "successfulDispatch", href: "/api-reference/functions/successful-dispatch" },
+      { title: "isSuccessfulDispatch", href: "/api-reference/functions/is-successful-dispatch" }
     ]
   },
   {

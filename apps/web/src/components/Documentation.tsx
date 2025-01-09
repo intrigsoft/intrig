@@ -226,7 +226,7 @@ function Markdown({children}: PropsWithChildren<any>) {
 }
 
 export interface DocumentationProps {
-  filePath: string,
+  filePath?: string,
   content?: string,
   variables?: Record<string, any>
   partials?: Record<string, string>
@@ -254,8 +254,7 @@ export function Documentation({ filePath, content: defaultContent, variables = {
       ...config,
       variables: {
         ...config.variables,
-        ...variables,
-        _filePath: filePath
+        ...variables
       },
       functions: {
         ...config.functions,
@@ -279,9 +278,9 @@ export function Documentation({ filePath, content: defaultContent, variables = {
       }
     }
 
-  }, [filePath, variables, partials]);
+  }, [variables, partials]);
 
-  const source = defaultContent ?? fs.readFileSync(path.join(filePath), 'utf8');
+  const source = defaultContent ?? fs.readFileSync(path.join(filePath!), 'utf8');
   const ast = Markdoc.parse(source);
   const content = Markdoc.transform(ast, _config);
   return Markdoc.renderers.react(content, React, {});
