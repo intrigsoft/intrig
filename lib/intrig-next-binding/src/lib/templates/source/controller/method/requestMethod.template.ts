@@ -67,6 +67,7 @@ export function requestMethodTemplate({source, paths, operationId, response, req
   imports.add(`import {getAxiosInstance} from '@intrig/next/intrig-middleware'`);
   imports.add(`import {transformResponse, encode} from '@intrig/next/media-type-utils'`)
   imports.add(`import { networkError, responseValidationError } from '@intrig/next';`);
+  imports.add(`import logger from "@intrig/next/logger"`)
 
   let { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
 
@@ -108,6 +109,9 @@ export function requestMethodTemplate({source, paths, operationId, response, req
           ${requestBody ? `requestBodySchema.parse(data);` : ''}
           let {${paramExplode}} = p
 
+          logger.info(${"`Executing request ${source}: ${operation} ${modifiedRequestUrl}`"});
+          logger.debug("=>", p, ${requestBody ? "data" : ""})
+
           let axiosInstance = await getAxiosInstance('${source}')
           let { data: responseData, headers } = await axiosInstance.request({
             method: '${method}',
@@ -122,6 +126,9 @@ export function requestMethodTemplate({source, paths, operationId, response, req
   ].filter(Boolean).join(',\n')}
           })
 
+          logger.info(${"`Executed request completed ${source}: ${operation} ${modifiedRequestUrl}`"});
+          logger.debug("<=", responseData, headers)
+
           return {
             data: responseData,
             headers
@@ -134,10 +141,13 @@ export function requestMethodTemplate({source, paths, operationId, response, req
         return transformResponse(responseData, "${responseType}", schema);
       } catch (e) {
         if (isAxiosError(e) && e.response) {
+          logger.error("Error executing request", e.response.data)
           throw networkError(transformResponse(e.response.data, "application/json", errorSchema), e.response.status + "", e.response.request);
         } else if (e instanceof ZodError) {
+          logger.error("Response validation error", e)
           throw responseValidationError(e)
         }
+        logger.error("Unknown error", e)
         throw e;
       }
     }

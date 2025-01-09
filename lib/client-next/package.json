@@ -10,7 +10,9 @@
     "zod": "^3.23.8",
     "fast-xml-parser": "^4.5.0",
     "date-fns": "^4.1.0",
-    "loglevel": "1.8.1"
+    "loglevel": "1.8.1",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0"
   },
   "peerDependencies": {
     "react": "18.3.1",

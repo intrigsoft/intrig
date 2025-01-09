@@ -98,6 +98,7 @@ export function requestHookTemplate({source, paths, operationId, response, reque
   imports.add(`import { useCallback, useEffect } from 'react'`)
   imports.add(`import {useNetworkState, NetworkState, DispatchState, error, successfulDispatch, validationError} from "@intrig/next"`)
   imports.add(`import { encode } from "@intrig/next/media-type-utils"`)
+  imports.add(`import logger from "@intrig/next/logger"`)
 
   let { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
 
@@ -151,6 +152,8 @@ export function requestHookTemplate({source, paths, operationId, response, reque
           ${requestBody ? `
           const validationResult = requestBodySchema.safeParse(data);
           if (!validationResult.success) {
+            logger.error("Request Validation failed", validationResult.error.errors)
+            logger.debug("Request Body", data)
             return validationError(validationResult.error.errors);
           }
           ` : ``}

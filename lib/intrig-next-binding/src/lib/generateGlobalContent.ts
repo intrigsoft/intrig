@@ -2,6 +2,7 @@ import {dump, IntrigSourceConfig} from "@intrig/cli-common";
 import {networkStateTemplate} from "./templates/network-state.template";
 import {providerTemplate} from "./templates/provider.template";
 import {indexTemplate} from "./templates/index.template";
+import {loggerTemplate} from "./templates/logger.template";
 import {tsConfigTemplate} from "./templates/tsconfig.template";
 import {packageJsonTemplate} from "./templates/packageJson.template";
 import {mediaTypeUtilsTemplate} from "./templates/media-type-utils.template";
@@ -19,4 +20,5 @@ export function generateGlobalContent(path: string, apisToSync: IntrigSourceConf
   dump(intrigMiddlewareTemplate(path))
   dump(contextTemplate(path, apisToSync))
   dump(extraTemplate(path, apisToSync))
+  dump(loggerTemplate(path))
 }

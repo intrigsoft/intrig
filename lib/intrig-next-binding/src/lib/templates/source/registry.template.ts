@@ -9,6 +9,6 @@ export function registryTemplate(
   const json = jsonLiteral(path.resolve(_path, 'src', api.id, 'registry.json'))
 
   return json`
-  {}
+  ${JSON.stringify(spec)}
   `
 }

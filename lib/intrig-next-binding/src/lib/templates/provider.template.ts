@@ -36,6 +36,7 @@ import axios, {
   isAxiosError,
 } from 'axios';
 import { ZodSchema } from 'zod';
+import logger from './logger'
 
 import {Context, RequestType, GlobalState} from './intrig-context';
 
@@ -314,6 +315,8 @@ export function useNetworkState<T, E = unknown>({
   const [abortController, setAbortController] = useState<AbortController>();
 
   const networkState = useMemo(() => {
+    logger.info(${"`Updating status ${key} ${operation} ${source}`"});
+    logger.debug("<=", context.state?.[${"`${source}:${operation}:${key}`"}])
     return (
       (context.state?.[${"`${source}:${operation}:${key}`"}] as NetworkState<T>) ??
       init()
@@ -333,6 +336,9 @@ export function useNetworkState<T, E = unknown>({
 
   const execute = useCallback(
     async (request: RequestType) => {
+      logger.info(${"`Executing request ${key} ${operation} ${source}`"});
+      logger.debug("=>", request)
+
       let abortController = new AbortController();
       setAbortController(abortController);
 
@@ -372,8 +378,10 @@ export function useNetworkState<T, E = unknown>({
   );
 
   const clear = useCallback(() => {
+    logger.info(${"`Clearing request ${key} ${operation} ${source}`"});
     dispatch(init());
     setAbortController((abortController) => {
+      logger.info(${"`Aborting request ${key} ${operation} ${source}`"});
       abortController?.abort();
       return undefined;
     });

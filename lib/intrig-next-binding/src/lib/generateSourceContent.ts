@@ -7,4 +7,5 @@ export function generateSourceContent(api: IntrigSourceConfig, _path: string, sp
   generateSourceTemplates(api, _path, spec)
   generateHooks(api, _path, spec.paths)
   generateTypes(api, _path, spec.schemas)
+
 }
