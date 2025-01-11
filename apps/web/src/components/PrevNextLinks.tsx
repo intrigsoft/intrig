@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 
-import { getNavigation } from '@/lib/navigation';
+import { useNavigation } from '@/lib/navigation';
 
 function ArrowIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -52,7 +52,10 @@ function PageLink({
 
 export function PrevNextLinks() {
   let pathname = usePathname()
-  let allLinks = getNavigation().flatMap((section) => section.links)
+
+  let navigations = useNavigation();
+
+  let allLinks = navigations.flatMap((section) => section.links)
   let linkIndex = allLinks.findIndex((link) => link.href === pathname)
   let previousPage = linkIndex > -1 ? allLinks[linkIndex - 1] : null
   let nextPage = linkIndex > -1 ? allLinks[linkIndex + 1] : null

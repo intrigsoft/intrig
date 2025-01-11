@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 
-import { getNavigation } from '@/lib/navigation';
+import { useNavigation } from '@/lib/navigation';
 
 export function Navigation({
   className,
@@ -13,10 +13,12 @@ export function Navigation({
 }) {
   let pathname = usePathname()
 
+  let navigation = useNavigation();
+
   return (
     <nav className={clsx('text-base lg:text-sm', className)}>
       <ul role="list" className="space-y-9">
-        {getNavigation().map((section) => (
+        {navigation.map((section) => (
           <li key={section.title}>
             <h2 className="font-display font-medium text-slate-900 dark:text-white">
               {section.title}

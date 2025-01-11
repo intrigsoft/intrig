@@ -30,7 +30,8 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "@intrig/cli-common": ["../../lib/cli-common/src/index.ts"]
     }
   },
   "include": [

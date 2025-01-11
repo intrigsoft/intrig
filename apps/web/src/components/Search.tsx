@@ -21,7 +21,7 @@ import {
 import { Dialog, DialogPanel } from '@headlessui/react'
 import clsx from 'clsx'
 
-import { getNavigation } from '@/lib/navigation';
+import { useNavigation } from '@/lib/navigation';
 import axios from 'axios';
 
 type EmptyObject = Record<string, never>
@@ -175,7 +175,9 @@ function SearchResult({
 }) {
   let id = useId()
 
-  let sectionTitle = getNavigation().find((section) =>
+  let navigation = useNavigation();
+
+  let sectionTitle = navigation.find((section) =>
     section.links.find((link) => link.href === result.url.split('#')[0]),
   )?.title
   let hierarchy = [sectionTitle, result.signature].filter(

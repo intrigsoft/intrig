@@ -16,29 +16,30 @@ declare global {
 }
 
 if (!global.generatedContentWatcher) {
-  const directoryToWatch = path.join(INTRIG_LOCATION, );
+  const directoryToWatch = path.join(INTRIG_LOCATION, "generated", "src", "**", "registry.json");
 
   const updateIndexes = _.debounce(() => {
-    console.log('Reloading')
     flexIndexReload();
     codeIndexReload();
-  }, 1000);
+  }, 1000, { leading: false, trailing: true});
 
-  const watcher = chokidar.watch(directoryToWatch, {
+  const watcher: any = chokidar.watch(directoryToWatch, {
     persistent: true,
     awaitWriteFinish: true,
     interval: 1000,
-    binaryInterval: 1000
+    binaryInterval: 1000,
   });
 
+  console.log(watcher)
+
   watcher
-    .on('add', (filePath) => {
+    .on('add', () => {
       updateIndexes();
     })
-    .on('change', (filePath) => {
+    .on('change', () => {
       updateIndexes();
     })
-    .on('unlink', (filePath) => {
+    .on('unlink', () => {
       updateIndexes();
     });
 

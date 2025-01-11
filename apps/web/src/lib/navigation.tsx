@@ -2,7 +2,7 @@ import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useSt
 import axios from 'axios';
 import { usePathname } from 'next/navigation';
 
-interface Navigation {
+export interface Navigation {
   title: string
   links: {
     title: string
@@ -123,11 +123,7 @@ export function NavigationProvider({children}: PropsWithChildren) {
   </Ctx.Provider>
 }
 
-export function getNavigation() {
+export function useNavigation() {
   const ctx = useContext(Ctx);
   return ctx.navigation;
-}
-
-export function useNavigation() {
-  return getNavigation();
 }

@@ -1,17 +1,28 @@
-"use client"
+"use server"
 
-import { useNavigation } from '@/lib/navigation';
-import Link from 'next/link'
+import { Documentation } from '@/components/Documentation';
+import { getConfig } from '@/services/configs';
+import { camelCase, capitalCase } from 'change-case';
 
-export const dynamic = 'force-dynamic';
+export default async function SourcesPage() {
+  let intrigConfig = getConfig();
 
-export default function SourcesPage() {
 
-  let navigation = useNavigation();
+  let contents = `
+---
+title: Sources
+---
+
+Following sources are configured in the system.
+
+{% quick-links %}
+${intrigConfig.sources.map(source => `
+  {% quick-link title="${capitalCase(source.id)}" icon="installation" href="/sources/${source.id}" description="${source.specUrl}" /%}
+`)}
+{% /quick-links %}
+  `.trim()
 
   return <ul>
-    {navigation[0]?.links?.map(link => <li key={link.href} className="mb-2">
-      <Link href={link.href}>{link.title}</Link>
-    </li>)}
+    <Documentation content={contents} />
   </ul>
 }

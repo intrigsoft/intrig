@@ -1,11 +1,12 @@
 // lib/search.ts
-import FlexSearch, { Document } from 'flexsearch';
+import FlexSearch, { Document, IndexOptionsForDocumentSearch } from 'flexsearch';
 import * as fs from 'fs';
 import * as path from 'path';
-import Markdoc, { RenderableTreeNode } from '@markdoc/markdoc';
-import yaml from 'yaml';
+import { RenderableTreeNode } from '@markdoc/markdoc';
 import { INTRIG_LOCATION } from '@/const/locations';
-import { walkDirectory } from '@/services/walkDirectory';
+import fg from 'fast-glob';
+// import { capitalCase } from '@/lib/change-case';
+import {capitalCase, SourceInfo} from '@intrig/cli-common';
 
 export interface SearchResult {
   title: string;
@@ -18,69 +19,103 @@ export interface SearchResult {
 declare global {
   // Extending the global object to include swaggerIndex
   var swaggerIndex: Document<SearchResult, string[]> | undefined;
+  var sourceNavs: {
+    navs: any[]
+  };
 }
 
 let index: Document<SearchResult, string[]>;
+let navs: {
+  navs: any[]
+};
 
-function createIndex() {
-  console.log('Creating new index');
-  global.swaggerIndex = new FlexSearch.Document<SearchResult, string[]>({
-    document: {
-      id: "url",
-      index: ["url", "title", "content", "tags", "signature"],
-      store: ["title", "content", "tags", "url", "signature"],
-    },
-    tokenize: "forward",
-    // @ts-ignore
-    suggest: true,
-    cache: true,
-    context: {
-      resolution: 9,
-      depth: 2,
-      bidirectional: true
-    }
-  });
-}
+let options: IndexOptionsForDocumentSearch<SearchResult, string[]> = {
+  document: {
+    id: "url",
+    index: ["url", "title", "content", "tags", "signature"],
+    store: ["url", "title", "content", "tags", "signature"],
+  },
+  tokenize: "forward",
+  // @ts-ignore
+  suggest: true,
+  cache: true,
+  context: {
+    resolution: 9,
+    depth: 2,
+    bidirectional: true
+  },
+  language: 'en'
+};
 
-function addDocumentsToIndex() {
+async function addDocumentsToIndex() {
 
   const swaggerDocs: SearchResult[] = [];
+  const navs = []
 
-  if (fs.existsSync(path.resolve(INTRIG_LOCATION, 'generated', 'src'))) {
-    walkDirectory(path.resolve(INTRIG_LOCATION, 'generated', 'src'), (filePath, stats) => {
-      if (stats.isFile() && path.extname(filePath) === '.md') {
-        let content = fs.readFileSync(filePath, 'utf8');
-        let ast = Markdoc.parse(content);
-        let tags: string[] = [];
-        let title = '';
-        let signature = '';
-        if (ast.attributes.frontmatter) {
-          let frontmatter = yaml.parse(ast.attributes.frontmatter);
-          tags = frontmatter['tags'];
-          title = frontmatter['title'];
-          signature = frontmatter['requestSignature'] ?? '';
-        }
-        let transformed = Markdoc.transform(ast);
-        let data = extractText(transformed);
+  const directoryToWatch = path.join(INTRIG_LOCATION, "generated", "src", "**", "registry.json");
 
+  try {
+    let files = await fg(directoryToWatch);
+    for (let file of files) {
+      let content: SourceInfo = JSON.parse(fs.readFileSync(file, 'utf8'));
+      content.paths.forEach((path: any) => {
         let entry: SearchResult = {
-          title,
-          tags,
-          signature,
-          content: data,
-          url: `/sources/${path.relative(path.resolve(INTRIG_LOCATION, 'generated', 'src'), path.dirname(filePath))}`
+          title: path.operationId,
+          tags: [
+            path.source,
+            ...path.paths,
+            path.operationId,
+            `use${capitalCase(path.method)}`,
+            path.requestUrl,
+            path.summary,
+            path.description,
+            path.responseType,
+            path.contentType,
+            path.requetBody,
+            path.responseBody,
+          ],
+          signature: `${path.method} ${path.requestUrl}`,
+          content: "",
+          url: `/sources/${path.source}/${path.paths.join('/')}/${path.operationId}`
         };
-
         swaggerDocs.push(entry)
-      }
-    })
+      })
+
+      navs.push({
+        title: capitalCase(content.paths[0].source),
+        links: content.controllers.map((c: any) => ({
+          title: c.name,
+          href: `/sources/${content.paths[0].source}/${c.name}`
+        }))
+      })
+
+      Object.entries(content.schemas).forEach(([name, schema]) => {
+        let entry: SearchResult = {
+          title: name,
+          tags: [
+            name
+          ],
+          signature: "",
+          content: "",
+          url: `/sources/${content.paths[0].source}/schema/${name}`
+        }
+        swaggerDocs.push(entry)
+      })
+      navs.find(n => n.title === content.paths[0].source)?.links.push({
+        title: "Schemas",
+        href: `/sources/${content.paths[0].source}/schema`
+      })
+    }
+  } catch (e) {
+
   }
 
   swaggerDocs.forEach((doc) => global.swaggerIndex?.add(doc));
+  sourceNavs.navs = navs;
 }
 
 export function reindex() {
-  createIndex();
+  global.swaggerIndex = new FlexSearch.Document<SearchResult, string[]>(options);
   addDocumentsToIndex();
 }
 
@@ -89,29 +124,22 @@ fs.watch(INTRIG_LOCATION, { recursive: true }, (eventType, filename) => {
   reindex()
 })
 
+if (!global.sourceNavs) {
+  global.sourceNavs = {
+    navs: []
+  }
+}
+
 if (!global.swaggerIndex) {
-  global.swaggerIndex = new FlexSearch.Document<SearchResult, string[]>({
-    document: {
-      id: "url",
-      index: ["url", "title", "content", "tags", "signature"],
-      store: ["url", "title", "content", "tags", "signature"],
-    },
-    tokenize: "forward",
-    // @ts-ignore
-    suggest: true,
-    cache: true,
-    context: {
-      resolution: 9,
-      depth: 2,
-      bidirectional: true
-    }
-  });
+  global.swaggerIndex = new FlexSearch.Document<SearchResult, string[]>(options);
   addDocumentsToIndex();
 }
 
 index = global.swaggerIndex;
 
-export { index };
+navs = global.sourceNavs;
+
+export { index, navs };
 
 function extractText(node: RenderableTreeNode): string {
   if (typeof node === 'string') {
@@ -139,7 +167,7 @@ export function search(query: string, limit?: number): SearchResult[] {
       tags: 1.5,   // Tag matches are 1.5x as important
       content: 1   // Normal weight for content
     },
-    limit
+    limit,
   });
 
   let finalResults: SearchResult[] = [];

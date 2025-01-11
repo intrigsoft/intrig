@@ -205,9 +205,9 @@ const config: Config = {
       render: (({children, defaultTab}: {children: any, defaultTab?: string}) => {
         return <TabGroup defaultIndex={children.findIndex((child: any) => child.props.title === defaultTab) ?? 0}>
           <TabList>
-            <div className={'flex dark:bg-gray-950 bg-gray-200 bg-opacity-50 rounded-full mb-1 w-fit space-x-2'}>
+            <div className={'flex dark:bg-slate-800 bg-slate-300 bg-opacity-50 rounded-full mb-1 w-fit space-x-2 shadow-inner'}>
               {children.map((child: any) => <Tab key={child.props.title}
-                                                 className={"px-4 border rounded-full data-[selected]:border-teal-700 border-transparent focus-visible:border-gray-600"}>
+                                                 className={"px-4 border rounded-full data-[selected]:border-sky-500 border-transparent focus-visible:outline-none"}>
                 {child.props.title}
               </Tab>)}
             </div>
