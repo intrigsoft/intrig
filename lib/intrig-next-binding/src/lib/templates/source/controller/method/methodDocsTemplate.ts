@@ -24,6 +24,7 @@ export function methodDocsTemplate(
     requestBody,
     response,
     responseType,
+    source
   } = endpoints[0];
 
   let pathVariables = variables?.filter((v) => v.in === 'path');
@@ -37,6 +38,37 @@ export function methodDocsTemplate(
   }).join(', ')} }`
 
   let configPath = path.resolve(_path, 'src', api.id, ...paths, operationId, 'metainfo.json')
+
+  let requestProperties: Record<string, string> = {}
+  if (pathVariables?.length > 0) {
+    requestProperties['Path Variables'] = `
+  {% table %}
+  ${pathVariables.map(v => `
+  * ${v.name}
+  * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
+  `).join('\n  ---\n')}
+  {% /table %}
+  `
+  }
+  if (queryParams?.length > 0) {
+    requestProperties['Query Params'] = `
+    {% table %}
+    ${queryParams.map(v => `
+    * ${v.name}
+    * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
+    `).join('\n  ---\n')}
+    {% /table %}`
+  }
+  if (contentType) requestProperties['Content-Type'] = contentType
+  if (requestBody) requestProperties['Request Body'] = `[${requestBody}](/sources/${source}/schema/${encodeURIComponent(requestBody)})`
+
+  let requestPropertiesList = Object.entries(requestProperties)
+
+  let responseProperties: Record<string, string> = {}
+  if (response) responseProperties['Response'] = `[${response}](/sources/${source}/schema/${encodeURIComponent(response)})`
+  if (responseType) responseProperties['Response Type'] = responseType
+
+  let responsePropertiesList = Object.entries(responseProperties)
 
   let serverContent = `
 ## Server side integration.
@@ -198,86 +230,28 @@ ${description ?? ''}
 ${method.toUpperCase()} ${requestUrl}
 \`\`\`
 
+${requestPropertiesList.length > 0 ? `
 ### Request Properties
 
 {% table %}
 * Property
 * Value
 ---
-${
-    contentType
-      ? `
-* Content-Type
-* ${contentType}
----
-`: ``
-  }${
-    pathVariables?.length > 0
-      ? `
-* Path Variables
-*
-  {% table %}
-  ---
-${pathVariables
-        .map((v) => ([
-          `  * ${v.name}`,
-          `  * {% dataType type="${v.ref.split('/').pop()}" %}{% /dataType %}`
-        ].join('\n')))
-        .join('\n  ---\n')}
-  {% /table %}
----
-` : ``
-  }${
-    queryParams?.length > 0
-      ? `
-* Query Params
-*
-  {% table %}
-  ---
-${queryParams
-        .map((v) => ([
-          `  * ${v.name}`,
-          `  * {% dataType type="${v.ref.split('/').pop()}" %}{% /dataType %}`
-        ].join('\n')))
-        .join('\n  ---\n')}
-  {% /table %}
----
-`
-      : ``
-  }${
-    requestBody
-      ? `
-* Request Body
-*
-  {% dataType type="${requestBody}" %} {% /dataType %}
----
-`
-      : ``
-  }
+${requestPropertiesList.map(([k, v]) => ([`* ${k}`, `* ${v}`].join('\n'))).join('\n---\n')}
 {% /table %}
+` : ``}
 
+${responsePropertiesList.length > 0 ? `
 ### Response Properties
 
 {% table %}
-${
-    responseType
-      ? `
-* Response Type
-* ${responseType}
+* Property
+* Value
 ---
-`
-      : ``
-  }${
-    response
-      ? `
-* Response
-*
-  {% dataType type="${response}" %} {% /dataType %}
----
-`
-      : ``
-  }
+${responsePropertiesList.map(([k, v]) => ([`* ${k}`, `* ${v}`].join('\n'))).join('\n---\n')}
 {% /table %}
+` : ``}
+
 ---
 {% tabs %}
 {% tab title="Server" %}

@@ -111,6 +111,7 @@ export function downloadHookTemplate({source, paths, operationId, response, requ
   let executeBlock = requestBody ? `
   let form = document.createElement('form');
   form.method = '${method}';
+  form.target = '_blank';
   form.action = \`${modifiedRequestUrl}\`;
 
   Object.entries(data).forEach(([key, value]) => {
@@ -127,7 +128,7 @@ export function downloadHookTemplate({source, paths, operationId, response, requ
   ` : `
   let a = document.createElement('a');
   a.href = \`${modifiedRequestUrl}\`;
-  a.download = 'download';
+  a.download = true;
   dispatch(pending())
   document.body.appendChild(a);
   a.click();
