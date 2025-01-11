@@ -7,6 +7,7 @@ import {packageJsonTemplate} from "./templates/packageJson.template";
 import {mediaTypeUtilsTemplate} from "./templates/media-type-utils.template";
 import { contextTemplate } from './templates/context.template';
 import { extraTemplate } from './templates/extra.template';
+import { loggerTemplate } from './templates/logger.template';
 
 export function generateGlobalContent(path: string, apisToSync: IntrigSourceConfig[]) {
   dump(networkStateTemplate(path))
@@ -17,4 +18,5 @@ export function generateGlobalContent(path: string, apisToSync: IntrigSourceConf
   dump(mediaTypeUtilsTemplate(path))
   dump(contextTemplate(path, apisToSync))
   dump(extraTemplate(path, apisToSync))
+  dump(loggerTemplate(path))
 }

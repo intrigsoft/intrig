@@ -1,10 +1,48 @@
 import {
+  camelCase,
+  CompiledOutput,
   IntrigSourceConfig,
-  markdownLiteral, pascalCase, camelCase, capitalCase,
-  RequestProperties, CompiledOutput
+  pascalCase,
+  RequestProperties,
+  Variable
 } from '@intrig/cli-common';
 import * as path from 'path';
 import yaml from 'yaml';
+
+function resolveRequestPropertiesList(pathVariables: Variable[], source: string, queryParams: Variable[], contentType: string, requestBody: string) {
+  let requestProperties: Record<string, string> = {};
+  if (pathVariables?.length > 0) {
+    requestProperties['Path Variables'] = `
+  {% table %}
+  ${pathVariables.map(v => `
+  * ${v.name}
+  * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
+  `).join('\n  ---\n')}
+  {% /table %}
+  `;
+  }
+  if (queryParams?.length > 0) {
+    requestProperties['Query Params'] = `
+    {% table %}
+    ${queryParams.map(v => `
+    * ${v.name}
+    * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
+    `).join('\n  ---\n')}
+    {% /table %}`;
+  }
+  if (contentType) requestProperties['Content-Type'] = contentType;
+  if (requestBody) requestProperties['Request Body'] = `[${requestBody}](/sources/${source}/schema/${encodeURIComponent(requestBody)})`;
+
+  return Object.entries(requestProperties);
+}
+
+function resolveResponsePropertiesList(response: string, source: string, responseType: string) {
+  let responseProperties: Record<string, string> = {};
+  if (response) responseProperties['Response'] = `[${response}](/sources/${source}/schema/${encodeURIComponent(response)})`;
+  if (responseType) responseProperties['Response Type'] = responseType;
+
+  return Object.entries(responseProperties);
+}
 
 export function methodDocsTemplate(
   api: IntrigSourceConfig,
@@ -39,36 +77,9 @@ export function methodDocsTemplate(
 
   let configPath = path.resolve(_path, 'src', api.id, ...paths, operationId, 'metainfo.json')
 
-  let requestProperties: Record<string, string> = {}
-  if (pathVariables?.length > 0) {
-    requestProperties['Path Variables'] = `
-  {% table %}
-  ${pathVariables.map(v => `
-  * ${v.name}
-  * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
-  `).join('\n  ---\n')}
-  {% /table %}
-  `
-  }
-  if (queryParams?.length > 0) {
-    requestProperties['Query Params'] = `
-    {% table %}
-    ${queryParams.map(v => `
-    * ${v.name}
-    * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
-    `).join('\n  ---\n')}
-    {% /table %}`
-  }
-  if (contentType) requestProperties['Content-Type'] = contentType
-  if (requestBody) requestProperties['Request Body'] = `[${requestBody}](/sources/${source}/schema/${encodeURIComponent(requestBody)})`
+  let requestPropertiesList = resolveRequestPropertiesList(pathVariables, source, queryParams, contentType, requestBody);
 
-  let requestPropertiesList = Object.entries(requestProperties)
-
-  let responseProperties: Record<string, string> = {}
-  if (response) responseProperties['Response'] = `[${response}](/sources/${source}/schema/${encodeURIComponent(response)})`
-  if (responseType) responseProperties['Response Type'] = responseType
-
-  let responsePropertiesList = Object.entries(responseProperties)
+  let responsePropertiesList = resolveResponsePropertiesList(response, source, responseType);
 
   let serverContent = `
 ## Server side integration.

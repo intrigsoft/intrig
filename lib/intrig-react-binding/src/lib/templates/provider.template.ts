@@ -268,12 +268,12 @@ export function StatusTrap({
   );
 }
 
-export interface NetworkStateProps<T> {
+export interface NetworkStateProps<T, E = unknown> {
   key: string;
   operation: string;
   source: string;
   schema?: ZodSchema<T>;
-  errorSchema?: ZodSchema<T>;
+  errorSchema?: ZodSchema<E>;
   debounceDelay?: number;
 }
 
@@ -311,6 +311,8 @@ export function useNetworkState<T, E = unknown>({
   const [abortController, setAbortController] = useState<AbortController>();
 
   const networkState = useMemo(() => {
+    logger.info(${"`Updating status ${key} ${operation} ${source}`"});
+    logger.debug("<=", context.state?.[${"`${source}:${operation}:${key}`"}])
     return (
       (context.state?.[${"`${source}:${operation}:${key}`"}] as NetworkState<T>) ??
       init()
@@ -330,6 +332,9 @@ export function useNetworkState<T, E = unknown>({
 
   const execute = useCallback(
     async (request: RequestType) => {
+      logger.info(${"`Executing request ${key} ${operation} ${source}`"});
+      logger.debug("=>", request)
+
       let abortController = new AbortController();
       setAbortController(abortController);
 
@@ -369,8 +374,10 @@ export function useNetworkState<T, E = unknown>({
   );
 
   const clear = useCallback(() => {
+    logger.info(${"`Clearing request ${key} ${operation} ${source}`"});
     dispatch(init());
     setAbortController((abortController) => {
+      logger.info(${"`Aborting request ${key} ${operation} ${source}`"});
       abortController?.abort();
       return undefined;
     });
@@ -397,7 +404,7 @@ function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
  * It filters the state to retain error states and maps them to a structured error object with additional context information.
  * @return {Object[]} An array of objects representing the error states with context information such as source, operation, and key.
  */
-export function useCentralErrorHandling() {
+export function useCentralError() {
   const ctx = useContext(Context);
 
   return useMemo(() => {
@@ -421,7 +428,7 @@ export function useCentralErrorHandling() {
  *
  * @return {NetworkState} The aggregated network state based on the pending states and their progress.
  */
-export function useCentralPendingStateHandling() {
+export function useCentralPendingState() {
   const ctx = useContext(Context);
 
   const result: NetworkState = useMemo(() => {
@@ -446,7 +453,5 @@ export function useCentralPendingStateHandling() {
 
   return result;
 }
-
-
   `
 }
