@@ -6,6 +6,9 @@ import {adaptor as nextAdaptor} from '@intrig/intrig-next-binding'
 import {adaptor as reactAdaptor} from '@intrig/intrig-react-binding'
 
 export default class Postbuild extends Command {
+
+  static hidden = true;
+
   static override args = {
 
   }

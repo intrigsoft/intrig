@@ -32,6 +32,7 @@ export const docsNavigation: Navigation[] = [
       { title: "Generated Hooks", href: "/docs/features/generated-hooks" },
       { title: "Network State", href: "/docs/features/network-state" },
       { title: "Extended Hooks", href: "/docs/features/extended-hooks" },
+      { title: "CLI Usage", href: "/docs/features/cli-usage" },
       { title: "Storybook Support", href: "/docs/features/storybook-support" },
     ]
   },

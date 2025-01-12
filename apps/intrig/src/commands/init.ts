@@ -5,6 +5,8 @@ import * as path from 'path'
 import {CONFIG_FILE} from "../util";
 import { ContentGeneratorAdaptor, IntrigConfig } from '@intrig/cli-common';
 import {cli} from "cli-ux";
+import {adaptor as reactAdaptor} from '@intrig/intrig-react-binding'
+import {adaptor as nextAdaptor} from '@intrig/intrig-next-binding'
 
 export default class Init extends Command {
   static override description = 'Initialize a new Intrig configuration file'
@@ -71,14 +73,21 @@ ${gitignoreEntry}`)
 
     cli.log(`Intrig configuration file created at ${configPath}`)
 
-    const adaptor = await import((`@intrig/intrig-${generator}-binding`)).then(m => m?.adaptor as ContentGeneratorAdaptor)
+    const adaptor = generator === 'react' ? reactAdaptor : nextAdaptor
 
     // Add actions to package.json
     if (await fsx.pathExists(packageJsonPath)) {
       const packageJson = await fsx.readJson(packageJsonPath);
       packageJson.scripts = packageJson.scripts || {};
-      packageJson.scripts.predev = 'intrig predev';
-      packageJson.scripts.prebuild = 'intrig prebuild';
+      if (!packageJson.scripts.predev?.includes('intrig predev')) {
+        packageJson.scripts.predev = (packageJson.scripts.predev ? `${packageJson.scripts.predev} && ` : '') + 'intrig predev';
+      }
+      if (!packageJson.scripts.prebuild?.includes('intrig prebuild')) {
+        packageJson.scripts.prebuild = (packageJson.scripts.prebuild ? `${packageJson.scripts.prebuild} && ` : '') + 'intrig prebuild';
+      }
+      if (!packageJson.scripts.postbuild?.includes('intrig postbuild')) {
+        packageJson.scripts.postbuild = (packageJson.scripts.postbuild ? `${packageJson.scripts.postbuild} && ` : '') + 'intrig postbuild';
+      }
       await fsx.writeJson(packageJsonPath, packageJson, { spaces: 2 });
       console.log('Added predev and prebuild actions to package.json');
     } else {

@@ -6,6 +6,9 @@ import { adaptor as reactAdaptor } from '@intrig/intrig-react-binding';
 import { adaptor as nextAdaptor } from '@intrig/intrig-next-binding';
 
 export default class Prebuild extends Command {
+
+  static hidden = true;
+
   static override args = {
 
   }

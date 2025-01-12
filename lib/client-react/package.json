@@ -22,8 +22,8 @@
     "fast-xml-parser": "^4.5.0"
   },
   "peerDependencies": {
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react": ">=18.0.0 || ^19.0.0-rc",
+    "react-dom": ">=18.0.0 || ^19.0.0-rc"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0"

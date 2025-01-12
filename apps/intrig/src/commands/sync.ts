@@ -19,16 +19,6 @@ export default class Sync extends Command {
       description: 'Comma-separated list of API IDs to sync',
       multiple: true,
       exclusive: ['all']
-    }),
-    force: Flags.boolean({
-      char: 'f',
-      description: 'Force sync even if no changes detected'
-    }),
-    env: Flags.string({
-      char: 'e',
-      description: 'Environment to sync (dev/prod)',
-      options: ['dev', 'prod'],
-      default: 'dev'
     })
   }
 

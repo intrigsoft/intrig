@@ -9,9 +9,6 @@ import chalk from 'chalk'
 import { CONFIG_FILE } from '../util';
 
 export default class Generate extends Command {
-  static override args = {
-    file: Args.string({description: 'file to read'}),
-  }
 
   static override description = 'Regenerate code'
 
@@ -30,26 +27,12 @@ export default class Generate extends Command {
       description: 'Comma-separated list of API IDs to sync',
       multiple: true,
       exclusive: ['all']
-    }),
-    force: Flags.boolean({
-      char: 'f',
-      description: 'Force sync even if no changes detected'
-    }),
-    /*'dry-run': Flags.boolean({
-      char: 'd',
-      description: 'Show what would be synchronized without performing the sync'
-    }),*/
-    env: Flags.string({
-      char: 'e',
-      description: 'Environment to sync (dev/prod)',
-      options: ['dev', 'prod'],
-      default: 'dev'
     })
   }
 
   public async run(): Promise<void> {
     try {
-      const { flags } = await this.parse(Generate);
+      const { flags, args } = await this.parse(Generate);
 
       const config = this.readConfig();
 
