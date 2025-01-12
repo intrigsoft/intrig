@@ -2,7 +2,12 @@
 <img src="./docs/intrig-logo.svg" alt="Intrig Logo" width="200">
 </p>
 
-# Intrig ![npm](https://img.shields.io/npm/v/intrig) ![License](https://img.shields.io/github/license/intrigsoft/intrig)
+# Intrig 
+![npm](https://img.shields.io/npm/v/intrig) 
+![License](https://img.shields.io/github/license/intrigsoft/intrig)
+![TypeScript](https://img.shields.io/github/package-json/dependency-version/intrigsoft/intrig/dev/typescript)
+![React](https://img.shields.io/npm/dependency-version/@intrig/react/peer/react)
+![Next.js](https://img.shields.io/npm/dependency-version/@intrig/next/peer/next)
 
 Intrig is a powerful API integration and documentation tool designed for frontend developers working with OpenAPI 3. It streamlines API consumption by generating boilerplate code, offering a rich documentation interface, and providing an intuitive way to explore and interact with API endpoints.
 
@@ -159,8 +164,9 @@ Intrig supports project-level configurations via `intrig.config.json`:
 
 - ✅ OpenAPI-based documentation and code generation
 - ✅ CLI tool for API exploration and integration
-- ⏳ Standalone server deployment with authentication
-- ⏳ GitHub integration for API version tracking
+- ⏳ Streamline file download feature
+- ⏳ Remix integration
+- ⏳ Vue.js integration
 
 ## Contributing
 
