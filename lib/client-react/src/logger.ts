@@ -1,31 +1,13 @@
-import pino, { Logger, LoggerOptions } from 'pino';
+import log from 'loglevel';
 
-let logger: Logger;
+// Set the default logging level (can be overridden via environment variables)
+log.setLevel(process.env.LOG_LEVEL as log.LogLevelDesc || 'info');
 
-const frontendConfig: LoggerOptions = {
-  browser: {
-    asObject: true,
-  },
-  level: 'info',
+const logWrapper = {
+  info: (msg: string, meta?: object) => meta ? log.info(msg, meta) : log.info(msg),
+  warn: (msg: string, meta?: object) => meta ? log.warn(msg, meta) : log.warn(msg),
+  error: (msg: string, meta?: object) => meta ? log.error(msg, meta) : log.error(msg),
+  debug: (msg: string, meta?: object) => meta ? log.debug(msg, meta) : log.debug(msg),
 };
 
-
-const createLogger = (): Logger => {
-  return pino(frontendConfig);
-};
-
-const getLogger = (): Logger => {
-  if (!logger) {
-    logger = createLogger();
-  }
-  return logger;
-};
-
-const log = {
-  info: (msg: string, meta?: object) => getLogger().info(meta, msg),
-  warn: (msg: string, meta?: object) => getLogger().warn(meta, msg),
-  error: (msg: string, meta?: object) => getLogger().error(meta, msg),
-  debug: (msg: string, meta?: object) => getLogger().debug(meta, msg),
-};
-
-export default log;
+export default logWrapper;

@@ -5,54 +5,18 @@ export function loggerTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, 'src', 'logger.ts'))
 
   return ts`
-import pino, { Logger, LoggerOptions } from 'pino';
+import log from 'loglevel';
 
-let logger: Logger;
+// Set the default logging level (can be overridden via environment variables)
+log.setLevel(process.env.LOG_LEVEL as log.LogLevelDesc || 'info');
 
-
-const backendConfig: LoggerOptions = {
-  level: process.env.LOG_LEVEL || 'info',
-  transport: process.env.NODE_ENV !== 'production' ? {
-    target: 'pino-pretty',
-    options: {
-      colorize: true, // Add colors
-      translateTime: 'HH:MM:ss Z', // Human-readable timestamps
-      ignore: 'pid,hostname', // Hide unnecessary fields
-    }
-  } : undefined,
+const logWrapper = {
+  info: (msg: string, meta?: object) => meta ? log.info(msg, meta) : log.info(msg),
+  warn: (msg: string, meta?: object) => meta ? log.warn(msg, meta) : log.warn(msg),
+  error: (msg: string, meta?: object) => meta ? log.error(msg, meta) : log.error(msg),
+  debug: (msg: string, meta?: object) => meta ? log.debug(msg, meta) : log.debug(msg),
 };
 
-
-const frontendConfig: LoggerOptions = {
-  browser: {
-    asObject: true,
-  },
-  level: 'info',
-};
-
-
-const createLogger = (): Logger => {
-  if (typeof window === 'undefined') {
-    return pino(backendConfig);
-  } else {
-    return pino(frontendConfig);
-  }
-};
-
-const getLogger = (): Logger => {
-  if (!logger) {
-    logger = createLogger();
-  }
-  return logger;
-};
-
-const log = {
-  info: (msg: string, meta?: object) => getLogger().info(meta, msg),
-  warn: (msg: string, meta?: object) => getLogger().warn(meta, msg),
-  error: (msg: string, meta?: object) => getLogger().error(meta, msg),
-  debug: (msg: string, meta?: object) => getLogger().debug(meta, msg),
-};
-
-export default log;
+export default logWrapper;
 `
 }

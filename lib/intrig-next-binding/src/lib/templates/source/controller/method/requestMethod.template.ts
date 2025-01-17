@@ -109,7 +109,7 @@ export function requestMethodTemplate({source, paths, operationId, response, req
           ${requestBody ? `requestBodySchema.parse(data);` : ''}
           let {${paramExplode}} = p
 
-          logger.info(${"`Executing request ${source}: ${operation} ${modifiedRequestUrl}`"});
+          logger.info("Executing request ${source}: ${method} ${modifiedRequestUrl}");
           logger.debug("=>", p, ${requestBody ? "data" : ""})
 
           let axiosInstance = await getAxiosInstance('${source}')
@@ -126,7 +126,7 @@ export function requestMethodTemplate({source, paths, operationId, response, req
   ].filter(Boolean).join(',\n')}
           })
 
-          logger.info(${"`Executed request completed ${source}: ${operation} ${modifiedRequestUrl}`"});
+          logger.info("Executed request completed ${source}: ${method} ${modifiedRequestUrl}");
           logger.debug("<=", responseData, headers)
 
           return {
