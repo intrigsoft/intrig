@@ -1,5 +1,6 @@
 import typographyPlugin from '@tailwindcss/typography'
 import { type Config } from 'tailwindcss'
+import colors from 'tailwindcss/colors';
 
 export default {
   content: ['./src/**/*.{js,jsx,ts,tsx,md}'],
@@ -28,6 +29,9 @@ export default {
       maxWidth: {
         '8xl': '88rem',
       },
+      colors: {
+        primary: colors.teal,
+      }
     },
   },
   plugins: [typographyPlugin],

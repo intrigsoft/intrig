@@ -1,5 +1,7 @@
 import { useId } from 'react'
 import clsx from 'clsx'
+import tailwindConfig from '../../tailwind.config';
+import resolveConfig from 'tailwindcss/resolveConfig';
 
 import { InstallationIcon } from '@/components/icons/InstallationIcon'
 import { LightbulbIcon } from '@/components/icons/LightbulbIcon'
@@ -8,6 +10,8 @@ import { PresetsIcon } from '@/components/icons/PresetsIcon'
 import { ThemingIcon } from '@/components/icons/ThemingIcon'
 import { WarningIcon } from '@/components/icons/WarningIcon'
 import { GearIcon } from '@/components/icons/GearIcon';
+
+const fullConfig = resolveConfig(tailwindConfig)
 
 const icons = {
   installation: InstallationIcon,
@@ -20,6 +24,7 @@ const icons = {
 }
 
 const iconStyles = {
+  primary: '[--icon-foreground:theme(colors.primary.900)] [--icon-background:theme(colors.primary.100)]',
   blue: '[--icon-foreground:theme(colors.slate.900)] [--icon-background:theme(colors.white)]',
   amber:
     '[--icon-foreground:theme(colors.amber.900)] [--icon-background:theme(colors.amber.100)]',
@@ -27,7 +32,7 @@ const iconStyles = {
 
 export function Icon({
   icon,
-  color = 'blue',
+  color = 'primary',
   className,
   ...props
 }: {
@@ -59,6 +64,10 @@ const gradients = {
   amber: [
     { stopColor: '#FDE68A', offset: '.08' },
     { stopColor: '#F59E0B', offset: '.837' },
+  ],
+  primary: [
+    { stopColor: fullConfig.theme.colors.primary[200], offset: '.08' },
+    { stopColor: fullConfig.theme.colors.primary[500], offset: '.837' },
   ],
 }
 

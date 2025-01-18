@@ -46,7 +46,7 @@ export function HierarchyView({ filter }: { filter: string }) {
         {searchTerm && (
           <button
             onClick={clearSearch}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 stext-gray-400 hover:text-white focus:outline-none"
           >
             ✕
           </button>

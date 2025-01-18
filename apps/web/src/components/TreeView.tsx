@@ -42,7 +42,7 @@ function TreeNode({ node }: { node: TreeNode }) {
                 )}
               </Disclosure.Button>
             ) : <span className="w-3 h-5"/>}
-            <div onClick={handleLinkClick} className="text-white hover:text-teal-400 w-full flex justify-between items-center">
+            <div onClick={handleLinkClick} className="text-slate-500 dark:text-slate-300 hover:text-teal-400 w-full flex justify-between items-center">
               {node.name} {node.children?.length == 0 && <span className={'opacity-50'}>{node.signature}</span>}
             </div>
           </div>

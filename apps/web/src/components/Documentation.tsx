@@ -207,7 +207,7 @@ const config: Config = {
           <TabList>
             <div className={'flex dark:bg-slate-800 bg-slate-300 bg-opacity-50 rounded-full mb-1 w-fit space-x-2 shadow-inner'}>
               {children.map((child: any) => <Tab key={child.props.title}
-                                                 className={"px-4 border rounded-full data-[selected]:border-sky-500 border-transparent focus-visible:outline-none"}>
+                                                 className={"px-4 border rounded-full data-[selected]:border-primary-500 border-transparent focus-visible:outline-none"}>
                 {child.props.title}
               </Tab>)}
             </div>

@@ -4,45 +4,50 @@ import { Dropdown, DropdownButton, DropdownItem, DropdownMenu } from '@/catalyst
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 import {ChevronDownIcon} from '@heroicons/react/24/outline'
+import { BookOpenIcon, PaperClipIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid'
 
 interface AppInfo {
   name: string
   path: string
   match: string
+  icon?: React.ReactNode
 }
 
 const APP_MAPPING: AppInfo[] = [
   {
     name: 'Docs',
     path: '/docs/introduction/getting-started',
-    match: '/docs/'
+    match: '/docs/',
+    icon: <BookOpenIcon/>
   },
   {
     name: 'API',
     path: '/api-reference/',
-    match: '/api-reference'
+    match: '/api-reference',
+    icon: <PaperClipIcon/>
   },
   {
     name: 'Explore',
     path: '/sources/',
-    match: '/sources'
+    match: '/sources',
+    icon: <PaperAirplaneIcon/>
   }
 ]
 
 export default function AppSelector() {
   let pathname = usePathname();
 
-  const label = useMemo(() => {
-    return APP_MAPPING.find(({ match }) => pathname.startsWith(match))?.name ?? APP_MAPPING[0].name;
+  const appInfo = useMemo(() => {
+    return APP_MAPPING.find(({ match }) => pathname.startsWith(match)) ?? APP_MAPPING[0];
   }, [pathname]);
 
   return <div className={""}>
     <Dropdown>
-      <DropdownButton outline className={'outline-none'}>
-        {label} <ChevronDownIcon/>
+      <DropdownButton outline className={'outline-none '}>
+        {appInfo.icon} {appInfo.name} <ChevronDownIcon/>
       </DropdownButton>
-      <DropdownMenu className={'z-[1000]'}>
-        {APP_MAPPING.map(({ name, path, match }) => (<DropdownItem href={path}>{name}</DropdownItem>))}
+      <DropdownMenu className={'z-[1000] bg-transparent dark:bg-slate-700/50'}>
+        {APP_MAPPING.map(({ name, path, match, icon }) => (<DropdownItem href={path} className={'bg-transparent hover:dark:bg-primary-600'}>{icon} {name}</DropdownItem>))}
       </DropdownMenu>
     </Dropdown>
   </div>

@@ -245,7 +245,7 @@ export function CodeDialog({
                     className={clsx(
                       'flex h-6 rounded-full',
                       tab === tabOptions?.activeTab
-                        ? 'bg-gradient-to-r from-sky-400/30 via-sky-400 to-sky-400/30 p-px font-medium text-sky-300'
+                        ? 'bg-gradient-to-r from-primary-400/30 via-primary-400 to-primary-400/30 p-px font-medium text-primary-300'
                         : 'text-slate-500'
                     )}
                   >
