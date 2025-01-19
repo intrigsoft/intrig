@@ -46,8 +46,8 @@ export default function AppSelector() {
       <DropdownButton outline className={'outline-none '}>
         {appInfo.icon} {appInfo.name} <ChevronDownIcon/>
       </DropdownButton>
-      <DropdownMenu className={'z-[1000] bg-transparent dark:bg-slate-700/50'}>
-        {APP_MAPPING.map(({ name, path, match, icon }) => (<DropdownItem href={path} className={'bg-transparent hover:dark:bg-primary-600'}>{icon} {name}</DropdownItem>))}
+      <DropdownMenu className={'z-[1000] bg-slate-300 dark:bg-slate-700/50'}>
+        {APP_MAPPING.map(({ name, path, match, icon }) => (<DropdownItem href={path} className={' hover:bg-primary-800 hover:dark:bg-primary-600 data-[focus]:bg-primary-800'}>{icon} {name}</DropdownItem>))}
       </DropdownMenu>
     </Dropdown>
   </div>
