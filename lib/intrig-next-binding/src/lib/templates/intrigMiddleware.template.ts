@@ -22,5 +22,13 @@ export async function getAxiosInstance(key: string) {
 
   return axiosInstance;
 }
+
+export async function addResponseToHydrate(key: string, responseData: any) {
+  let _headers = await requestHeaders();
+  let intrigHydrated = _headers.get('INTRIG_HYDRATED');
+  let ob = intrigHydrated ? JSON.parse(intrigHydrated) : {};
+  ob[key] = responseData;
+  _headers.set('INTRIG_HYDRATED', JSON.stringify(ob));
+}
 `
 }

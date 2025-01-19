@@ -64,9 +64,9 @@ export function requestMethodTemplate({source, paths, operationId, response, req
   let imports = new Set<string>();
   imports.add(`import { z, ZodError } from 'zod'`);
   imports.add(`import { isAxiosError } from 'axios';`);
-  imports.add(`import {getAxiosInstance} from '@intrig/next/intrig-middleware'`);
+  imports.add(`import {getAxiosInstance, addResponseToHydrate} from '@intrig/next/intrig-middleware'`);
   imports.add(`import {transformResponse, encode} from '@intrig/next/media-type-utils'`)
-  imports.add(`import { networkError, responseValidationError } from '@intrig/next';`);
+  imports.add(`import { networkError, responseValidationError, AsyncRequestOptions } from '@intrig/next';`);
   imports.add(`import logger from "@intrig/next/logger"`)
 
   let { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
@@ -105,12 +105,14 @@ export function requestMethodTemplate({source, paths, operationId, response, req
 
     ${extractErrorParams(errorTypes)}
 
-    export const execute${pascalCase(operationId)}: (${paramType}) => Promise<{data: Response, headers: any}> = async (${paramExpression}) => {
+    const operation = "${method.toUpperCase()} ${requestUrl}| ${contentType} -> ${responseType}"
+
+    export const execute${pascalCase(operationId)}: (${paramType}, options?: AsyncRequestOptions) => Promise<{data: Response, headers: any}> = async (${paramExpression}, options) => {
           ${requestBody ? `requestBodySchema.parse(data);` : ''}
           let {${paramExplode}} = p
 
           logger.info("Executing request ${source}: ${method} ${modifiedRequestUrl}");
-          logger.debug("=>", p, ${requestBody ? "data" : ""})
+          logger.debug("⇨", p, ${requestBody ? "data" : ""})
 
           let axiosInstance = await getAxiosInstance('${source}')
           let { data: responseData, headers } = await axiosInstance.request({
@@ -127,7 +129,11 @@ export function requestMethodTemplate({source, paths, operationId, response, req
           })
 
           logger.info("Executed request completed ${source}: ${method} ${modifiedRequestUrl}");
-          logger.debug("<=", responseData, headers)
+          logger.debug("⇦", responseData, headers)
+
+          if (options?.hydrate) {
+            addResponseToHydrate(\`${source}:\${operation}:\${options?.key ?? "default"}\`, responseData);
+          }
 
           return {
             data: responseData,
@@ -135,9 +141,9 @@ export function requestMethodTemplate({source, paths, operationId, response, req
           }
     }
 
-    export const ${camelCase(operationId)}: (${paramType}) => Promise<Response> = async (${paramExpression}) => {
+    export const ${camelCase(operationId)}: (${paramType}, options?: AsyncRequestOptions) => Promise<Response> = async (${paramExpression}, options) => {
       try {
-        let { data: responseData, headers } = await execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p);
+        let { data: responseData, headers } = await execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p, options);
         return transformResponse(responseData, "${responseType}", schema);
       } catch (e) {
         if (isAxiosError(e) && e.response) {

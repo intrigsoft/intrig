@@ -57,6 +57,7 @@ export interface DefaultConfigs extends CreateAxiosDefaults {
 export interface IntrigProviderProps {
   configs?: DefaultConfigs;
   children: React.ReactNode;
+  initState?: GlobalState;
 }
 
 /**
@@ -71,10 +72,11 @@ export interface IntrigProviderProps {
  * @return {JSX.Element} A context provider component that wraps the provided children.
  */
 export function IntrigProvider({
-  children,
-  configs = {},
-}: IntrigProviderProps) {
-  const [state, dispatch] = useReducer(requestReducer, {} as GlobalState);
+                                 children,
+                                 configs = {},
+                                 initState = {},
+                               }: IntrigProviderProps) {
+  const [state, dispatch] = useReducer(requestReducer, initState);
 
   const axiosInstance: Axios = useMemo(() => {
     return axios.create({
@@ -201,10 +203,10 @@ export interface StatusTrapProps {
  * @return {React.ReactElement} The context provider component with filtered state and custom dispatch.
  */
 export function StatusTrap({
-  children,
-  type,
-  propagate = true,
-}: PropsWithChildren<StatusTrapProps>) {
+                             children,
+                             type,
+                             propagate = true,
+                           }: PropsWithChildren<StatusTrapProps>) {
   const ctx = useContext(Context);
 
   const [requests, setRequests] = useState<string[]>([]);
@@ -291,13 +293,13 @@ export interface NetworkStateProps<T, E = unknown> {
  *          a function to execute the network request, and a function to clear the request.
  */
 export function useNetworkState<T, E = unknown>({
-  key,
-  operation,
-  source,
-  schema,
-  errorSchema,
-  debounceDelay: requestDebounceDelay,
-}: NetworkStateProps<T>): [
+                                                  key,
+                                                  operation,
+                                                  source,
+                                                  schema,
+                                                  errorSchema,
+                                                  debounceDelay: requestDebounceDelay,
+                                                }: NetworkStateProps<T>): [
   NetworkState<T, E>,
   (request: RequestType) => void,
   clear: () => void,
@@ -309,7 +311,7 @@ export function useNetworkState<T, E = unknown>({
 
   const networkState = useMemo(() => {
     logger.info(`Updating status ${key} ${operation} ${source}`);
-    logger.debug(`<=`, context.state?.[`${source}:${operation}:${key}`])
+    logger.debug(`⇦`, context.state?.[`${source}:${operation}:${key}`])
     return (
       (context.state?.[`${source}:${operation}:${key}`] as NetworkState<T>) ??
       init()
@@ -330,7 +332,7 @@ export function useNetworkState<T, E = unknown>({
   const execute = useCallback(
     async (request: RequestType) => {
       logger.info(`Executing request ${key} ${operation} ${source}`);
-      logger.debug(`=>`, request)
+      logger.debug(`⇨`, request)
 
       let abortController = new AbortController();
       setAbortController(abortController);

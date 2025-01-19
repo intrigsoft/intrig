@@ -9,7 +9,7 @@ type Encoders = {
 
 const encoders: Encoders = {};
 
-function encode<T>(request: T, mediaType: string, schema: ZodSchema) {
+export function encode<T>(request: T, mediaType: string, schema: ZodSchema) {
   if (encoders[mediaType]) {
     return encoders[mediaType](request, mediaType, schema);
   }

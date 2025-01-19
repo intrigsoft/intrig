@@ -226,6 +226,11 @@ export type BinaryFunctionHook<P, B, T, E = unknown> = ((options?: BinaryHookOpt
 export type IntrigHookOptions<P = undefined, B = undefined> = UnitHookOptions | UnaryHookOptions<P> | BinaryHookOptions<P, B>;
 export type IntrigHook<P = undefined, B = undefined, T = any, E = unknown> = UnitHook<E> | ConstantHook<T, E> | UnaryProduceHook<P, E> | UnaryFunctionHook<P, T, E> | BinaryProduceHook<P, B, E> | BinaryFunctionHook<P, B, T, E>;
 
+export interface AsyncRequestOptions {
+  hydrate?: boolean;
+  key?: string;
+}
+
 /**
  * Represents the dispatch state of a process.
  *

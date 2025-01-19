@@ -64,6 +64,7 @@ export interface DefaultConfigs extends CreateAxiosDefaults {
 export interface IntrigProviderProps {
   configs?: DefaultConfigs;
   children: React.ReactNode;
+  initState?: GlobalState;
 }
 
 /**
@@ -80,8 +81,9 @@ export interface IntrigProviderProps {
 export function IntrigProvider({
   children,
   configs = {},
+  initState = {},
 }: IntrigProviderProps) {
-  const [state, dispatch] = useReducer(requestReducer, {} as GlobalState);
+  const [state, dispatch] = useReducer(requestReducer, initState);
 
   const axiosInstance: Axios = useMemo(() => {
     return axios.create({
@@ -316,7 +318,7 @@ export function useNetworkState<T, E = unknown>({
 
   const networkState = useMemo(() => {
     logger.info(${"`Updating status ${key} ${operation} ${source}`"});
-    logger.debug("<=", context.state?.[${"`${source}:${operation}:${key}`"}])
+    logger.debug("⇦", context.state?.[${"`${source}:${operation}:${key}`"}])
     return (
       (context.state?.[${"`${source}:${operation}:${key}`"}] as NetworkState<T>) ??
       init()
@@ -337,7 +339,7 @@ export function useNetworkState<T, E = unknown>({
   const execute = useCallback(
     async (request: RequestType) => {
       logger.info(${"`Executing request ${key} ${operation} ${source}`"});
-      logger.debug("=>", request)
+      logger.debug("⇨", request)
 
       let abortController = new AbortController();
       setAbortController(abortController);
