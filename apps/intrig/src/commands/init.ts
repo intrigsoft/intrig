@@ -4,7 +4,7 @@ import * as fsx from 'fs-extra'
 import * as path from 'path'
 import {CONFIG_FILE} from "../util";
 import { ContentGeneratorAdaptor, IntrigConfig } from '@intrig/cli-common';
-import {cli} from "cli-ux";
+import {ux as cli} from "@oclif/core";
 import {adaptor as reactAdaptor} from '@intrig/intrig-react-binding'
 import {adaptor as nextAdaptor} from '@intrig/intrig-next-binding'
 
@@ -62,16 +62,16 @@ export default class Init extends Command {
       if (!gitignoreContent.includes(gitignoreEntry)) {
         fs.appendFileSync(gitignorePath, `
 ${gitignoreEntry}`)
-        cli.log(`Added '${gitignoreEntry}' to .gitignore`)
+        cli.stdout(`Added '${gitignoreEntry}' to .gitignore`)
       }
     } else {
       fs.writeFileSync(gitignorePath, `${gitignoreEntry}
 `)
-      cli.log(`Created .gitignore and added '${gitignoreEntry}'`)
+      cli.stdout(`Created .gitignore and added '${gitignoreEntry}'`)
     }
     cli.action.stop()
 
-    cli.log(`Intrig configuration file created at ${configPath}`)
+    cli.stdout(`Intrig configuration file created at ${configPath}`)
 
     const adaptor = generator === 'react' ? reactAdaptor : nextAdaptor
 
@@ -99,6 +99,6 @@ ${gitignoreEntry}`)
       adaptor.postInit()
     }
 
-    cli.log('Use the "add" command to add API sources to your configuration.')
+    cli.stdout('Use the "add" command to add API sources to your configuration.')
   }
 }

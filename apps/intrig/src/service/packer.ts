@@ -2,7 +2,7 @@ import * as fs from 'fs-extra'
 import * as path from 'path'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import cli from 'cli-ux'
+import {ux as cli} from "@oclif/core";
 import {detectPackageManager} from "nypm";
 import { ContentGeneratorAdaptor, IntrigSourceConfig } from '@intrig/cli-common';
 
@@ -51,8 +51,9 @@ export async function setupCacheAndInstall(
     }
   } catch (e) {
 
+  } finally {
+    cli.action.stop()
   }
-  cli.action.stop()
 
   const sourceLibDir = path.join(tempDir, 'dist')
   let client = 'react';
@@ -78,8 +79,9 @@ export async function setupCacheAndInstall(
       })
     } catch (e) {
       console.error('Failed to remove existing target library files', e)
+    } finally {
+      cli.action.stop()
     }
-    cli.action.stop()
   }
 
   cli.action.start('Copying built libraries to project directory')
@@ -89,8 +91,9 @@ export async function setupCacheAndInstall(
     })
   } catch (e) {
     console.error('Failed to copy built libraries', e)
+  } finally {
+    cli.action.stop()
   }
-  cli.action.stop()
 
   await adaptor?.postCompile({
     tempDir,
