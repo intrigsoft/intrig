@@ -1,3 +1,22 @@
+## 1.0.7 (2025-02-03)
+
+### 🚀 Features
+
+- Add support for new dependencies, CLI features, and docs ([00108fd](https://github.com/intrigsoft/intrig/commit/00108fd))
+- **insight:** Add dynamic schema documentation generation ([2731b91](https://github.com/intrigsoft/intrig/commit/2731b91))
+- **insight:** Add state hydration and local reducer logic to Intrig ([b26ae90](https://github.com/intrigsoft/intrig/commit/b26ae90))
+- **next:** Add logging functionality and update dependencies ([1a3f972](https://github.com/intrigsoft/intrig/commit/1a3f972))
+- **react, next:** Add logging functionality and refactor documentation templates ([d5b16d2](https://github.com/intrigsoft/intrig/commit/d5b16d2))
+
+### 🩹 Fixes
+
+- **insight:** Replace deprecated cli-ux with @oclif/core ux. ([470601a](https://github.com/intrigsoft/intrig/commit/470601a))
+- **next, react:** Refactor CLI library usage and enhance form-data handling ([932ba2b](https://github.com/intrigsoft/intrig/commit/932ba2b))
+
+### ❤️  Thank You
+
+- tiran
+
 ## 1.0.6 (2025-01-06)
 
 ### 🚀 Features
