@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import * as util from 'util';
 import { detectPackageManager } from 'nypm';
-import cli from 'cli-ux';
+import { ux as cli } from '@oclif/core';
 import path from 'path';
 import fs from 'fs';
 
@@ -58,12 +58,12 @@ export async function postInit() {
     if (!gitignoreContent.includes(gitignoreEntry)) {
       fs.appendFileSync(gitignorePath, `
 ${gitignoreEntry}`)
-      cli.log(`Added '${gitignoreEntry}' to .gitignore`)
+      cli.stdout(`Added '${gitignoreEntry}' to .gitignore`)
     }
   } else {
     fs.writeFileSync(gitignorePath, `${gitignoreEntry}
 `)
-    cli.log(`Created .gitignore and added '${gitignoreEntry}'`)
+    cli.stdout(`Created .gitignore and added '${gitignoreEntry}'`)
   }
   cli.action.stop()
 }

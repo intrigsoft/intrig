@@ -173,7 +173,7 @@ export function requestHookTemplate({source, paths, operationId, response, reque
 
       useEffect(() => {
         if (options.fetchOnMount) {
-          doExecute(options.params!, ${requestBody ? `options.body!` : ''});
+          doExecute(${requestBody ? `options.body!,` : ''} options.params!);
         }
 
         return () => {
@@ -193,5 +193,9 @@ export function requestHookTemplate({source, paths, operationId, response, reque
     use${pascalCase(operationId)}Hook.key = \`${"${source}: ${operation}"}\`
 
     export const use${pascalCase(operationId)}: ${hookShape} = use${pascalCase(operationId)}Hook;
+
+    export type ${pascalCase(operationId)}Params = Params;
+    ${response ? `export type ${pascalCase(operationId)}Response = Response;` : ''}
+    ${requestBody ? `export type ${pascalCase(operationId)}RequestBody = RequestBody;` : ''}
   `
 }

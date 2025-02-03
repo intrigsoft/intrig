@@ -5,7 +5,7 @@ import { OpenAPIV3_1 } from 'openapi-types';
 import { IntrigConfig } from '@intrig/cli-common';
 import { normalize } from './normalize';
 import { getLatestVersion, saveOpenApiDocument } from './openApiVersionManager';
-import { cli } from 'cli-ux';
+import { ux as cli } from '@oclif/core'
 
 async function fetchSpec(url: string, rejectUnauthorized: boolean): Promise<string> {
   return new Promise<string>((resolve, reject) => {
@@ -58,6 +58,8 @@ export async function getOpenApiSpecFromFile(id: string): Promise<OpenAPIV3_1.Do
     cli.action.start(`Using saved OpenAPI spec from ${id}`)
     return await getLatestVersion(id);
   } catch (e: any) {
+
+  } finally {
     cli.action.stop()
   }
 }

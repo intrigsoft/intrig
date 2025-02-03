@@ -36,7 +36,16 @@ transformers['application/json'] = async (request, mediaType, schema) => {
 transformers['multipart/form-data'] = async (request, mediaType, schema) => {
   let formData = await request.formData();
   let content: Record<string, any> = {};
-  formData.forEach((value, key) => (content[key] = value));
+  formData.forEach((value, key) => {
+    if (content[key]) {
+      if (!(content[key] instanceof Array)) {
+        content[key] = [content[key]];
+      }
+      content[key].push(value);
+    } else {
+      content[key] = value
+    }
+  });
   return schema.parse(content);
 };
 

@@ -33,12 +33,36 @@ encoders['application/json'] = (request, mediaType, schema) => {
   return request;
 }
 
-encoders['multipart/form-data'] = (request, mediaType, schema) => {
-  let formData = new FormData();
-  for (let key in request) {
-    const value = request[key];
-    formData.append(key, value instanceof Blob || typeof value === 'string' ? value : String(value));
+function appendFormData(
+  formData: FormData,
+  data: any,
+  parentKey: string
+): void {
+  if (data instanceof Blob || typeof data === 'string') {
+    formData.append(parentKey, data);
+  } else if (data !== null && typeof data === 'object') {
+    if (Array.isArray(data)) {
+      data.forEach((item: any, index: number) => {
+        const key = ${"`${parentKey}`"};
+        appendFormData(formData, item, key);
+      });
+    } else {
+      Object.keys(data).forEach((key: string) => {
+        const newKey = parentKey ? ${"`${parentKey}[${key}]`"} : key;
+        appendFormData(formData, data[key], newKey);
+      });
+    }
+  } else {
+    formData.append(parentKey, data == null ? '' : String(data));
   }
+}
+
+encoders['multipart/form-data'] = (request, mediaType, schema) => {
+  let _request = request as Record<string, any>;
+  let formData = new FormData();
+  Object.keys(_request).forEach((key: string) => {
+    appendFormData(formData, _request[key], key);
+  });
   return formData;
 }
 
@@ -83,7 +107,16 @@ transformers['application/json'] = async (request, mediaType, schema) => {
 transformers['multipart/form-data'] = async (request, mediaType, schema) => {
   let formData = await request.formData();
   let content: Record<string, any> = {};
-  formData.forEach((value, key) => (content[key] = value));
+  formData.forEach((value, key) => {
+    if (content[key]) {
+      if (!(content[key] instanceof Array)) {
+        content[key] = [content[key]];
+      }
+      content[key].push(value);
+    } else {
+      content[key] = value
+    }
+  });
   return schema.parse(content);
 };
 

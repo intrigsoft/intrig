@@ -157,5 +157,9 @@ export function requestMethodTemplate({source, paths, operationId, response, req
         throw e;
       }
     }
+
+    export type ${pascalCase(operationId)}Params = Params;
+    ${response ? `export type ${pascalCase(operationId)}Response = Response;` : ''}
+    ${requestBody ? `export type ${pascalCase(operationId)}RequestBody = RequestBody;` : ''}
   `
 }

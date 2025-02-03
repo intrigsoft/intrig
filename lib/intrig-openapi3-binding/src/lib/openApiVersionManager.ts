@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as openApiDiff from 'openapi-diff';
-import { cli } from 'cli-ux';
+import { ux as cli } from '@oclif/core'
 import compareSwaggerDocs from './openapi3-diff';
 
 const readdir = promisify(fs.readdir);
@@ -40,7 +40,7 @@ export async function saveOpenApiDocument(apiName: string, content: string): Pro
     cli.action.stop();
 
     if (!Object.keys(differences).length) {
-      cli.info('No changes detected. Operation aborted.');
+      cli.stdout('No changes detected. Operation aborted.');
       return;
     }
 
@@ -55,7 +55,7 @@ export async function saveOpenApiDocument(apiName: string, content: string): Pro
   await writeFile(latestFilePath, content);
   cli.action.stop();
 
-  cli.info(`Saved OpenAPI document: ${latestFilePath}`);
+  cli.stdout(`Saved OpenAPI document: ${latestFilePath}`);
 }
 
 export async function getLatestVersion(apiName: string): Promise<any> {
@@ -116,5 +116,5 @@ export async function baselineVersion(apiName: string, version: string): Promise
 
   await writeFile(metaInfoPath, JSON.stringify(metaInfo, null, 2));
 
-  cli.info(`Baseline created for version: ${version}`);
+  cli.stdout(`Baseline created for version: ${version}`);
 }

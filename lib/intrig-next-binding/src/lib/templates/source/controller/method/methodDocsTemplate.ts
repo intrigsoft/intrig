@@ -77,9 +77,36 @@ export function methodDocsTemplate(
 
   let configPath = path.resolve(_path, 'src', api.id, ...paths, operationId, 'metainfo.json')
 
-  let requestPropertiesList = resolveRequestPropertiesList(pathVariables, source, queryParams, contentType, requestBody);
+  let requestProperties: Record<string, string> = {}
+  if (pathVariables?.length > 0) {
+    requestProperties['Path Variables'] = `
+  {% table %}
+  ${pathVariables.map(v => `
+  * ${v.name}
+  * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
+  `).join('\n  ---\n')}
+  {% /table %}
+  `
+  }
+  if (queryParams?.length > 0) {
+    requestProperties['Query Params'] = `
+    {% table %}
+    ${queryParams.map(v => `
+    * ${v.name}
+    * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
+    `).join('\n  ---\n')}
+    {% /table %}`
+  }
+  if (contentType) requestProperties['Content-Type'] = contentType
+  if (requestBody) requestProperties['Request Body'] = `[${requestBody}](/sources/${source}/schema/${encodeURIComponent(requestBody)})`
 
-  let responsePropertiesList = resolveResponsePropertiesList(response, source, responseType);
+  let requestPropertiesList = Object.entries(requestProperties)
+
+  let responseProperties: Record<string, string> = {}
+  if (response) responseProperties['Response'] = `[${response}](/sources/${source}/schema/${encodeURIComponent(response)})`
+  if (responseType) responseProperties['Response Type'] = responseType
+
+  let responsePropertiesList = Object.entries(responseProperties)
 
   let serverContent = `
 ## Server side integration.

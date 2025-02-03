@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import * as util from 'util';
 import { detectPackageManager } from 'nypm';
-import cli from 'cli-ux';
+import { ux as cli } from '@oclif/core';
 
 const execPromise = util.promisify(exec);
 

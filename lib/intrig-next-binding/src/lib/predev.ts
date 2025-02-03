@@ -1,4 +1,4 @@
-import { cli } from 'cli-ux';
+import { ux as cli } from '@oclif/core'
 import * as fs from 'fs-extra';
 import * as path from 'path'
 
