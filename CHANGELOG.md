@@ -1,3 +1,13 @@
+## 1.0.8 (2025-02-07)
+
+### 🩹 Fixes
+
+- **next:** Add dynamic routing configuration to request template ([8cc3d88](https://github.com/intrigsoft/intrig/commit/8cc3d88))
+
+### ❤️  Thank You
+
+- tiran
+
 ## 1.0.7 (2025-02-03)
 
 ### 🚀 Features
