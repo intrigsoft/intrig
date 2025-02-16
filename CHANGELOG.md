@@ -1,3 +1,13 @@
+## 1.0.9 (2025-02-16)
+
+### 🚀 Features
+
+- **next:** Enhance array schema handling and update dependencies ([8428fc6](https://github.com/intrigsoft/intrig/commit/8428fc6))
+
+### ❤️  Thank You
+
+- tiran
+
 ## 1.0.8 (2025-02-07)
 
 ### 🩹 Fixes
