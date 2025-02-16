@@ -167,7 +167,7 @@ function handleBooleanSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string
 function handleArraySchema(schema: OpenAPIV3_1.ArraySchemaObject, imports: Set<string>): { tsType: string; zodSchema: string; imports: Set<string> } {
   if (schema.items) {
     const { tsType, zodSchema: itemZodSchema, imports: itemImports } = openApiSchemaToZod(schema.items as OpenAPIV3_1.SchemaObject, imports);
-    let zodSchema = `z.array(${itemZodSchema})`;
+    let zodSchema = `z.preprocess((raw) => (Array.isArray(raw) ? raw : [raw]), z.array(${itemZodSchema}))`;
     if (schema.minItems !== undefined) zodSchema += `.min(${schema.minItems})`;
     if (schema.maxItems !== undefined) zodSchema += `.max(${schema.maxItems})`;
     return { tsType: `(${tsType})[]`, zodSchema, imports: new Set([...imports, ...itemImports]) };

@@ -145,9 +145,9 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
     import { ZodError } from 'zod'
     import logger from '@intrig/next/logger'
 
-    export const dynamic = "force-dynamic";
-
     ${[...imports].join("\n")}
+
+    export const dynamic = "force-dynamic";
 
     ${createMethod("GET", getBlocks)}
     ${createMethod("POST", postBlocks)}
