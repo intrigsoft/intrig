@@ -42,7 +42,7 @@ export default class Init extends Command {
       this.error('This project is neither a React nor a Next.js project. Please ensure your project uses either React or Next.js.')
     }
 
-    let config: IntrigConfig = {
+    const config: IntrigConfig = {
       sources: [],
       generator
     }

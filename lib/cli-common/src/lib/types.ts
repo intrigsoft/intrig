@@ -45,8 +45,8 @@ export interface PostCompileProps {
 }
 
 export interface ContentGeneratorAdaptor {
-  generateSourceContent(api: IntrigSourceConfig, _path: string, spec: SourceInfo): void
-  generateGlobalContent(path: string, apisToSync: IntrigSourceConfig[]): void
+  generateSourceContent(api: IntrigSourceConfig, _path: string, spec: SourceInfo): Promise<void>
+  generateGlobalContent(path: string, apisToSync: IntrigSourceConfig[]): Promise<void>
   postBuild(): Promise<void>
   predev(): Promise<void>
   postCompile(props: PostCompileProps): Promise<void>

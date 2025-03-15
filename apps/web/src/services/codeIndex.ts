@@ -21,7 +21,7 @@ let embeddedCodes: Record<string, EmbeddedCodeSection> = {};
 
 function addDocumentsToIndex() {
 
-  let typeMappings: Record<string, EmbeddedCodeSection> = {};
+  const typeMappings: Record<string, EmbeddedCodeSection> = {};
 
   if (fs.existsSync(path.resolve(INTRIG_LOCATION, 'generated', 'src'))) {
     fs.readdirSync(path.resolve(INTRIG_LOCATION, 'generated', 'src'))
@@ -34,17 +34,17 @@ function addDocumentsToIndex() {
           return
         }
 
-        let appBasedMapping: EmbeddedCodeSection = {
+        const appBasedMapping: EmbeddedCodeSection = {
           tsType: {},
           zodSchema: {},
           jsonSchema: {},
         }
 
         function extractDef(section: string) {
-          let [def, ...content] = section.split(/=/);
+          const [def, ...content] = section.split(/=/);
 
-          // @ts-ignore
-          let { groups } = /export (\w+) (?<name>[\w$]+)/.exec(def)!;
+          // @ts-expect-error This regex deliberately uses named capture groups, which are not always supported in all execution contexts.
+          const { groups } = /export (\w+) (?<name>[\w$]+)/.exec(def)!;
           return {
             def: groups?.['name'] ?? '',
             content: content.join('=').trim()
@@ -52,23 +52,23 @@ function addDocumentsToIndex() {
         }
 
         function extractTypeDefinitions(code: string, location: string): void {
-          let sections: Record<string, string> = {};
+          const sections: Record<string, string> = {};
           code.split('//---').map((section) => {
-            let [name, code] = section.split('---//');
+            const [name, code] = section.split('---//');
             sections[name.trim()] = code?.trim();
           });
 
-          let tsType = extractDef(sections['Typescript Type']);
+          const tsType = extractDef(sections['Typescript Type']);
           appBasedMapping.tsType[tsType.def] = tsType.content;
 
-          let schema = extractDef(sections['Zod Schemas']);
+          const schema = extractDef(sections['Zod Schemas']);
           appBasedMapping.zodSchema[schema.def] = schema.content;
 
-          let jsonSchema = extractDef(sections['JSON Schema']);
+          const jsonSchema = extractDef(sections['JSON Schema']);
           appBasedMapping.jsonSchema[jsonSchema.def] = jsonSchema.content;
         }
 
-        let directoryPath = path.resolve(
+        const directoryPath = path.resolve(
           INTRIG_LOCATION,
           'generated',
           'src',
@@ -78,7 +78,7 @@ function addDocumentsToIndex() {
         );
         walkDirectory(directoryPath, (filePath, stats) => {
           if (stats.isFile() && filePath.endsWith('.ts')) {
-            let content = fs.readFileSync(filePath, 'utf-8');
+            const content = fs.readFileSync(filePath, 'utf-8');
 
             extractTypeDefinitions(content, path.basename(filePath).replace('.ts', ''));
           }

@@ -1,6 +1,5 @@
 import {
   camelCase,
-  CompiledOutput,
   generatePostfix,
   pascalCase,
   RequestProperties,
@@ -8,9 +7,9 @@ import {
 } from '@intrig/cli-common';
 import * as path from 'path'
 
-export function clientIndexTemplate(requestProperties: RequestProperties[]): CompiledOutput {
+export async function clientIndexTemplate(requestProperties: RequestProperties[]) {
 
-  const {source, paths, operationId, response, requestUrl, variables, sourcePath, responseType, contentType} = requestProperties[0]
+  const {source, paths, operationId, sourcePath, responseType, contentType} = requestProperties[0]
 
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `client.ts`))
 
@@ -18,7 +17,7 @@ export function clientIndexTemplate(requestProperties: RequestProperties[]): Com
     export { use${pascalCase(operationId)} } from './use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}'
   `
 
-  let exports = requestProperties
+  const exports = requestProperties
     .map(({contentType, responseType}) => {
       return `export { use${pascalCase(operationId)} as use${pascalCase(operationId)}${generatePostfix(contentType, responseType)} } from './use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}'`
     })

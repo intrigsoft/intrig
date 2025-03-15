@@ -12,11 +12,11 @@ export const dynamic = 'force-dynamic';
 
 export default async function Index({ params: {sourceId, type}}: {params: {sourceId: string, type: string}}) {
 
-  let typeName = decodeURIComponent(type);
+  const typeName = decodeURIComponent(type);
 
-  let filePath = path.resolve(INTRIG_LOCATION, 'generated', 'src', sourceId, 'components', 'schemas', `${typeName}.ts`);
+  const filePath = path.resolve(INTRIG_LOCATION, 'generated', 'src', sourceId, 'components', 'schemas', `${typeName}.ts`);
 
-  let content = fs.readFileSync(filePath, 'utf8');
+  const content = fs.readFileSync(filePath, 'utf8');
 
   const regex = /\/\/--- (.+?) ---\/\/\n([\s\S]*?)(?=\/\/---|$)/g;
 
@@ -28,11 +28,11 @@ export default async function Index({ params: {sourceId, type}}: {params: {sourc
     sections[camelCase(name.trim())] = sectionContent.trim();
   }
 
-  let jsonSchema = sections?.simpleType?.replace("/*[", "").replace("]*/", "").trim();
+  const jsonSchema = sections?.simpleType?.replace("/*[", "").replace("]*/", "").trim();
 
-  let schemaFields = parseSchema(jsonSchema ? JSON.parse(jsonSchema) : {});
+  const schemaFields = parseSchema(jsonSchema ? JSON.parse(jsonSchema) : {});
 
-  let _content = `---
+  const _content = `---
 title: ${typeName}
 ---
 
@@ -117,7 +117,7 @@ interface SchemaField {
   example?: string;
 }
 
-let potentialValidations = [
+const potentialValidations = [
   'minLength',
   'maxLength',
   'pattern',

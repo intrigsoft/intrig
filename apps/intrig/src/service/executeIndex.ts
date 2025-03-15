@@ -4,30 +4,31 @@ import Markdoc from '@markdoc/markdoc';
 import yaml from 'yaml';
 
 export function executeIndex(_path: string) {
-  let contents: Record<string, any> = {};
+  const contents: Record<string, any> = {};
 
   walkDirectory(_path, (filePath, stats) => {
     if (stats.isFile()) {
       switch (path.extname(filePath)) {
         case '.ts':
           break;
-        case '.md':
-          let content = fs.readFileSync(filePath, 'utf8');
-          let ast = Markdoc.parse(content);
+        case '.md': {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const ast = Markdoc.parse(content);
           let tags: string[];
           if (ast.attributes.frontmatter) {
-            let frontmatter = yaml.parse(ast.attributes.frontmatter);
+            const frontmatter = yaml.parse(ast.attributes.frontmatter);
             console.log(frontmatter);
             tags = frontmatter['tags'];
             console.log(frontmatter);
           }
-          let transformed = Markdoc.transform(ast);
-          let data = Markdoc.renderers.html(transformed);
+          const transformed = Markdoc.transform(ast);
+          const data = Markdoc.renderers.html(transformed);
           contents[path.relative(_path, filePath)] = {
             tags,
             data,
           };
           break;
+        }
       }
     }
   });

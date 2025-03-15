@@ -52,7 +52,7 @@ export default class Add extends Command {
       this.log(chalk`{blue Fetching OpenAPI config}`)
       const data = await getServerInfo(url!, config)
       return { url: url!, data }
-    } catch (error) {
+    } catch {
       this.error(chalk.red('Could not fetch data for the given input. Please try again.'), { exit: false })
       return this.getUrlAndData(config, undefined)
     }

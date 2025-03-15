@@ -1,4 +1,4 @@
-import {CompiledOutput, typescript} from "@intrig/cli-common";
+import {typescript} from "@intrig/cli-common";
 import * as path from 'path'
 
 export function loggerTemplate(_path: string) {
@@ -8,7 +8,7 @@ export function loggerTemplate(_path: string) {
 import log from 'loglevel';
 
 // Set the default logging level (can be overridden via environment variables)
-log.setLevel(process.env.LOG_LEVEL as log.LogLevelDesc || 'info');
+log.setLevel(process.env.LOG_LEVEL as log.LogLevelDesc || 'error');
 
 const logWrapper = {
   info: (msg: string, meta?: object) => meta ? log.info(msg, meta) : log.info(msg),

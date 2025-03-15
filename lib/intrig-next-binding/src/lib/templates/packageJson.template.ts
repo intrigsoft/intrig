@@ -1,4 +1,4 @@
-import {jsonLiteral, typescript} from "@intrig/cli-common";
+import {jsonLiteral} from "@intrig/cli-common";
 import * as path from "path";
 
 export function packageJsonTemplate(_path: string) {

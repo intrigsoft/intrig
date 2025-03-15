@@ -6,7 +6,7 @@ import { RenderableTreeNode } from '@markdoc/markdoc';
 import { INTRIG_LOCATION } from '@/const/locations';
 import fg from 'fast-glob';
 // import { capitalCase } from '@/lib/change-case';
-import {capitalCase, SourceInfo} from '@intrig/cli-common';
+import {capitalCase, pascalCase, SourceInfo} from '@intrig/cli-common';
 
 export interface SearchResult {
   title: string;
@@ -29,7 +29,7 @@ let navs: {
   navs: any[]
 };
 
-let options: IndexOptionsForDocumentSearch<SearchResult, string[]> = {
+const options: IndexOptionsForDocumentSearch<SearchResult, string[]> = {
   document: {
     id: "url",
     index: ["url", "title", "content", "tags", "signature"],
@@ -55,17 +55,17 @@ async function addDocumentsToIndex() {
   const directoryToWatch = path.join(INTRIG_LOCATION, "generated", "src", "**", "registry.json");
 
   try {
-    let files = await fg(directoryToWatch);
-    for (let file of files) {
-      let content: SourceInfo = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const files = await fg(directoryToWatch);
+    for (const file of files) {
+      const content: SourceInfo = JSON.parse(fs.readFileSync(file, 'utf8'));
       content.paths.forEach((path: any) => {
-        let entry: SearchResult = {
+        const entry: SearchResult = {
           title: path.operationId,
           tags: [
             path.source,
             ...path.paths,
             path.operationId,
-            `use${capitalCase(path.method)}`,
+            `use${pascalCase(path.operationId)}`,
             path.requestUrl,
             path.summary,
             path.description,
@@ -90,7 +90,7 @@ async function addDocumentsToIndex() {
       })
 
       Object.entries(content.schemas).forEach(([name, schema]) => {
-        let entry: SearchResult = {
+        const entry: SearchResult = {
           title: name,
           tags: [
             name
@@ -164,18 +164,18 @@ export function search(query: string, limit?: number): SearchResult[] {
     boost: {
       signature: 3,
       title: 2,    // Title matches are twice as important
-      tags: 1.5,   // Tag matches are 1.5x as important
+      tags: 2.5,   // Tag matches are 1.5x as important
       content: 1   // Normal weight for content
     },
     limit,
   });
 
-  let finalResults: SearchResult[] = [];
+  const finalResults: SearchResult[] = [];
   for (const result of results) {
     if (limit && finalResults.length >= limit) break;
     for (const r of result.result) {
       if (limit && finalResults.length >= limit) break;
-      let doc = (r as any).doc;
+      const doc = (r as any).doc;
       if (!finalResults.some(f => f.url === doc?.url)) {
         finalResults.push(doc);
       }

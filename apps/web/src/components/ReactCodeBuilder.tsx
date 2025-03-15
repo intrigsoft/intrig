@@ -11,7 +11,7 @@ export interface ReactCodeBuilderProps {
 
 export default function ReactCodeBuilder({children}: ReactCodeBuilderProps) {
 
-  let pathname = usePathname();
+  const pathname = usePathname();
 
   return <Link href={`${pathname}/code-builder`}>
     {children}

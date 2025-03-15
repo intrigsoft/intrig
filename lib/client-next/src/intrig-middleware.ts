@@ -1,8 +1,8 @@
 "use server"
 
 import axios from 'axios';
-//@ts-ignore
-let insightHook = await import('intrig-hook');
+//@ts-expect-error: 'intrig-hook' is a dynamic module and may not be statically analyzable
+const insightHook = await import('intrig-hook');
 import {headers as requestHeaders} from 'next/headers'
 
 export async function getAxiosInstance(key: string) {
@@ -23,9 +23,9 @@ export async function getAxiosInstance(key: string) {
 }
 
 export async function addResponseToHydrate(key: string, responseData: any) {
-  let _headers = await requestHeaders();
-  let intrigHydrated = _headers.get('INTRIG_HYDRATED');
-  let ob = intrigHydrated ? JSON.parse(intrigHydrated) : {};
+  const _headers = await requestHeaders();
+  const intrigHydrated = _headers.get('INTRIG_HYDRATED');
+  const ob = intrigHydrated ? JSON.parse(intrigHydrated) : {};
   ob[key] = responseData;
   _headers.set('INTRIG_HYDRATED', JSON.stringify(ob));
 }

@@ -1,6 +1,5 @@
 import {
   camelCase,
-  CompiledOutput,
   generatePostfix,
   pascalCase,
   RequestProperties,
@@ -10,7 +9,7 @@ import {
 import path from 'path';
 
 function extractHookShapeAndOptionsShape(response: string, requestBody: string, imports: Set<string>) {
-  if (!!response) {
+  if (response) {
     if (requestBody) {
       imports.add(`import { BinaryFunctionHook, BinaryHookOptions } from "@intrig/next"`);
       return {
@@ -42,7 +41,7 @@ function extractHookShapeAndOptionsShape(response: string, requestBody: string, 
 }
 
 function extractParamDeconstruction(variables: Variable[], requestBody: string) {
-  let isParamMandatory = variables?.some(a => a.in === 'path') || false;
+  const isParamMandatory = variables?.some(a => a.in === 'path') || false;
 
   if (requestBody) {
     if (isParamMandatory) {
@@ -88,21 +87,21 @@ function extractErrorParams(errorTypes: string[]) {
   }
 }
 
-export function requestHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties): CompiledOutput {
+export function requestHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties) {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}.ts`))
 
   const modifiedRequestUrl = `/api/${source}${requestUrl.replace(/\{/g, "${")}`
 
-  let imports = new Set<string>();
+  const imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
   imports.add(`import { useCallback, useEffect } from 'react'`)
   imports.add(`import {useNetworkState, NetworkState, DispatchState, error, successfulDispatch, validationError} from "@intrig/next"`)
   imports.add(`import { encode } from "@intrig/next/media-type-utils"`)
   imports.add(`import logger from "@intrig/next/logger"`)
 
-  let { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
+  const { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
 
-  let { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
+  const { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
 
   if (requestBody) {
     imports.add(`import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"`)
@@ -114,15 +113,15 @@ export function requestHookTemplate({source, paths, operationId, response, reque
 
   imports.add(`import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`)
 
-  let errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))]
+  const errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))]
   errorTypes.forEach(ref => imports.add(`import {${ref}, ${ref}Schema } from "@intrig/next/${source}/components/schemas/${ref}"`))
 
-  let paramExplode = [
+  const paramExplode = [
     ...variables.filter(a => a.in === "path").map(a => a.name),
     "...params"
   ].join(",")
 
-  let finalRequestBodyBlock = requestBody ? `data: encode(data, "${contentType}", requestBodySchema)` : ''
+  const finalRequestBodyBlock = requestBody ? `data: encode(data, "${contentType}", requestBodySchema)` : ''
 
   return ts`
     ${[...imports].join('\n')}

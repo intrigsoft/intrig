@@ -13,10 +13,10 @@ import { useIntrigContext } from '@intrig/react/intrig-context';
  *         2. A function to execute the provided asynchronous operation.
  *         3. A function to reset the network state back to the initial state.
  */
-export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(fn: F, key: string = 'default'): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
-  let id = useId();
+export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(fn: F, key = 'default'): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
+  const id = useId();
 
-  let context = useIntrigContext();
+  const context = useIntrigContext();
 
   const networkState = useMemo(() => {
     return context.state?.[`promiseState:${id}:${key}}`] ?? init()

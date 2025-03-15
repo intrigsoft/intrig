@@ -1,4 +1,4 @@
-import {Args, Command, Flags} from '@oclif/core'
+import {Command} from '@oclif/core'
 import { IntrigConfig } from '@intrig/cli-common';
 import fs from 'fs';
 import { CONFIG_FILE } from '../util';
@@ -31,10 +31,10 @@ export default class Prebuild extends Command {
 
     switch (config.generator) {
       case 'react':
-        reactAdaptor.preBuild()
+        await reactAdaptor.preBuild()
         break;
       case 'next':
-        nextAdaptor.preBuild()
+        await nextAdaptor.preBuild()
         break;
     }
   }

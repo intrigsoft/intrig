@@ -16,7 +16,7 @@ export function encode<T>(request: T, mediaType: string, schema: ZodSchema) {
   return request;
 }
 
-encoders['application/json'] = async (request, mediaType, schema) => {
+encoders['application/json'] = async (request) => {
   return request;
 }
 
@@ -29,7 +29,7 @@ function appendFormData(
     formData.append(parentKey, data);
   } else if (data !== null && typeof data === 'object') {
     if (Array.isArray(data)) {
-      data.forEach((item: any, index: number) => {
+      data.forEach((item: any) => {
         const key = `${parentKey}`;
         appendFormData(formData, item, key);
       });
@@ -45,22 +45,22 @@ function appendFormData(
 }
 
 
-encoders['multipart/form-data'] = async (request, mediaType, schema) => {
-  let _request = request as Record<string, any>;
-  let formData = new FormData();
+encoders['multipart/form-data'] = async (request) => {
+  const _request = request as Record<string, any>;
+  const formData = new FormData();
   Object.keys(_request).forEach((key: string) => {
     appendFormData(formData, _request[key], key);
   });
   return formData;
 }
 
-encoders['application/octet-stream'] = async (request, mediaType, schema) => {
+encoders['application/octet-stream'] = async (request) => {
   return request;
 }
 
-encoders['application/x-www-form-urlencoded'] = async (request, mediaType, schema) => {
-  let formData = new FormData();
-  for (let key in request) {
+encoders['application/x-www-form-urlencoded'] = async (request) => {
+  const formData = new FormData();
+  for (const key in request) {
     const value = request[key];
     formData.append(key, value instanceof Blob || typeof value === 'string' ? value : String(value));
   }
@@ -93,8 +93,8 @@ transformers['application/json'] = async (request, mediaType, schema) => {
 };
 
 transformers['multipart/form-data'] = async (request, mediaType, schema) => {
-  let formData = await request.formData();
-  let content: Record<string, any> = {};
+  const formData = await request.formData();
+  const content: Record<string, any> = {};
   formData.forEach((value, key) => {
     if (content[key]) {
       if (!(content[key] instanceof Array)) {
@@ -125,15 +125,15 @@ transformers['application/x-www-form-urlencoded'] = async (
   mediaType,
   schema
 ) => {
-  let formData = await request.formData();
-  let content: Record<string, any> = {};
+  const formData = await request.formData();
+  const content: Record<string, any> = {};
   formData.forEach((value, key) => (content[key] = value));
   return schema.parse(content);
 };
 
 transformers['application/xml'] = async (request, mediaType, schema) => {
-  let xmlParser = new XMLParser();
-  let content = await xmlParser.parse(await request.text());
+  const xmlParser = new XMLParser();
+  const content = await xmlParser.parse(await request.text());
   return schema.parse(await content);
 };
 
@@ -168,7 +168,7 @@ responseTransformers['application/json'] = async (data, mediaType, schema) => {
 };
 
 responseTransformers['application/xml'] = async (data, mediaType, schema) => {
-  let parsed = new XMLParser().parse(data);
+  const parsed = new XMLParser().parse(data);
   return schema.parse(parsed);
 }
 

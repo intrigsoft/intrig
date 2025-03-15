@@ -1,6 +1,5 @@
 import {
   camelCase,
-  CompiledOutput,
   generatePostfix,
   pascalCase,
   RequestProperties,
@@ -9,7 +8,7 @@ import {
 import path from 'path';
 
 function extractParamDeconstruction(variables: Variable[], requestBody: string) {
-  let isParamMandatory = variables?.some(a => a.in === 'path') || false;
+  const isParamMandatory = variables?.some(a => a.in === 'path') || false;
 
   if (requestBody) {
     if (isParamMandatory) {
@@ -56,12 +55,12 @@ function extractErrorParams(errorTypes: string[]) {
   }
 }
 
-export function requestMethodTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties): CompiledOutput {
+export function requestMethodTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties) {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `${camelCase(operationId)}${generatePostfix(contentType, responseType)}.ts`))
 
   const modifiedRequestUrl = `${requestUrl.replace(/\{/g, "${")}`
 
-  let imports = new Set<string>();
+  const imports = new Set<string>();
   imports.add(`import { z, ZodError } from 'zod'`);
   imports.add(`import { isAxiosError } from 'axios';`);
   imports.add(`import {getAxiosInstance, addResponseToHydrate} from '@intrig/next/intrig-middleware'`);
@@ -69,7 +68,7 @@ export function requestMethodTemplate({source, paths, operationId, response, req
   imports.add(`import { networkError, responseValidationError, AsyncRequestOptions } from '@intrig/next';`);
   imports.add(`import logger from "@intrig/next/logger"`)
 
-  let { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
+  const { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
 
   if (requestBody) {
     imports.add(`import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"`)
@@ -81,17 +80,17 @@ export function requestMethodTemplate({source, paths, operationId, response, req
 
   imports.add(`import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`)
 
-  let errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))]
+  const errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))]
   errorTypes.forEach(ref => imports.add(`import {${ref}, ${ref}Schema } from "@intrig/next/${source}/components/schemas/${ref}"`))
 
-  let paramExplode = [
+  const paramExplode = [
     ...variables.filter(a => a.in === "path").map(a => a.name),
     "...params"
   ].join(",")
 
-  let finalRequestBodyBlock = requestBody ? `data: encode(data, "${contentType}", requestBodySchema)` : ''
+  const finalRequestBodyBlock = requestBody ? `data: encode(data, "${contentType}", requestBodySchema)` : ''
 
-  let responseTypeBlock = responseType && (responseType.startsWith("application/vnd") || responseType === "application/octet-stream")
+  const responseTypeBlock = responseType && (responseType.startsWith("application/vnd") || responseType === "application/octet-stream")
     ? `responseType: 'arraybuffer'`
     : undefined
 

@@ -1,17 +1,14 @@
-import {stripMargin} from "./strip-margin";
-import {CompiledOutput} from "./types";
-//@ts-ignore
 import * as prettier from 'prettier'
 
 export function typescript(path: string) {
-  return (strings: TemplateStringsArray, ...values: any[]): CompiledOutput => {
+  return async (strings: TemplateStringsArray, ...values: any[]) => {
     const rawCode = strings.reduce((acc, str, i) => {
       if (str.startsWith("*/")) str = str.slice(2);
-      let [before] = str.split("/*!");
+      const [before] = str.split("/*!");
       return acc + before + (values?.[i] || '');
     }, '');
 
-    let content = prettier.format(rawCode, {
+    const content = await prettier.format(rawCode, {
       parser: 'typescript',
       singleQuote: true
     });

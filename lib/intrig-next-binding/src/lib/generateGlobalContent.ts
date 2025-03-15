@@ -1,4 +1,4 @@
-import {dump, IntrigSourceConfig} from "@intrig/cli-common";
+import {dump} from "@intrig/cli-common";
 import {networkStateTemplate} from "./templates/network-state.template";
 import {providerTemplate} from "./templates/provider.template";
 import {indexTemplate} from "./templates/index.template";
@@ -11,16 +11,16 @@ import { contextTemplate } from './templates/context.template';
 import { extraTemplate } from './templates/extra.template';
 import { intrigLayoutTemplate } from './templates/intrig-layout.template';
 
-export function generateGlobalContent(path: string, apisToSync: IntrigSourceConfig[]) {
-  dump(networkStateTemplate(path))
-  dump(providerTemplate(path, apisToSync))
-  dump(intrigLayoutTemplate(path, apisToSync))
-  dump(indexTemplate(path))
-  dump(tsConfigTemplate(path))
-  dump(packageJsonTemplate(path))
-  dump(mediaTypeUtilsTemplate(path))
-  dump(intrigMiddlewareTemplate(path))
-  dump(contextTemplate(path, apisToSync))
-  dump(extraTemplate(path, apisToSync))
-  dump(loggerTemplate(path))
+export async function generateGlobalContent(path: string) {
+  await dump(networkStateTemplate(path))
+  await dump(providerTemplate(path))
+  await dump(intrigLayoutTemplate(path))
+  await dump(indexTemplate(path))
+  await dump(tsConfigTemplate(path))
+  await dump(packageJsonTemplate(path))
+  await dump(mediaTypeUtilsTemplate(path))
+  await dump(intrigMiddlewareTemplate(path))
+  await dump(contextTemplate(path))
+  await dump(extraTemplate(path))
+  await dump(loggerTemplate(path))
 }

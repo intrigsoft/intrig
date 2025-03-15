@@ -84,13 +84,13 @@ interface NavigationCtx {
   navigation: Navigation[]
 }
 
-let Ctx = createContext<NavigationCtx>({
+const Ctx = createContext<NavigationCtx>({
   navigation: docsNavigation
 })
 
 export function NavigationProvider({children}: PropsWithChildren) {
 
-  let pathname = usePathname();
+  const pathname = usePathname();
 
   const [sourcesNavigation, setSourcesNavigations] = useState<Navigation[]>([]);
 

@@ -66,7 +66,7 @@ export default class Generate extends Command {
           adaptor.generateSourceContent(api, _path, sourceInfo);
         }
         adaptor.generateGlobalContent(_path, apisToSync);
-      }, config.generator ?? 'react', adaptor, apisToSync);
+      }, config.generator ?? 'react', adaptor);
     } catch (e) {
       console.error(e);
     }

@@ -1,13 +1,13 @@
 import {
   IntrigSourceConfig,
-  markdownLiteral, pascalCase, camelCase, capitalCase,
-  RequestProperties, CompiledOutput, Variable
+  pascalCase, camelCase,
+  RequestProperties, Variable
 } from '@intrig/cli-common';
 import * as path from 'path';
 import * as yaml from 'yaml';
 
 function resolveRequestPropertiesList(pathVariables: Variable[], source: string, queryParams: Variable[], contentType: string, requestBody: string) {
-  let requestProperties: Record<string, string> = {};
+  const requestProperties: Record<string, string> = {};
   if (pathVariables?.length > 0) {
     requestProperties['Path Variables'] = `
   {% table %}
@@ -34,20 +34,20 @@ function resolveRequestPropertiesList(pathVariables: Variable[], source: string,
 }
 
 function resolveResponsePropertiesList(response: string, source: string, responseType: string) {
-  let responseProperties: Record<string, string> = {};
+  const responseProperties: Record<string, string> = {};
   if (response) responseProperties['Response'] = `[${response}](/sources/${source}/schema/${encodeURIComponent(response)})`;
   if (responseType) responseProperties['Response Type'] = responseType;
 
   return Object.entries(responseProperties);
 }
 
-export function methodDocsTempalte(
+export async function methodDocsTemplate(
   api: IntrigSourceConfig,
   _path: string,
   endpoints: RequestProperties[]
-): CompiledOutput {
+) {
   if (endpoints.length < 1) return null;
-  let {
+  const {
     paths,
     operationId,
     description,
@@ -61,25 +61,22 @@ export function methodDocsTempalte(
     responseType,
     source
   } = endpoints[0];
-  let md = markdownLiteral(
-    path.resolve(_path, 'src', api.id, ...paths, operationId, 'doc.md')
-  );
 
-  let pathVariables = variables?.filter((v) => v.in === 'path');
-  let queryParams = variables?.filter((v) => v.in === 'query');
+  const pathVariables = variables?.filter((v) => v.in === 'path');
+  const queryParams = variables?.filter((v) => v.in === 'query');
 
-  let methodName = camelCase(operationId);
-  let hookName = `use${pascalCase(operationId)}`;
+  const methodName = camelCase(operationId);
+  const hookName = `use${pascalCase(operationId)}`;
 
-  let requestPropertiesList = resolveRequestPropertiesList(pathVariables, source, queryParams, contentType, requestBody);
+  const requestPropertiesList = resolveRequestPropertiesList(pathVariables, source, queryParams, contentType, requestBody);
 
-  let responsePropertiesList = resolveResponsePropertiesList(response, source, responseType);
+  const responsePropertiesList = resolveResponsePropertiesList(response, source, responseType);
 
-  let params = `{ ${variables.map(a => {
+  const params = `{ ${variables.map(a => {
     return `${a.name}: '<fill-value-here>'`
   }).join(', ')} }`
 
-  let content = `---
+  const content = `---
 ${yaml.stringify({
     tags: [api.id, methodName, ...paths, hookName, method, requestUrl, operationId, contentType, responseType],
     title: `${operationId}`,

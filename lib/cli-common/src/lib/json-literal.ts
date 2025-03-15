@@ -1,13 +1,12 @@
 import {CompiledOutput} from "./types";
-//@ts-ignore
-import prettier from 'prettier'
+import * as prettier from 'prettier'
 
 export function jsonLiteral(path: string) {
-  return (strings: TemplateStringsArray, ...values: any[]): CompiledOutput => {
+  return async (strings: TemplateStringsArray, ...values: any[]) => {
     const rawCode = strings.reduce((acc, str, i) =>
       acc + str + (values[i] || ''), '');
 
-    let content = prettier.format(rawCode, {
+    let content = await prettier.format(rawCode, {
       parser: 'json',
       singleQuote: true
     });

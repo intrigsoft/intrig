@@ -73,7 +73,7 @@ export function useResolvedCachedValue<P, B, T, E>(hook: BinaryFunctionHook<P, B
 export function useResolvedCachedValue<P, B, T, E>(hook: IntrigHook<P, B, T, E>, options: IntrigHookOptions<P, B>): T | undefined {
   const [cachedValue, setCachedValue] = useState<T | undefined>();
 
-  let [state] = hook(options as any); // Ensure compatibility with different hook types
+  const [state] = hook(options as any); // Ensure compatibility with different hook types
 
   useEffect(() => {
     if (isSuccess(state)) {

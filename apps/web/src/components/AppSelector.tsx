@@ -35,7 +35,7 @@ const APP_MAPPING: AppInfo[] = [
 ]
 
 export default function AppSelector() {
-  let pathname = usePathname();
+  const pathname = usePathname();
 
   const appInfo = useMemo(() => {
     return APP_MAPPING.find(({ match }) => pathname.startsWith(match)) ?? APP_MAPPING[0];

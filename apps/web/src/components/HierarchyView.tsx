@@ -8,16 +8,16 @@ import { Input } from '@/catalyst/input';
 export function HierarchyView({ filter }: { filter: string }) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  let [result, search, clear] = useSearch();
+  const [result, search, clear] = useSearch();
 
   useEffect(() => {
     search(filter);
     return clear;
   }, []);
 
-  let filteredNodes = useMemo(() => {
+  const filteredNodes = useMemo(() => {
     if (isSuccess(result)) {
-      let searchResults = result.data.filter((a) =>
+      const searchResults = result.data.filter((a) =>
         a.url.startsWith(filter + '/')
       );
       return buildHierarchy(searchResults, filter.split('/').length - 1);

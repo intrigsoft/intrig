@@ -2,13 +2,13 @@ import {deref, IntrigSourceConfig, isRef, RequestProperties} from "@intrig/cli-c
 import {OpenAPIV3_1} from "openapi-types";
 
 export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigSourceConfig) {
-  let requests: RequestProperties[] = [];
+  const requests: RequestProperties[] = [];
 
-  for (let [path, pathData] of Object.entries(spec.paths)) {
-    for (let [method, methodData] of Object.entries(pathData)) {
-      let operation = deref(spec)<any>(methodData);
+  for (const [path, pathData] of Object.entries(spec.paths)) {
+    for (const [method, methodData] of Object.entries(pathData)) {
+      const operation = deref(spec)<any>(methodData);
       if (isOperationObject(operation)) {
-        let variables = operation.parameters?.map((param: OpenAPIV3_1.ParameterObject) => {
+        const variables = operation.parameters?.map((param: OpenAPIV3_1.ParameterObject) => {
           return {
             name: param.name,
             in: param.in,
@@ -31,15 +31,15 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
         if (method.toLowerCase() === "delete") {
           requests.push(params)
         } else {
-          let errorResponses = Object.fromEntries(Object.entries(operation.responses ?? {})
+          const errorResponses = Object.fromEntries(Object.entries(operation.responses ?? {})
             .filter(([k]) => k[0] != "2")
             .flatMap(([k, v]) => {
-              let [statusCode, mediaTypeOb] = Object.entries((v as OpenAPIV3_1.ResponseObject)?.content ?? {})
+              const [statusCode, mediaTypeOb] = Object.entries((v as OpenAPIV3_1.ResponseObject)?.content ?? {})
                 .filter(([k]) => ["*/*", "application/json"].includes(k))[0] ?? [];
               if (!statusCode) {
                 return []
               }
-              let schema = mediaTypeOb?.schema as OpenAPIV3_1.ReferenceObject;
+              const schema = mediaTypeOb?.schema as OpenAPIV3_1.ReferenceObject;
               return [
                 [statusCode, {
                   response: schema?.$ref?.split("/")?.pop(),
@@ -48,9 +48,9 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
               ];
             }));
 
-          let response = operation.responses?.['200'] as OpenAPIV3_1.ResponseObject ?? operation.responses?.['201'] as OpenAPIV3_1.ResponseObject;
-          for (let [mediaType, content] of Object.entries(response?.content ?? {})) {
-            let ref = content.schema as OpenAPIV3_1.ReferenceObject;
+          const response = operation.responses?.['200'] as OpenAPIV3_1.ResponseObject ?? operation.responses?.['201'] as OpenAPIV3_1.ResponseObject;
+          for (const [mediaType, content] of Object.entries(response?.content ?? {})) {
+            const ref = content.schema as OpenAPIV3_1.ReferenceObject;
 
             params = {
               ...params,
@@ -66,7 +66,7 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
             if (method.toLowerCase() === "get") {
               requests.push(params)
             } else {
-              let requestBody = operation.requestBody as OpenAPIV3_1.RequestBodyObject;
+              const requestBody = operation.requestBody as OpenAPIV3_1.RequestBodyObject;
               if (
                 !requestBody ||
                 !requestBody.content ||
@@ -74,7 +74,7 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document, api: IntrigS
                 requests.push(params)
               } else {
                 Object.entries(requestBody?.content ?? {}).forEach(([contentType, content]) => {
-                  let schema = content?.schema as OpenAPIV3_1.ReferenceObject;
+                  const schema = content?.schema as OpenAPIV3_1.ReferenceObject;
                   requests.push({
                     ...params,
                     contentType,

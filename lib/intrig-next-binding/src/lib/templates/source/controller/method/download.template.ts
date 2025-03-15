@@ -1,6 +1,5 @@
 import {
   camelCase,
-  CompiledOutput,
   generatePostfix,
   pascalCase,
   RequestProperties,
@@ -9,7 +8,7 @@ import {
 import path from 'path';
 
 function extractHookShape(response: string, requestBody: string, imports: Set<string>) {
-  if (!!response) {
+  if (response) {
     if (requestBody) {
       imports.add(`import { BinaryFunctionHook } from "@intrig/next"`);
       return `BinaryFunctionHook<Params, RequestBody, Response, _ErrorType>`;
@@ -29,7 +28,7 @@ function extractHookShape(response: string, requestBody: string, imports: Set<st
 }
 
 function extractParamDeconstruction(variables: Variable[], requestBody: string) {
-  let isParamMandatory = variables?.some(a => a.in === 'path') || false;
+  const isParamMandatory = variables?.some(a => a.in === 'path') || false;
 
   if (requestBody) {
     if (isParamMandatory) {
@@ -76,19 +75,19 @@ function extractErrorParams(errorTypes: string[]) {
 }
 
 
-export function downloadHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties): CompiledOutput {
+export function downloadHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties) {
   const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}Download.ts`))
 
   const modifiedRequestUrl = `/api/${source}${requestUrl.replace(/\{/g, "${")}`
 
-  let imports = new Set<string>();
+  const imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
   imports.add(`import { useCallback } from 'react'`)
   imports.add(`import {useNetworkState, NetworkState, DispatchState, pending, success, error, successfulDispatch, validationError, encode} from "@intrig/next"`)
 
-  let hookShape = extractHookShape(response, requestBody, imports);
+  const hookShape = extractHookShape(response, requestBody, imports);
 
-  let { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
+  const { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
 
   if (requestBody) {
     imports.add(`import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"`)
@@ -100,15 +99,15 @@ export function downloadHookTemplate({source, paths, operationId, response, requ
 
   imports.add(`import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`)
 
-  let errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))]
+  const errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))]
   errorTypes.forEach(ref => imports.add(`import {${ref}, ${ref}Schema } from "@intrig/next/${source}/components/schemas/${ref}"`))
 
-  let paramExplode = [
+  const paramExplode = [
     ...variables.filter(a => a.in === "path").map(a => a.name),
     "...params"
   ].join(",")
 
-  let executeBlock = requestBody ? `
+  const executeBlock = requestBody ? `
   let form = document.createElement('form');
   form.method = '${method}';
   form.target = '_blank';

@@ -1,56 +1,18 @@
 import {
   camelCase,
-  CompiledOutput,
   IntrigSourceConfig,
   pascalCase,
   RequestProperties,
-  Variable
 } from '@intrig/cli-common';
 import * as path from 'path';
 import yaml from 'yaml';
-
-function resolveRequestPropertiesList(pathVariables: Variable[], source: string, queryParams: Variable[], contentType: string, requestBody: string) {
-  let requestProperties: Record<string, string> = {};
-  if (pathVariables?.length > 0) {
-    requestProperties['Path Variables'] = `
-  {% table %}
-  ${pathVariables.map(v => `
-  * ${v.name}
-  * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
-  `).join('\n  ---\n')}
-  {% /table %}
-  `;
-  }
-  if (queryParams?.length > 0) {
-    requestProperties['Query Params'] = `
-    {% table %}
-    ${queryParams.map(v => `
-    * ${v.name}
-    * [${v.ref.split('/').pop()}](/sources/${source}/schema/${encodeURIComponent(v.ref.split('/').pop())})
-    `).join('\n  ---\n')}
-    {% /table %}`;
-  }
-  if (contentType) requestProperties['Content-Type'] = contentType;
-  if (requestBody) requestProperties['Request Body'] = `[${requestBody}](/sources/${source}/schema/${encodeURIComponent(requestBody)})`;
-
-  return Object.entries(requestProperties);
-}
-
-function resolveResponsePropertiesList(response: string, source: string, responseType: string) {
-  let responseProperties: Record<string, string> = {};
-  if (response) responseProperties['Response'] = `[${response}](/sources/${source}/schema/${encodeURIComponent(response)})`;
-  if (responseType) responseProperties['Response Type'] = responseType;
-
-  return Object.entries(responseProperties);
-}
-
 export function methodDocsTemplate(
   api: IntrigSourceConfig,
   _path: string,
   endpoints: RequestProperties[]
-): CompiledOutput[] {
+) {
   if (endpoints.length < 1) return null;
-  let {
+  const {
     paths,
     operationId,
     description,
@@ -65,19 +27,19 @@ export function methodDocsTemplate(
     source
   } = endpoints[0];
 
-  let pathVariables = variables?.filter((v) => v.in === 'path');
-  let queryParams = variables?.filter((v) => v.in === 'query');
+  const pathVariables = variables?.filter((v) => v.in === 'path');
+  const queryParams = variables?.filter((v) => v.in === 'query');
 
-  let methodName = camelCase(operationId);
-  let hookName = `use${pascalCase(operationId)}`;
+  const methodName = camelCase(operationId);
+  const hookName = `use${pascalCase(operationId)}`;
 
-  let params = `{ ${variables.map(a => {
+  const params = `{ ${variables.map(a => {
     return `${a.name}: '<fill-value-here>'`
   }).join(', ')} }`
 
-  let configPath = path.resolve(_path, 'src', api.id, ...paths, operationId, 'metainfo.json')
+  const configPath = path.resolve(_path, 'src', api.id, ...paths, operationId, 'metainfo.json')
 
-  let requestProperties: Record<string, string> = {}
+  const requestProperties: Record<string, string> = {}
   if (pathVariables?.length > 0) {
     requestProperties['Path Variables'] = `
   {% table %}
@@ -100,15 +62,15 @@ export function methodDocsTemplate(
   if (contentType) requestProperties['Content-Type'] = contentType
   if (requestBody) requestProperties['Request Body'] = `[${requestBody}](/sources/${source}/schema/${encodeURIComponent(requestBody)})`
 
-  let requestPropertiesList = Object.entries(requestProperties)
+  const requestPropertiesList = Object.entries(requestProperties)
 
-  let responseProperties: Record<string, string> = {}
+  const responseProperties: Record<string, string> = {}
   if (response) responseProperties['Response'] = `[${response}](/sources/${source}/schema/${encodeURIComponent(response)})`
   if (responseType) responseProperties['Response Type'] = responseType
 
-  let responsePropertiesList = Object.entries(responseProperties)
+  const responsePropertiesList = Object.entries(responseProperties)
 
-  let serverContent = `
+  const serverContent = `
 ## Server side integration.
 
 ### Imports
@@ -138,7 +100,7 @@ export async function MyComponent() {
 \`\`\`
   `
 
-  let clientContent = `
+  const clientContent = `
 ## Client side integration
 
 {% callout %}
@@ -185,9 +147,36 @@ useEffect(() => {
 }, []);
 \`\`\`
 
-#### 3. Handling the response
+#### 3. Clear on unmount.
 
-##### 3.1 Extract success state using \`useMemo\`.
+Use \`useEffect\` to clear the response state when the component is unmounted.
+
+\`\`\`tsx
+import { useEffect } from 'react';
+
+useEffect(() => {
+  return clear${pascalCase(methodName)}
+}, [])
+\`\`\`
+
+__Note__: Alternatively, you can configure the hook to clear the response state on unmount using the \`clearOnUnmount\` option.
+
+\`\`\`tsx
+let [${methodName}Resp, ${methodName}] = ${hookName}({ clearOnUnmount: true });
+\`\`\`
+
+#### 4. Managing response instances.
+
+Use \`key\` option to manage multiple response instances of the hook.
+
+\`\`\`tsx
+let [${methodName}RespLeft, ${methodName}Left] = ${hookName}({ key: 'Left' });
+let [${methodName}RespRight, ${methodName}Right] = ${hookName}({ key: 'Right' });
+\`\`\`
+
+#### 5. Handling the response
+
+##### 5.1 Extract success state using \`useMemo\`.
 
 Use \`useMemo\` to memoize the response data for efficient re-rendering when the response is successful.
 
@@ -202,7 +191,7 @@ let petById = useMemo(() => {
 }, [${methodName}Resp])
 \`\`\`
 
-##### 3.2 Perform actions when the response is successful using \`useEffect\`.
+##### 5.2 Perform actions when the response is successful using \`useEffect\`.
 
 Use \`useEffect\` to perform actions whenever the response becomes successful.
 
@@ -218,7 +207,7 @@ useEffect(() => {
 }, [${methodName}Resp])
 \`\`\`
 
-##### 3.3 Handle the pending state
+##### 5.3 Handle the pending state
 
 Render a loading state while the request is pending.
 
@@ -228,7 +217,7 @@ if (isPending(${methodName}Resp)) {
 }
 \`\`\`
 
-##### 3.4 Handle errors.
+##### 5.4 Handle errors.
 
 Render an error message if the request fails.
 
@@ -238,7 +227,7 @@ if (isError(${methodName}Resp)) {
 }
 \`\`\`
 
-##### 3.5 Use the response within JSX.
+##### 5.5 Use the response within JSX.
 
 Render the response data or error message conditionally within your JSX.
 
@@ -250,7 +239,7 @@ return <>
 \`\`\`
   `
 
-  let content = `---
+  const content = `---
 ${yaml.stringify({
     tags: [api.id, methodName, ...paths, hookName, method, requestUrl, operationId, contentType, responseType],
     title: `${operationId}`,
@@ -303,9 +292,9 @@ ${clientContent}
   `;
 
   return [
-    {
+    Promise.resolve({
       content,
       path: path.resolve(_path, 'src', api.id, ...paths, operationId, 'doc.md')
-    }
+    })
   ]
 }

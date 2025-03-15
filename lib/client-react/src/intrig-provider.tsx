@@ -83,11 +83,11 @@ export function IntrigProvider({
     async function execute<T, E = unknown>(request: RequestType, dispatch: (state: NetworkState<T, E>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<E> | undefined) {
       try {
         dispatch(pending());
-        let response = await axiosInstances[request.source].request(request);
+        const response = await axiosInstances[request.source].request(request);
 
         if (response.status >= 200 && response.status < 300) {
           if (schema) {
-            let data = schema.safeParse(response.data);
+            const data = schema.safeParse(response.data);
             if (!data.success) {
               dispatch(
                 error(data.error.issues, response.status, request)
@@ -99,7 +99,7 @@ export function IntrigProvider({
             dispatch(success(response.data));
           }
         } else {
-          let { data, error: validationError } = errorSchema?.safeParse(response.data ?? {}) ?? {};
+          const { data, error: validationError } = errorSchema?.safeParse(response.data ?? {}) ?? {};
           //todo: handle error validation error.
           dispatch(
             error(data ?? response.data ?? response.statusText, response.status)
@@ -107,7 +107,7 @@ export function IntrigProvider({
         }
       } catch (e: any) {
         if (isAxiosError(e)) {
-          let { data, error: validationError } = errorSchema?.safeParse(e.response?.data ?? {}) ?? {};
+          const { data, error: validationError } = errorSchema?.safeParse(e.response?.data ?? {}) ?? {};
           dispatch(error(data ?? e.response?.data, e.response?.status, request));
         } else {
           dispatch(error(e));
@@ -145,7 +145,7 @@ export function IntrigProviderStub({ children, configs = {}, stubs = () => {} }:
   const [state, dispatch] = useReducer(requestReducer, {} as GlobalState);
 
   const collectedStubs = useMemo(() => {
-    let fns: Record<string, (params: any, body: any, dispatch: (state: NetworkState<any>) => void) => Promise<void>> = {};
+    const fns: Record<string, (params: any, body: any, dispatch: (state: NetworkState<any>) => void) => Promise<void>> = {};
     function stub<P, B, T>(hook: IntrigHook<P, B, T>, fn: (params: P, body: B, dispatch: (state: NetworkState<T>) => void) => Promise<void>) {
       fns[hook.key] = fn;
     }
@@ -156,9 +156,9 @@ export function IntrigProviderStub({ children, configs = {}, stubs = () => {} }:
   const contextValue = useMemo(() => {
 
     async function execute<T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined) {
-      let stub = collectedStubs[request.key];
+      const stub = collectedStubs[request.key];
 
-      if (!!stub) {
+      if (stub) {
         try {
           await stub(request.params, request.data, dispatch);
         } catch (e) {
@@ -329,10 +329,10 @@ export function useNetworkState<T, E = unknown>({
       logger.info(`Executing request ${key} ${operation} ${source}`);
       logger.debug(`=>`, request)
 
-      let abortController = new AbortController();
+      const abortController = new AbortController();
       setAbortController(abortController);
 
-      let requestConfig: RequestType = {
+      const requestConfig: RequestType = {
         ...request,
         onUploadProgress(event: AxiosProgressEvent) {
           dispatch(
@@ -405,7 +405,7 @@ export function useCentralError() {
     return Object.entries(ctx.filteredState)
       .filter(([, state]) => isError(state))
       .map(([k, state]) => {
-        let [source, operation, key] = k.split(':');
+        const [source, operation, key] = k.split(':');
         return {
           ...(state as ErrorState<unknown>),
           source,
@@ -426,12 +426,12 @@ export function useCentralPendingState() {
   const ctx = useContext(Context);
 
   const result: NetworkState = useMemo(() => {
-    let pendingStates = Object.values(ctx.filteredState).filter(isPending);
+    const pendingStates = Object.values(ctx.filteredState).filter(isPending);
     if (!pendingStates.length) {
       return init();
     }
 
-    let progress = pendingStates
+    const progress = pendingStates
       .filter((a) => a.progress)
       .reduce(
         (progress, current) => {
@@ -442,7 +442,7 @@ export function useCentralPendingState() {
         },
         { total: 0, loaded: 0 } satisfies Progress
       );
-    return pending(!!progress.total ? progress : undefined);
+    return pending(progress.total ? progress : undefined);
   }, [ctx.filteredState]);
 
   return result;

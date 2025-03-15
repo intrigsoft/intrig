@@ -2,7 +2,7 @@ import { useIntrigContext } from '@intrig/next/intrig-context';
 import { useCallback, useMemo } from 'react';
 import { error, init, isInit, isSuccess, NetworkState, success } from '@intrig/next/network-state';
 
-export interface LocalReducerOptions<T, E> {
+export interface LocalReducerOptions<T> {
   initState?: T;
   key?: string;
 }
@@ -11,8 +11,8 @@ function isPromise<T>(item: any): item is Promise<T> {
   return !!item && typeof item.then === 'function' && typeof item.catch === 'function';
 }
 
-export function useLocalReducer<T, E, F extends (event: E, curState?: T) => T | Promise<T>>(fn: F, options: LocalReducerOptions<T, E>) {
-  let context = useIntrigContext();
+export function useLocalReducer<T, E, F extends (event: E, curState?: T) => T | Promise<T>>(fn: F, options: LocalReducerOptions<T>) {
+  const context = useIntrigContext();
 
   const key = useMemo(() => {
     return options.key ?? 'default';
@@ -32,7 +32,7 @@ export function useLocalReducer<T, E, F extends (event: E, curState?: T) => T | 
   const execute = useCallback((event: E) => {
     try {
       if (isSuccess(networkState)) {
-        let data = fn(event, networkState.data);
+        const data = fn(event, networkState.data);
         if (isPromise(data)) {
           dispatch(init());
           data.then(data => dispatch(success(data)));
@@ -40,7 +40,7 @@ export function useLocalReducer<T, E, F extends (event: E, curState?: T) => T | 
           dispatch(success(data));
         }
       } else if (isInit(networkState)) {
-        let data1 = fn(event, options.initState);
+        const data1 = fn(event, options.initState);
         if (isPromise(data1)) {
           dispatch(init());
           data1.then(data => dispatch(success(data)));

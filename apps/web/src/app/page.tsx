@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Index() {
 
-  let filePath = path.resolve(process.cwd(), './src/docs/introduction.md');
+  const filePath = path.resolve(process.cwd(), './src/docs/introduction.md');
 
   return (
     <>

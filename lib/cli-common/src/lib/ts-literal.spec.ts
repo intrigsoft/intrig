@@ -1,10 +1,9 @@
 import {typescript} from "./ts-literal";
-import {util} from "zod";
 
 describe("ts-literal", () => {
-  it('should compile to typescript', () => {
+  it('should compile to typescript', async () => {
     const ts = typescript("./src/index.tsx")
-    let a = ts`
+    const a = ts`
       import React from 'react';
       import {createContext, useCallback, useContext, useMemo, useReducer} from "react";
       import {error, init, isPending, NetworkAction, NetworkState, pending, success} from "./network-state";
@@ -116,16 +115,16 @@ describe("ts-literal", () => {
         return [networkState, execute, clear]
       }
     `
-    console.log(a.content)
+    console.log((await a).content)
   });
 
-  it('should allow default values', () => {
-    let ts = typescript('');
-    let value = 1
-    let content = ts`
+  it('should allow default values', async () => {
+    const ts = typescript('');
+    const value = 1
+    const content = ts`
       export const a = /*!*/5/*${value}*/;
     `
 
-    expect(content.content).toContain(`export const a = ${value};`)
+    expect((await content).content).toContain(`export const a = ${value};`)
   })
 })

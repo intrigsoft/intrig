@@ -41,11 +41,11 @@ export async function getOpenApiSpec(url: string, config: IntrigConfig): Promise
 
 export async function syncOpenApiSpec(url: string, id: string, config: IntrigConfig): Promise<void> {
   cli.action.start(`Fetching OpenAPI spec from ${url}`)
-  let spec = await getOpenApiSpec(url, config);
+  const spec = await getOpenApiSpec(url, config);
   cli.action.stop()
 
   cli.action.start(`Normalizing OpenAPI spec`)
-  let normalized = normalize(spec);
+  const normalized = normalize(spec);
   cli.action.stop()
 
   cli.action.start(`Saving OpenAPI spec`)
