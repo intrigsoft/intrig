@@ -1,7 +1,7 @@
-import {CompiledOutput, IntrigSourceConfig, typescript} from "@intrig/cli-common";
+import {typescript} from "@intrig/cli-common";
 import * as path from 'path'
 
-export function intrigLayoutTemplate(_path: string, apisToSync: IntrigSourceConfig[]): CompiledOutput {
+export function intrigLayoutTemplate(_path: string) {
 
   const ts = typescript(path.resolve(_path, "src", "intrig-layout.tsx"))
   return ts`

@@ -1,13 +1,13 @@
 import { camelCase, generatePostfix, pascalCase, RequestProperties, typescript } from '@intrig/cli-common';
 import * as path from "path";
 
-export function requestRouteTemplate(requestUrl: string, paths: RequestProperties[]) {
-  let parts = requestUrl
+export async function requestRouteTemplate(requestUrl: string, paths: RequestProperties[]) {
+  const parts = requestUrl
     .replace(/\{/g, "[")
     .replace(/\}/g, "]")
     .split('/')
 
-  let {source, sourcePath} = paths[0]
+  const {source, sourcePath} = paths[0]
 
   const ts = typescript(path.resolve(sourcePath, 'src', "api", "(generated)", source, ...parts, `route.ts`))
 
@@ -22,12 +22,12 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
     return `import { execute${pascalCase(path.operationId)} as execute${pascalCase(path.operationId)}${generatePostfix(path.contentType, path.responseType)} } from "@intrig/next/${source}/${path.paths.join('/')}/${camelCase(path.operationId)}/${camelCase(path.operationId)}${generatePostfix(path.contentType, path.responseType)}"`
   }
 
-  let imports = new Set<string>()
+  const imports = new Set<string>()
 
-  let getBlocks = new Set<string>()
-  let postBlocks = new Set<string>()
-  let putBlocks = new Set<string>()
-  let deleteBlocks = new Set<string>()
+  const getBlocks = new Set<string>()
+  const postBlocks = new Set<string>()
+  const putBlocks = new Set<string>()
+  const deleteBlocks = new Set<string>()
 
   function getRequestBodyTransformerBlock(path: RequestProperties) {
     if (!path.requestBody || path.requestBody === "undefined") {
@@ -54,21 +54,21 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
     return `NextResponse.json(response, { status: 200, headers})`
   }
 
-  for (let path of paths) {
+  for (const path of paths) {
     switch (path.method.toLowerCase()) {
       case "get":
         imports.add(createImport(path))
-        getBlocks.add(ts`
+        getBlocks.add((await ts`
         let { data: response, headers } = await ${getFunctionName(path)}({
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
         return ${getNextResponse(path)}
-        `.content)
+        `).content)
         break;
       case "post":
         imports.add(createImport(path))
-        postBlocks.add(ts`
+        postBlocks.add((await ts`
         if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
           let { data: response, headers } = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
@@ -77,21 +77,21 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
         } as any)
           return ${getNextResponse(path)}
         }
-        `.content)
+        `).content)
         break;
       case "delete":
         imports.add(createImport(path))
-        deleteBlocks.add(ts`
+        deleteBlocks.add((await ts`
         let { data: response, headers } = await ${getFunctionName(path)}({
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
         return ${getNextResponse(path)}
-        `.content)
+        `).content)
         break;
       case "put":
         imports.add(createImport(path))
-        putBlocks.add(ts`
+        putBlocks.add((await ts`
         if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${path.contentType}") {
           ${getRequestBodyTransformerBlock(path)}
           let { data: response, headers } = await ${getFunctionName(path)}(${path.requestBody ? "body," : ""} {
@@ -100,14 +100,14 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
         } as any)
           return ${getNextResponse(path)}
         }
-        `.content)
+        `).content)
         break;
     }
   }
 
-  function createMethod(name: string, blocks: Set<string>) {
+  async function createMethod(name: string, blocks: Set<string>) {
     if (!blocks.size) return ""
-    return ts`
+    return (await ts`
         export async function ${name}(request: NextRequest, paramOb: { params: Record<string, string> }): Promise<NextResponse> {
           logger.info("Request received to ${name}")
           try {
@@ -136,7 +136,7 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
             }
           }
         }
-        `.content;
+        `).content;
   }
 
   return ts`
@@ -149,9 +149,9 @@ export function requestRouteTemplate(requestUrl: string, paths: RequestPropertie
 
     export const dynamic = "force-dynamic";
 
-    ${createMethod("GET", getBlocks)}
-    ${createMethod("POST", postBlocks)}
-    ${createMethod("PUT", putBlocks)}
-    ${createMethod("DELETE", deleteBlocks)}
+    ${await createMethod("GET", getBlocks)}
+    ${await createMethod("POST", postBlocks)}
+    ${await createMethod("PUT", putBlocks)}
+    ${await createMethod("DELETE", deleteBlocks)}
   `
 }

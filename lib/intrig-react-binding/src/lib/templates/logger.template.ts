@@ -1,4 +1,4 @@
-import {CompiledOutput, typescript} from "@intrig/cli-common";
+import {typescript} from "@intrig/cli-common";
 import * as path from 'path'
 
 export function loggerTemplate(_path: string) {

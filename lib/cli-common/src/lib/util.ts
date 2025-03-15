@@ -19,8 +19,9 @@ export function deref(spec: OpenAPIV3_1.Document): <T> (ob: ReferenceObject | T)
   }
 }
 
-export function dump(output: CompiledOutput) {
-  let dir = path.parse(output.path).dir;
+export async function dump(outputPromise: Promise<CompiledOutput>) {
+  const output = await outputPromise;
+  const dir = path.parse(output.path).dir;
   fs.mkdirSync(dir, {recursive: true})
   fs.writeFileSync(output.path, output.content)
 }

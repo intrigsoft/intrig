@@ -1,7 +1,7 @@
-import {CompiledOutput, typescript} from "@intrig/cli-common";
+import {typescript} from "@intrig/cli-common";
 import * as path from 'path'
 
-export function networkStateTemplate(_path: string): CompiledOutput {
+export function networkStateTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, "src", "network-state.tsx"))
   return ts`import { ZodError } from 'zod';
 

@@ -1,5 +1,4 @@
 import { ErrorResponse, RequestProperties, Variable } from './util';
-import {pascalCase} from "./change-case";
 
 export function getVariableName(ref: string) {
   return ref.split('/').pop()
@@ -28,8 +27,8 @@ export function getParamExplodeExpression(variables: Variable[]) {
   ].join(",");
 }
 
-export function decodeVariables(_variables: Variable[], source: string, prefix: string = "@root") {
-  let variables = _variables.filter(a => ["path", "query"].includes(a.in))
+export function decodeVariables(_variables: Variable[], source: string, prefix = "@root") {
+  const variables = _variables.filter(a => ["path", "query"].includes(a.in))
   return {
     variableImports: getVariableImports(variables, source, prefix),
     variableTypes: getVariableTypes(variables),
@@ -38,7 +37,7 @@ export function decodeVariables(_variables: Variable[], source: string, prefix: 
   }
 }
 
-export function getDispatchParams(operationId: string, requestBody?: string, isParamMandatory: boolean = false) {
+export function getDispatchParams(operationId: string, requestBody?: string, isParamMandatory = false) {
   return [
     requestBody ? `data: RequestBody` : undefined,
     `params: Params${isParamMandatory ? '' : ' | undefined'}`
@@ -60,7 +59,7 @@ export function extractParams(properties: RequestProperties): {
   dispatchParams: string
   dispatchParamExpansion: string
 } {
-  let paramMandatory = isParamMandatory(properties.variables);
+  const paramMandatory = isParamMandatory(properties.variables);
 
   if (properties.response) {
     if (properties.requestBody) {
@@ -182,10 +181,10 @@ export function generatePostfix(contentType: string, responseType: string) {
     .join('')
 }
 
-export function decodeErrorSections(errorResponses: Record<string, ErrorResponse>, source: string, prefix: string = '@root') {
-  let errorTypes = Array.from(new Set(Object.values(errorResponses ?? {}).map(a => a.response)));
+export function decodeErrorSections(errorResponses: Record<string, ErrorResponse>, source: string, prefix = '@root') {
+  const errorTypes = Array.from(new Set(Object.values(errorResponses ?? {}).map(a => a.response)));
 
-  let imports = errorTypes.map(ref => `import {${ref}, ${ref}Schema } from "${prefix}/${source}/components/schemas/${ref}"`)
+  const imports = errorTypes.map(ref => `import {${ref}, ${ref}Schema } from "${prefix}/${source}/components/schemas/${ref}"`)
     .join('\n');
 
   let schemaValidation = "z.any()"
@@ -200,8 +199,8 @@ export function decodeErrorSections(errorResponses: Record<string, ErrorResponse
       schemaValidation = `z.union([${errorTypes.map(a => `${a}Schema`).join(', ')}])`
   }
 
-  let s = errorTypes.join(' | ');
-  let def = `${s.trim().length ? s : 'any'}`
+  const s = errorTypes.join(' | ');
+  const def = `${s.trim().length ? s : 'any'}`
 
   return {
     imports,

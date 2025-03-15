@@ -1,7 +1,7 @@
-import {CompiledOutput, typescript} from "@intrig/cli-common";
+import {typescript} from "@intrig/cli-common";
 import * as path from 'path'
 
-export function indexTemplate(_path: string): CompiledOutput {
+export function indexTemplate(_path: string){
 
   const ts = typescript(path.resolve(_path, "src", "index.ts"))
 

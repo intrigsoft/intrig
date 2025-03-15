@@ -4,7 +4,7 @@ import * as path from 'path'
 import * as yaml from 'yaml'
 
 export function sourceDocsTemplate(api: IntrigSourceConfig, _path: string, sourceInfo: DocInfo) {
-  let md = markdownLiteral(path.resolve(_path, "src", api.id, "doc.md"))
+  const md = markdownLiteral(path.resolve(_path, "src", api.id, "doc.md"))
 
   return md`---
 ${yaml.stringify({

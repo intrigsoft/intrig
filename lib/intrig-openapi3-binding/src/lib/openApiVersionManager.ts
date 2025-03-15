@@ -1,21 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import * as openApiDiff from 'openapi-diff';
 import { ux as cli } from '@oclif/core'
 import compareSwaggerDocs from './openapi3-diff';
 
-const readdir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 const apiVersionsDir = path.join(process.cwd(), '.intrig', 'specs');
-const indexFileName = 'index.json';
-
-interface VersionIndex {
-  fileName: string;
-  timestamp: string;
-}
 
 export async function saveOpenApiDocument(apiName: string, content: string): Promise<void> {
   const apiDir = path.join(apiVersionsDir, apiName);
@@ -33,7 +25,7 @@ export async function saveOpenApiDocument(apiName: string, content: string): Pro
     const latestContent = await readFile(latestFilePath, 'utf8');
 
     cli.action.start('Calculating differences');
-    let differences = compareSwaggerDocs(
+    const differences = compareSwaggerDocs(
       JSON.parse(latestContent),
       JSON.parse(content)
     );

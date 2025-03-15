@@ -9,12 +9,12 @@ export interface TypeTemplateParams {
   paths: string[]
 }
 
-export function typeTemplate({typeName, schema, sourcePath, paths}: TypeTemplateParams) {
-  let {imports, zodSchema, tsType} = openApiSchemaToZod(schema);
+export async function typeTemplate({typeName, schema, sourcePath, paths}: TypeTemplateParams) {
+  const {imports, zodSchema, tsType} = openApiSchemaToZod(schema);
 
-  let ts = typescript(path.resolve(sourcePath, 'src', ...paths, `${typeName}.ts`));
+  const ts = typescript(path.resolve(sourcePath, 'src', ...paths, `${typeName}.ts`));
 
-  let simpleType = jsonLiteral('')`${JSON.stringify(schema)}`.content;
+  const simpleType = (await jsonLiteral('')`${JSON.stringify(schema)}`).content;
 
   return ts`
   import { z } from 'zod'
@@ -67,7 +67,7 @@ function openApiSchemaToZod(schema: OpenAPIV3_1.SchemaObject, imports: Set<strin
     case 'integer':
       return handleIntegerSchema(schema);
     case 'boolean':
-      return handleBooleanSchema(schema);
+      return handleBooleanSchema();
     case 'array':
       return handleArraySchema(schema, imports);
     case 'object':
@@ -134,9 +134,9 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string;
   } else if (schema.format === 'hostname') {
     zodSchema = 'z.string()'; // Zod does not have a direct hostname validator
   } else if (schema.format === 'ipv4') {
-    zodSchema =  'z.string().regex(/^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/)';
+    zodSchema =  'z.string().regex(/^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/)';
   } else if (schema.format === 'ipv6') {
-    zodSchema = 'z.string().regex(/^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,3}:){1,4}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,5}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,6}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,7}|:)|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1[0-9]|0?[0-9][0-9]?)\.){3}([0-9a-fA-F]{1,7}|[0-9a-fA-F]{1,4}))$/)';
+    zodSchema = 'z.string().regex(/^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6}|:)|::(ffff(:0{1,4}){0,1}:)?((25[0-5]|(2[0-4]|1[0-9]|[0-9])\\.){3}(25[0-5]|(2[0-4]|1[0-9]|[0-9]))))$/)';
   } else {
     if (schema.minLength !== undefined) zodSchema += `.min(${schema.minLength})`;
     if (schema.maxLength !== undefined) zodSchema += `.max(${schema.maxLength})`;
@@ -159,8 +159,8 @@ function handleIntegerSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string
   return { tsType: 'number', zodSchema, imports: new Set() };
 }
 
-function handleBooleanSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string; zodSchema: string; imports: Set<string> } {
-  let zodSchema = 'z.boolean()';
+function handleBooleanSchema(): { tsType: string; zodSchema: string; imports: Set<string> } {
+  const zodSchema = 'z.boolean()';
   return { tsType: 'boolean', zodSchema, imports: new Set() };
 }
 

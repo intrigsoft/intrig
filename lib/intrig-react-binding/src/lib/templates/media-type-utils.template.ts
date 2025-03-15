@@ -1,7 +1,7 @@
-import {CompiledOutput, typescript} from "@intrig/cli-common";
+import {typescript} from "@intrig/cli-common";
 import * as path from "path";
 
-export function mediaTypeUtilsTemplate(_path: string): CompiledOutput {
+export function mediaTypeUtilsTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, "src", "media-type-utils.ts"))
 
   return ts`

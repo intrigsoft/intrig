@@ -1,7 +1,7 @@
 'use client';
 
-import React, { Fragment, useCallback, useMemo, useState } from 'react';
-import { ErrorResponse, Variable } from '../../../../lib/cli-common/src';
+import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { ErrorResponse, Variable } from '@intrig/cli-common';
 import { Controller, useForm } from 'react-hook-form';
 import { ErrorMessage, Field, Label } from '@/catalyst/fieldset';
 import { Input } from '@/catalyst/input';
@@ -9,10 +9,8 @@ import { Select } from '@/catalyst/select';
 import { Checkbox, CheckboxField, CheckboxGroup } from '@/catalyst/checkbox';
 import { Switch } from '@/catalyst/switch';
 import { Highlight, themes } from 'prism-react-renderer'
-// @ts-ignore
 import prettier from 'prettier/standalone';
-// @ts-ignore
-import parserTypescript from 'prettier/parser-typescript';
+import parserTypescript from 'prettier/plugins/typescript';
 import { pascalCase, camelCase } from '@/lib/change-case';
 import { CheckIcon, ClipboardIcon, InformationCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Fieldset, Legend, Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
@@ -60,9 +58,9 @@ export interface ReactClientComponentEditorProps {
 
 export function ReactClientComponentEditor({ config }: ReactClientComponentEditorProps) {
 
-  let pathname = usePathname();
+  const pathname = usePathname();
 
-  let {
+  const {
     handleSubmit,
     register,
     setValue,
@@ -91,7 +89,7 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
 
   const content = useMemo(() => {
 
-    let copyBlocks: Record<string, string> = {}
+    const copyBlocks: Record<string, string> = {}
 
     function registerBlock(block: string, tag: string) {
       copyBlocks[tag] = block;
@@ -105,21 +103,21 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
     let useCallbackHookPresent = false
     let useStateHookPresent = false
 
-    let methodName = camelCase(config.operationId);
-    let hookName = `use${pascalCase(config.operationId)}`;
+    const methodName = camelCase(config.operationId);
+    const hookName = `use${pascalCase(config.operationId)}`;
 
-    let hookImportBlock = registerBlock(`import {${hookName}} from '@intrig/next/${config.source}/${config.paths.join('/')}/${methodName}/client'`, 'hookImport')
+    const hookImportBlock = registerBlock(`import {${hookName}} from '@intrig/next/${config.source}/${config.paths.join('/')}/${methodName}/client'`, 'hookImport')
 
-    let executionPostfix = config.method === 'get' ? 'fetch' : 'execute';
+    const executionPostfix = config.method === 'get' ? 'fetch' : 'execute';
 
-    let mandatoryParams = config.variables.filter(a => a.in === 'path').map(a => a.name)
-    let componentPropsInterface = `export interface ${data.componentName}Props {
+    const mandatoryParams = config.variables.filter(a => a.in === 'path').map(a => a.name)
+    const componentPropsInterface = `export interface ${data.componentName}Props {
       ${mandatoryParams.length ? `params: ${data.componentName}Params` : ''}
       ${config.requestBody ? `requestBody: ${config.requestBody}` : ''}
     }`
 
-    let paramList = [mandatoryParams.length ? 'params' : undefined, config.requestBody ? 'requestBody' : undefined].filter(Boolean).join(', ');
-    let paramDeconstruction = mandatoryParams.length || config.requestBody ?
+    const paramList = [mandatoryParams.length ? 'params' : undefined, config.requestBody ? 'requestBody' : undefined].filter(Boolean).join(', ');
+    const paramDeconstruction = mandatoryParams.length || config.requestBody ?
       `{${paramList}} : ${data.componentName}Params` :
       '';
 
@@ -135,22 +133,22 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
       isClearPresent = true
     }
 
-    let defaultFetchHook = registerBlock(`useEffect(() => {
+    const defaultFetchHook = registerBlock(`useEffect(() => {
       ${data.fetchOnMount ? `${executionPostfix}${pascalCase(data.responseName)}(${paramList})` : ''}
     }, [${paramList}])`, 'defaultFetchHook')
 
-    let defaultCleanupHook = registerBlock(`useEffect(() => {
+    const defaultCleanupHook = registerBlock(`useEffect(() => {
       ${data.cleanupOnUnmount ? `return clear${pascalCase(data.responseName)}` : ''}
     }, [])`, 'defaultCleanupHook')
 
-    let hookParams = [data.responseName]
+    const hookParams = [data.responseName]
     if (isFetchPresent) hookParams.push(`${executionPostfix}${pascalCase(data.responseName)}`)
     else if (isClearPresent) hookParams.push(``)
     if (isClearPresent) {
       hookParams.push(`clear${pascalCase(data.responseName)}`)
     }
 
-    let callback = data.fetchOnCallback ? registerBlock(`let on${pascalCase(data.responseName)}Fetch = useCallback(() => {
+    const callback = data.fetchOnCallback ? registerBlock(`let on${pascalCase(data.responseName)}Fetch = useCallback(() => {
       ${executionPostfix}${pascalCase(data.responseName)}()
     }, [${executionPostfix}${pascalCase(data.responseName)}])`, 'callback') : '';
 
@@ -158,16 +156,16 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
 
     let inlineSuccessPresent = !(data.successMemo || data.successEffect);
 
-    let successMemoBlock = data.successMemo ?
+    const successMemoBlock = data.successMemo ?
       registerBlock(`let data = useMemo(() => isSuccess(${data.responseName}) ? ${data.responseName}.data : undefined, [${data.responseName}])`, 'successMemo')
       : '';
-    let errorMemoBlock = data.errorMemo ?
+    const errorMemoBlock = data.errorMemo ?
       registerBlock(`let error = useMemo(() => isError(${data.responseName}) ? ${data.responseName}.error : undefined, [${data.responseName}])`, 'errorMemo')
       : '';
     if (data.errorMemo) isErrorPresent = true
     if (data.successMemo || data.errorMemo) useMemoHookPresent = true
 
-    let effectBlock = registerBlock(`useEffect(() => {
+    const effectBlock = registerBlock(`useEffect(() => {
       ${data.successEffect ? `if (isSuccess(${data.responseName})) {
         //Do something with ${data.responseName}.data
         console.log(${data.responseName}.data)
@@ -199,38 +197,38 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
       inlineSuccessPresent = false
     }
 
-    let errorBlock = data.errorBlock === 'explicit' ? registerBlock(`if (isError(${data.responseName})) {
+    const errorBlock = data.errorBlock === 'explicit' ? registerBlock(`if (isError(${data.responseName})) {
       return <div>{${data.responseName}}</div>
     }`, 'errorBlock') : ''
 
     if (data.errorBlock !== 'none') isErrorPresent = true
 
-    let pendingBlock = data.pendingBlock === 'explicit' ? registerBlock(`if (isPending(${data.responseName})) {
+    const pendingBlock = data.pendingBlock === 'explicit' ? registerBlock(`if (isPending(${data.responseName})) {
       return <div>loading...</div>
     }`, 'pendingBlock'): ''
     if (data.pendingBlock !== 'none') isPendingPresent = true
 
-    let inlineErrorBlock = data.errorBlock === 'inline' ?
+    const inlineErrorBlock = data.errorBlock === 'inline' ?
       (data.errorMemo ? `{error && <div>{error}</div>}` : `{isError(${data.responseName}) && <div>{${data.responseName}.error}</div>}`) :
       (data.errorMemo ? `{error && <div>{error}</div>}` : '')
 
-    let reactImports = [
+    const reactImports = [
       useEffectHookPresent ? 'useEffect' : undefined,
       useMemoHookPresent ? 'useMemo' : undefined,
       useCallbackHookPresent ? 'useCallback' : undefined,
       useStateHookPresent ? 'useState' : undefined,
     ].filter(Boolean).join(', ');
 
-    let hookDefinition = registerBlock(`let [${hookParams.join(',')}] = ${hookName}()`, 'hookDef')
-    let requestBodyImport = config.requestBody && isFetchPresent ? registerBlock(`import { ${config.requestBody} } from '@intrig/next/${config.source}/components/schemas/${config.requestBody}'`, 'requestBodyImport') : '';
-    let intrigImport = registerBlock(`import { isSuccess${isErrorPresent ? ', isError' : ''}${isPendingPresent ? ', isPending' : ''} } from '@intrig/next' `, 'intrigImport')
-    let reactImport = registerBlock(`import { ${reactImports} } from 'react'`, 'reactImport')
+    const hookDefinition = registerBlock(`let [${hookParams.join(',')}] = ${hookName}()`, 'hookDef')
+    const requestBodyImport = config.requestBody && isFetchPresent ? registerBlock(`import { ${config.requestBody} } from '@intrig/next/${config.source}/components/schemas/${config.requestBody}'`, 'requestBodyImport') : '';
+    const intrigImport = registerBlock(`import { isSuccess${isErrorPresent ? ', isError' : ''}${isPendingPresent ? ', isPending' : ''} } from '@intrig/next' `, 'intrigImport')
+    const reactImport = registerBlock(`import { ${reactImports} } from 'react'`, 'reactImport')
 
-    let declaration = data.componentType === 'named-function' ?
+    const declaration = data.componentType === 'named-function' ?
       `export function ${data.componentName}(${isFetchPresent ? paramDeconstruction : ''})` :
       `export const ${data.componentName} = (${isFetchPresent ? paramDeconstruction : ''}) =>`;
 
-    let formatted = prettier.format(`
+    const formatted = prettier.format(`
       ${hookImportBlock}
       ${requestBodyImport}
       ${intrigImport}
@@ -271,6 +269,12 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
     return { formatted, copyBlocks };
   }, [data, config]);
 
+  const [code, setCode] = useState("");
+
+  useEffect(() => {
+    content.formatted.then(setCode)
+  }, [content.formatted])
+
   return <>
     <div className="min-w-0 max-w-2xl flex-auto px-4 py-16 lg:max-w-none lg:pl-8 lg:pr-0 xl:px-16 prose">
       <div className="relative group">
@@ -280,7 +284,7 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
           </Link>
           <h6 className={'flex dark:text-gray-200'}>`use{pascalCase(config.operationId)}` Usage</h6>
         </div>
-        <Highlight language={'tsx'} code={content.formatted} theme={{plain: {}, styles: []}}>
+        <Highlight language={'tsx'} code={code} theme={{plain: {}, styles: []}}>
           {({ className, style, tokens, getTokenProps }) => <pre className={className} style={style}>
           <code>
             {tokens.map((line, lineIndex) => <Fragment key={lineIndex}>
@@ -288,9 +292,9 @@ export function ReactClientComponentEditor({ config }: ReactClientComponentEdito
                 .filter((token) => !token.empty)
                 .map((token, tokenIndex) => {
                   if (token.types.includes('comment') && token.content.startsWith('//c_')) {
-                    let s = token.content.replace('//c_', '');
-                    let copyBlock = content.copyBlocks[s];
-                    return <CopyButton content={copyBlock}/>
+                    const s = token.content.replace('//c_', '');
+                    const copyBlock = content.copyBlocks[s];
+                    return <CopyButton content={copyBlock} key={tokenIndex}/>
                   }
                   return (
                     <span key={tokenIndex} {...getTokenProps({ token })} />
