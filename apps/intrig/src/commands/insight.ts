@@ -1,8 +1,6 @@
 import {Command, Flags} from '@oclif/core'
-import { createServer } from 'http';
-import { parse } from 'node:url';
-import * as path from 'path';
-import next from 'next';
+import { spawn } from 'child_process'
+import * as path from 'path'
 
 export default class Insight extends Command {
 
@@ -33,38 +31,28 @@ export default class Insight extends Command {
 
     const open = await import('open');
 
-    // Set the directory and environment mode for Next.js
-    const dir = process.env.NX_NEXT_DIR || path.join(__dirname, '../../../../web');
-    const dev = false;
+    // Build the path to web/server/main.js relative to this file
+    const nextPath = path.join(__dirname, '../../../../web')
+    const serverPath = path.join(__dirname, '../../../../web/server/main.js')
 
-    // Start the Next.js server
-    const startServer = async () => {
-      const nextApp = next({ dev, dir, quiet: !debug });
-      const handle = nextApp.getRequestHandler();
+    console.log(`> Starting server at ${serverPath}`)
 
-      await nextApp.prepare();
+    // Pass the desired port to the server through the environment, if your server uses it
+    const env = { ...process.env, PORT: String(port), NX_NEXT_DIR: nextPath }
 
-      const server = createServer((req, res) => {
-        const parsedUrl = parse(req.url ?? '', true);
-        handle(req, res, parsedUrl);
-      });
+    // Spawn the process running the server
+    const child = spawn('node', [serverPath], { env, stdio: debug ? 'inherit' : 'ignore' })
 
-      server.listen(port, hostname, () => {
-        console.log(`> Server started at http://${hostname}:${port}`); // Always log server start
-        if (debug) {
-          console.log('Debug mode enabled. Server-side logs will be displayed.');
-        }
-        open.default(`http://${hostname}:${port}`);
-      });
+    child.on('error', (err) => {
+      this.error(`Failed to start server: ${err}`)
+      process.exit(1)
+    })
 
-      server.on('error', (err) => {
-        console.error('Server encountered an error:', err);
-      });
-    };
-
-    await startServer().catch((err) => {
-      this.error(`Failed to start server: ${err}`);
-      process.exit(1);
-    });
+    // If your server logs a “started” message you could listen to stdout, but for simplicity,
+    // here we use a short delay before opening the browser.
+    setTimeout(() => {
+      console.log(`> Server started at http://${hostname}:${port}`)
+      open.default(`http://${hostname}:${port}`)
+    }, 1000)
   }
 }

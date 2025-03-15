@@ -5,12 +5,6 @@
   "projectType": "application",
   "tags": [],
   "targets": {
-    "intrigbuild": {
-      "dependsOn": ["^build", "build", "build-custom-server", {
-        "projects": ["intrig"],
-        "target": "intrigbuild"
-      }]
-    },
     "build": {
       "dependsOn": ["^build", "build-custom-server"]
     },

@@ -71,6 +71,7 @@
     "@nx/rollup": "20.0.0",
     "@nx/vite": "20.0.0",
     "@nx/web": "20.0.0",
+    "@nx/workspace": "^20.0.0",
     "@playwright/test": "^1.36.0",
     "@rollup/plugin-url": "^8.0.2",
     "@svgr/rollup": "^8.1.0",

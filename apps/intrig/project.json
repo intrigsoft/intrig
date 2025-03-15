@@ -6,18 +6,8 @@
   "tags": [],
   "targets": {
     "build": {
-      "dependsOn": [
-        {
-          "target": "intrigbuild"
-        },
-        {
-          "projects": ["insight"],
-          "target": "intrigbuild"
-        }
-      ]
-    },
-    "intrigbuild": {
       "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["insight:build"],
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
@@ -35,19 +25,9 @@
             "glob": "**/*"
           },
           {
-            "input": "apps/web/public",
-            "output": "web/public",
-            "glob": "**/*"
-          },
-          {
-            "input": "apps/web/server",
+            "input": "dist/apps/web",
             "output": "web",
-            "glob": "next.config.js"
-          },
-          {
-            "input": "apps/web/src",
-            "output": "web/src",
-            "glob": "**"
+            "glob": "**/*"
           },
           {
             "input": "apps/web/.next",
@@ -74,8 +54,7 @@
             }
           }
         }
-      },
-      "cache": false
+      }
     },
     "serve": {
       "executor": "@nx/js:node",
