@@ -53,11 +53,19 @@ export default class Baseline extends Command {
       try {
         await baselineVersion(apiName, flags.version);
         this.log(chalk.green(`Baseline created successfully for API '${apiName}' with version '${flags.version}'.`));
-      } catch (e: any) {
-        this.error(chalk.red(`Failed to create baseline: ${e.message}`));
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          this.error(chalk.red(`Failed to create baseline: ${e.message}`));
+        } else {
+          this.error(chalk.red('Failed to create baseline due to an unknown error'));
+        }
       }
-    } catch (e: any) {
-      this.error(chalk.red(e.message));
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        this.error(chalk.red(e.message));
+      } else {
+        this.error(chalk.red('An unknown error occurred'));
+      }
     }
   }
 

@@ -82,7 +82,7 @@ export function useAsPromise<P, B, T, E>(
   const resolveRef = useRef<(value: T) => void>();
   const rejectRef = useRef<(reason?: any) => void>();
 
-  let [state, dispatch, clear] = hook(options as any); // Casting to `any` to match all overloads
+  const [state, dispatch, clear] = hook(options as any); // Casting to `any` to match all overloads
 
   useEffect(() => {
     if (isSuccess(state)) {
@@ -99,7 +99,7 @@ export function useAsPromise<P, B, T, E>(
       resolveRef.current = resolve;
       rejectRef.current = reject;
 
-      let dispatchState = (dispatch as any)(...args);
+      const dispatchState = (dispatch as any)(...args);
       if (isValidationError(dispatchState)) {
         reject(dispatchState.error);
       }

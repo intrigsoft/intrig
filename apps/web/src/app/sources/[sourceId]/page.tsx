@@ -7,9 +7,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function Index({ params: {sourceId}}: {params: {sourceId: string}}) {
 
-  let filePath = path.resolve(INTRIG_LOCATION, 'generated', 'src', sourceId, 'doc.md');
+  const filePath = path.resolve(INTRIG_LOCATION, 'generated', 'src', sourceId, 'doc.md');
 
-  let content = fs.readFileSync(filePath, 'utf8');
+  const content = fs.readFileSync(filePath, 'utf8');
 
   return (
     <>

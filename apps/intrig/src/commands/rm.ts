@@ -17,7 +17,7 @@ export default class Rm extends Command {
   async run() {
     const { args } = await this.parse(Rm)
 
-    let config: IntrigConfig = this.readConfig()
+    const config: IntrigConfig = this.readConfig()
 
     if (config.sources.length === 0) {
       this.log(chalk.yellow('No sources found in the configuration.'))

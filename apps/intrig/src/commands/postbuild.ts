@@ -1,4 +1,4 @@
-import {Args, Command, Flags} from '@oclif/core'
+import {Command} from '@oclif/core'
 import { IntrigConfig } from '@intrig/cli-common';
 import * as fs from 'fs';
 import { CONFIG_FILE } from '../util';
@@ -31,10 +31,10 @@ export default class Postbuild extends Command {
 
     switch (config.generator) {
       case 'react':
-        reactAdaptor.postBuild()
+        await reactAdaptor.postBuild()
         break;
       case 'next':
-        nextAdaptor.postBuild()
+        await nextAdaptor.postBuild()
         break;
     }
   }

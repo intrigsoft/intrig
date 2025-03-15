@@ -41,11 +41,15 @@ export default class Sync extends Command {
         this.error(chalk.red('Please specify either --all or --ids'));
       }
 
-      for (let intrigSourceConfig of apisToSync) {
+      for (const intrigSourceConfig of apisToSync) {
         try {
           await syncOpenApiSpec(intrigSourceConfig.specUrl, intrigSourceConfig.id, config)
-        } catch (e: any) {
-          console.error(e)
+        } catch (e: unknown) {
+          if (e instanceof Error) {
+            console.error(e.message);
+          } else {
+            console.error('An unknown error occurred:', e);
+          }
         }
       }
     } catch (e) {

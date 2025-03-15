@@ -6,7 +6,7 @@ import { Highlight } from 'prism-react-renderer';
 
 export function TabbedFence({children, language}: { language: string, children: any }) {
 
-  let tabs = [...children]
+  const tabs = [...children]
 
   const [activeTab, setActiveTab] = useState(tabs[0]);
 

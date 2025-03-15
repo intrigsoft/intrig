@@ -4,15 +4,14 @@ import { exec } from 'child_process'
 import { promisify } from 'util'
 import {ux as cli} from "@oclif/core";
 import {detectPackageManager} from "nypm";
-import { ContentGeneratorAdaptor, IntrigSourceConfig } from '@intrig/cli-common';
+import { ContentGeneratorAdaptor } from '@intrig/cli-common';
 
 const execAsync = promisify(exec);
 
 export async function setupCacheAndInstall(
   generateData: (path: string) => Promise<void>,
   generator: string,
-  adaptor: ContentGeneratorAdaptor,
-  apisToSync: IntrigSourceConfig[]): Promise<void> {
+  adaptor: ContentGeneratorAdaptor): Promise<void> {
   // const tempDir = path.join(os.tmpdir(), 'intrig_generated')
 
   const tempDir = path.join('.intrig', 'generated')
@@ -32,7 +31,7 @@ export async function setupCacheAndInstall(
   // Build the project
   cli.action.start("Building the generated package")
   try {
-    let packageManager = await detectPackageManager(process.cwd());
+    const packageManager = await detectPackageManager(process.cwd());
     switch (packageManager.name) {
       case "npm":
         await execAsync('npm run build', { cwd: tempDir })
@@ -49,8 +48,8 @@ export async function setupCacheAndInstall(
       default:
         console.error(new Error(`Unsupported package manager: ${packageManager.name}`))
     }
-  } catch (e) {
-
+  } catch (e: unknown) {
+    cli.action.stop(JSON.stringify(e))
   } finally {
     cli.action.stop()
   }

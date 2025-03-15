@@ -5,10 +5,10 @@ import { usePathname } from 'next/navigation'
 import { useNavigation } from '@/lib/navigation';
 
 export function DocsHeader({ title }: { title?: string }) {
-  let pathname = usePathname()
-  let navigations = useNavigation();
+  const pathname = usePathname()
+  const navigations = useNavigation();
 
-  let section = navigations.find((section) =>
+  const section = navigations.find((section) =>
     section.links.find((link) => link.href === pathname),
   )
 

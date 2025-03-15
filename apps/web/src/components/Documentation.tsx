@@ -19,7 +19,7 @@ import * as changeCase from 'change-case';
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
 import ReactCodeBuilder from '@/components/ReactCodeBuilder';
 
-let documentSlugifyMap = new Map()
+const documentSlugifyMap = new Map()
 const config: Config = {
   nodes: {
     document: {
@@ -41,11 +41,11 @@ const config: Config = {
     heading: {
       ...defaultNodes.heading,
       transform(node, config) {
-        let slugify = documentSlugifyMap.get(config)
-        let attributes = node.transformAttributes(config)
-        let children = node.transformChildren(config)
-        let text = children.filter((child) => typeof child === 'string').join(' ')
-        let id = attributes.id ?? slugify(text)
+        const slugify = documentSlugifyMap.get(config)
+        const attributes = node.transformAttributes(config)
+        const children = node.transformChildren(config)
+        const text = children.filter((child) => typeof child === 'string').join(' ')
+        const id = attributes.id ?? slugify(text)
 
         return new Tag(
           `h${node.attributes.level}`,
@@ -76,7 +76,7 @@ const config: Config = {
       ...defaultNodes.image,
       transform(node, config) {
 
-        let src = node.attributes.src;
+        const src = node.attributes.src;
 
         // if (typeof window === 'undefined') {
         //   // Check if the src is a local file path or an external URL
@@ -235,18 +235,18 @@ export interface DocumentationProps {
 export function Documentation({ filePath, content: defaultContent, variables = {}, partials={} }: DocumentationProps) {
 
   const _config: Config = useMemo(() => {
-    let functions = Object.fromEntries(Object.entries(changeCase)
+    const functions = Object.fromEntries(Object.entries(changeCase)
       .map(([key, value]) => {
         return [key, {
           transform(parameters: any) {
-            let string = parameters[0]
+            const string = parameters[0]
 
             return typeof string === 'string' ? value(string) : string
           }
         }]
       }));
 
-    let _partials = Object.fromEntries(Object.entries(partials).map(([key, value]) => {
+    const _partials = Object.fromEntries(Object.entries(partials).map(([key, value]) => {
       return [key, Markdoc.parse(value)]
     }));
 
@@ -261,13 +261,13 @@ export function Documentation({ filePath, content: defaultContent, variables = {
         ...functions,
         upperCase: {
           transform(parameters: Record<string, any>, config: Config): any {
-            let string = parameters[0]
+            const string = parameters[0]
             return typeof string === 'string' ? string.toUpperCase() : string
           }
         },
         lowerCase: {
           transform(parameters: Record<string, any>, config: Config): any {
-            let string = parameters[0]
+            const string = parameters[0]
             return typeof string === 'string' ? string.toLowerCase() : string
           }
         }

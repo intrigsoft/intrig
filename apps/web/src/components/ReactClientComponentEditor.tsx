@@ -6,16 +6,16 @@ import { Controller, useForm } from 'react-hook-form';
 import { ErrorMessage, Field, Label } from '@/catalyst/fieldset';
 import { Input } from '@/catalyst/input';
 import { Select } from '@/catalyst/select';
-import { Checkbox, CheckboxField, CheckboxGroup } from '@/catalyst/checkbox';
+import { CheckboxField, CheckboxGroup } from '@/catalyst/checkbox';
 import { Switch } from '@/catalyst/switch';
-import { Highlight, themes } from 'prism-react-renderer'
+import { Highlight } from 'prism-react-renderer'
 import prettier from 'prettier/standalone';
 import parserTypescript from 'prettier/plugins/typescript';
 import { pascalCase, camelCase } from '@/lib/change-case';
 import { CheckIcon, ClipboardIcon, InformationCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { Fieldset, Legend, Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
+import { Fieldset, Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export interface RequestProperties {
   method: string

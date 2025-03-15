@@ -60,7 +60,7 @@ interface CodeViewerProps {
 }
 
 export function CodeViewer({ path, children }: CodeViewerProps) {
-  let [response, fetch] = useFileContent();
+  const [response, fetch] = useFileContent();
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -133,7 +133,7 @@ export function DataTypeViewer({ type }: DataTypeRendererProps) {
   };
 
   if (!embeddedCodes.tsType[type]) {
-    let error = `No embedded code for ${type}`;
+    const error = `No embedded code for ${type}`;
     return <Fence language={'markdown'}>{error}</Fence>;
   }
   return (
@@ -307,7 +307,7 @@ export function CodeDialog({
                                         {...getTokenProps({ token })}
                                         onClick={(e) => {
                                           stopPropagation(e);
-                                          let t = token.content.trim();
+                                          const t = token.content.trim();
                                           embeddedCodes.tsType[t] &&
                                           toggleContent(
                                             `type ${t} = ${embeddedCodes.tsType[
@@ -347,9 +347,9 @@ export function CodeDialog({
                 </div>
               </div>
               <div>
-                {[...content].map((content) => {
+                {[...content].map((content, index) => {
                   return (
-                    <div className="mx-auto transform-gpu overflow-auto rounded-xl bg-white shadow-xl dark:bg-slate-800 dark:ring-1 dark:ring-slate-700 mb-4">
+                    <div key={index} className="mx-auto transform-gpu overflow-auto rounded-xl bg-white shadow-xl dark:bg-slate-800 dark:ring-1 dark:ring-slate-700 mb-4">
                       <button
                         onClick={() =>
                           setContent((types) =>
@@ -401,7 +401,7 @@ export function CodeDialog({
                                               {...getTokenProps({ token })}
                                               onClick={(e) => {
                                                 stopPropagation(e);
-                                                let t = token.content.trim();
+                                                const t = token.content.trim();
                                                 embeddedCodes.tsType[t] &&
                                                 toggleContent(
                                                   `type ${t} = ${embeddedCodes.tsType[

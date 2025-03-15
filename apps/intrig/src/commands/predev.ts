@@ -1,7 +1,5 @@
 import {Command} from '@oclif/core'
-import * as path from 'path'
 import * as fs from 'fs-extra'
-import {ux as cli} from "@oclif/core";
 import { IntrigConfig } from '@intrig/cli-common';
 import { CONFIG_FILE } from '../util';
 import { adaptor as reactAdaptor } from '@intrig/intrig-react-binding';
@@ -31,10 +29,10 @@ export default class Predev extends Command {
 
     switch (config.generator) {
       case 'react':
-        reactAdaptor.predev()
+        await reactAdaptor.predev()
         break;
       case 'next':
-        nextAdaptor.predev()
+        await nextAdaptor.predev()
         break;
     }
   }

@@ -15,7 +15,7 @@ import {
   UnitHook,
   UnitHookOptions
 } from '@intrig/next/network-state';
-import { useCallback, useEffect, useId, useMemo, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useIntrigContext } from '@intrig/next/intrig-context';
 
 /**
@@ -42,7 +42,7 @@ export function useAsPromise<P, B, T, E>(
   const resolveRef = useRef<(value: T) => void>();
   const rejectRef = useRef<(reason?: any) => void>();
 
-  let [state, dispatch, clear] = hook(options as any); // Casting to `any` to match all overloads
+  const [state, dispatch, clear] = hook(options as any); // Casting to `any` to match all overloads
 
   useEffect(() => {
     if (isSuccess(state)) {
@@ -59,7 +59,7 @@ export function useAsPromise<P, B, T, E>(
       resolveRef.current = resolve;
       rejectRef.current = reject;
 
-      let dispatchState = (dispatch as any)(...args);
+      const dispatchState = (dispatch as any)(...args);
       if (isValidationError(dispatchState)) {
         reject(dispatchState.error);
       }
@@ -77,10 +77,10 @@ export function useAsPromise<P, B, T, E>(
  * @param key An optional identifier for the network state. Defaults to 'default'.
  * @return A tuple containing the current network state, a function to execute the promise, and a function to clear the state.
  */
-export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(fn: F, key: string = 'default'): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
-  let id = useId();
+export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(fn: F, key = 'default'): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
+  const id = useId();
 
-  let context = useIntrigContext();
+  const context = useIntrigContext();
 
   const networkState = useMemo(() => {
     return context.state?.[`promiseState:${id}:${key}}`] ?? init()
@@ -139,7 +139,7 @@ export function useResolvedValue<P, B, T, E>(hook: BinaryFunctionHook<P, B, T, E
 export function useResolvedValue<P, B, T, E>(hook: IntrigHook<P, B, T, E>, options: IntrigHookOptions<P, B>): T | undefined {
   const [value, setValue] = useState<T | undefined>();
 
-  let [state] = hook(options as any); // Ensure compatibility with different hook types
+  const [state] = hook(options as any); // Ensure compatibility with different hook types
 
   useEffect(() => {
     if (isSuccess(state)) {
@@ -177,14 +177,14 @@ export function useResolvedCachedValue<P, B, T, E>(hook: BinaryFunctionHook<P, B
 export function useResolvedCachedValue<P, B, T, E>(hook: IntrigHook<P, B, T, E>, options: IntrigHookOptions<P, B>): T | undefined {
   const [cachedValue, setCachedValue] = useState<T | undefined>();
 
-  let [state] = hook(options as any); // Ensure compatibility with different hook types
+  const [state] = hook(options as any); // Ensure compatibility with different hook types
 
   useEffect(() => {
     if (isSuccess(state)) {
       setCachedValue(state.data);
     }
     // Do not clear cached value if state is unsuccessful
-  }, [state]); 
+  }, [state]);
 
   return cachedValue;
 }

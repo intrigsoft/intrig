@@ -5,10 +5,10 @@ import { getConfig } from '@/services/configs';
 import { camelCase, capitalCase } from 'change-case';
 
 export default async function SourcesPage() {
-  let intrigConfig = getConfig();
+  const intrigConfig = getConfig();
 
 
-  let contents = `
+  const contents = `
 ---
 title: Sources
 ---
