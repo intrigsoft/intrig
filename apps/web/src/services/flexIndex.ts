@@ -6,7 +6,7 @@ import { RenderableTreeNode } from '@markdoc/markdoc';
 import { INTRIG_LOCATION } from '@/const/locations';
 import fg from 'fast-glob';
 // import { capitalCase } from '@/lib/change-case';
-import {capitalCase, SourceInfo} from '@intrig/cli-common';
+import {capitalCase, pascalCase, SourceInfo} from '@intrig/cli-common';
 
 export interface SearchResult {
   title: string;
@@ -65,7 +65,7 @@ async function addDocumentsToIndex() {
             path.source,
             ...path.paths,
             path.operationId,
-            `use${capitalCase(path.method)}`,
+            `use${pascalCase(path.operationId)}`,
             path.requestUrl,
             path.summary,
             path.description,
@@ -164,7 +164,7 @@ export function search(query: string, limit?: number): SearchResult[] {
     boost: {
       signature: 3,
       title: 2,    // Title matches are twice as important
-      tags: 1.5,   // Tag matches are 1.5x as important
+      tags: 2.5,   // Tag matches are 1.5x as important
       content: 1   // Normal weight for content
     },
     limit,
