@@ -147,9 +147,36 @@ useEffect(() => {
 }, []);
 \`\`\`
 
-#### 3. Handling the response
+#### 3. Clear on unmount.
 
-##### 3.1 Extract success state using \`useMemo\`.
+Use \`useEffect\` to clear the response state when the component is unmounted.
+
+\`\`\`tsx
+import { useEffect } from 'react';
+
+useEffect(() => {
+  return clear${pascalCase(methodName)}
+}, [])
+\`\`\`
+
+__Note__: Alternatively, you can configure the hook to clear the response state on unmount using the \`clearOnUnmount\` option.
+
+\`\`\`tsx
+let [${methodName}Resp, ${methodName}] = ${hookName}({ clearOnUnmount: true });
+\`\`\`
+
+#### 4. Managing response instances.
+
+Use \`key\` option to manage multiple response instances of the hook.
+
+\`\`\`tsx
+let [${methodName}RespLeft, ${methodName}Left] = ${hookName}({ key: 'Left' });
+let [${methodName}RespRight, ${methodName}Right] = ${hookName}({ key: 'Right' });
+\`\`\`
+
+#### 5. Handling the response
+
+##### 5.1 Extract success state using \`useMemo\`.
 
 Use \`useMemo\` to memoize the response data for efficient re-rendering when the response is successful.
 
@@ -164,7 +191,7 @@ let petById = useMemo(() => {
 }, [${methodName}Resp])
 \`\`\`
 
-##### 3.2 Perform actions when the response is successful using \`useEffect\`.
+##### 5.2 Perform actions when the response is successful using \`useEffect\`.
 
 Use \`useEffect\` to perform actions whenever the response becomes successful.
 
@@ -180,7 +207,7 @@ useEffect(() => {
 }, [${methodName}Resp])
 \`\`\`
 
-##### 3.3 Handle the pending state
+##### 5.3 Handle the pending state
 
 Render a loading state while the request is pending.
 
@@ -190,7 +217,7 @@ if (isPending(${methodName}Resp)) {
 }
 \`\`\`
 
-##### 3.4 Handle errors.
+##### 5.4 Handle errors.
 
 Render an error message if the request fails.
 
@@ -200,7 +227,7 @@ if (isError(${methodName}Resp)) {
 }
 \`\`\`
 
-##### 3.5 Use the response within JSX.
+##### 5.5 Use the response within JSX.
 
 Render the response data or error message conditionally within your JSX.
 
