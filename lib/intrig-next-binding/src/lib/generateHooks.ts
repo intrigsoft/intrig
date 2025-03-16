@@ -24,6 +24,8 @@ export async function generateHooks(api: IntrigSourceConfig, _path: string, path
     await dump(paramsTemplate(path))
     await dump(requestHookTemplate(path))
     await dump(requestMethodTemplate(path))
+    await dump(clientIndexTemplate([path]))
+    await dump(serverIndexTemplate([path]))
 
     groupedByPath[path.requestUrl] = groupedByPath[path.requestUrl] ?? []
     groupedByPath[path.requestUrl].push(path)
@@ -34,7 +36,7 @@ export async function generateHooks(api: IntrigSourceConfig, _path: string, path
   }
 
   for (const [requestUrl, matchingPaths] of Object.entries(groupedByPath)) {
-    await handleIndexes(requestUrl, matchingPaths);
+    // await handleIndexes(requestUrl, matchingPaths);
     await dump(requestRouteTemplate(requestUrl, matchingPaths))
   }
 }

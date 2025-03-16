@@ -141,7 +141,7 @@ export function requestHookTemplate({source, paths, operationId, response, reque
         key: options?.key ?? 'default',
         operation,
         source,
-        schema,
+        schema: schema as any,
         errorSchema
       });
 

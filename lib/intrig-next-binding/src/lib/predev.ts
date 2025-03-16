@@ -29,6 +29,7 @@ export async function predev() {
     }
   } catch (error) {
     cli.action.stop('Failed to copy routes');
-    this.error(error);
+    console.error(error);
+    // this.error(error);
   }
 }

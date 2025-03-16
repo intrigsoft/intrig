@@ -6,11 +6,14 @@ export function contextTemplate(_path: string) {
 
   return ts`
   "use client"
-import { NetworkAction, NetworkState } from '@intrig/next/network-state';
-import { AxiosProgressEvent } from 'axios';
+import { NetworkAction, NetworkState } from './network-state';
+import { AxiosProgressEvent, CreateAxiosDefaults } from 'axios';
 import { ZodSchema } from 'zod';
 import { createContext, useContext } from 'react';
-import { DefaultConfigs } from '@intrig/next/intrig-provider';
+
+export interface DefaultConfigs extends CreateAxiosDefaults {
+  debounceDelay?: number;
+}
 
 type GlobalState = Record<string, NetworkState>;
 

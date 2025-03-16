@@ -58,6 +58,7 @@ export async function requestRouteTemplate(requestUrl: string, paths: RequestPro
     switch (path.method.toLowerCase()) {
       case "get":
         imports.add(createImport(path))
+        //TODO fix xml handling.
         getBlocks.add((await ts`
         let { data: response, headers } = await ${getFunctionName(path)}({
           ...(params ?? {}) as any,
@@ -114,16 +115,16 @@ export async function requestRouteTemplate(requestUrl: string, paths: RequestPro
             let params = paramOb?.params;
             ${[...blocks].join('\n')}
             ${["POST", "PUT"].includes(name) ? `return new NextResponse(null, { status: 204 });` : ``}
-          } catch (e) {
+          } catch (e: any) {
             if (isAxiosError(e)) {
-              logger.error("Error in response", e)
+              logger.error("Error in response", e as any)
               let status = e.response?.status ?? 500;
               let statusText = e.response?.statusText;
               let data = e.response?.data;
 
               return NextResponse.json(data, { status, statusText })
             } else if (e instanceof ZodError) {
-              logger.error("Response validation error", e)
+              logger.error("Response validation error", e as any)
               const formattedErrors = e.errors.map((err) => ({
                 path: err.path.join('.'),
                 message: err.message,
@@ -131,7 +132,7 @@ export async function requestRouteTemplate(requestUrl: string, paths: RequestPro
 
               return NextResponse.json({ errors: formattedErrors }, { status: 400 });
             } else {
-              logger.error("Unknown error occurred", e)
+              logger.error("Unknown error occurred", e as any)
               return NextResponse.json(e, { status: 500 })
             }
           }

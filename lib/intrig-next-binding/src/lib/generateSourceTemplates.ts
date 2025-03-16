@@ -4,10 +4,12 @@ import { controllerDocsTempalte } from './templates/source/controller/controller
 import { methodDocsTemplate } from './templates/source/controller/method/methodDocsTemplate';
 import { registryTemplate } from './templates/source/registry.template';
 import { metaInfoTemplate } from './templates/source/controller/method/metaInfoTemplate';
+import { aiModelTemplate } from './templates/source/ai-model.template';
 
 export async function generateSourceTemplates(api: IntrigSourceConfig, _path: string, spec: SourceInfo) {
   await dump(registryTemplate(api, _path, spec))
   await dump(sourceDocsTemplate(api, _path, spec.sourceInfo))
+  await dump(aiModelTemplate(api, _path, spec))
   for (const tag of spec.controllers) {
     await dump(controllerDocsTempalte(api, _path, tag))
   }

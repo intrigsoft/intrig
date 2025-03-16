@@ -14,7 +14,7 @@ export function packageJsonTemplate(_path: string) {
     "build": "tsc"
   },
   "dependencies": {
-    "module-alias": "^2.2.2",
+    "module-alias": "^2.2.3",
     "axios": "^1.7.7",
     "immer": "^10.1.1",
     "zod": "^3.23.8",

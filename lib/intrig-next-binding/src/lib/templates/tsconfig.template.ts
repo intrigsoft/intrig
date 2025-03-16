@@ -15,7 +15,11 @@ export function tsConfigTemplate(_path: string) {
     "moduleResolution": "node",
     "baseUrl": ".",
     "sourceMap": true,
+    "skipLibCheck": true,
     "paths": {
+      "@intrig/next": [
+        "./src"
+      ],
       "@intrig/next/*": [
         "./src/*"
       ],

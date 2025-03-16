@@ -8,7 +8,8 @@ export function intrigLayoutTemplate(_path: string) {
 "use server"
 
 import { headers } from 'next/headers';
-import { DefaultConfigs, IntrigProvider } from './intrig-provider';
+import { IntrigProvider } from './intrig-provider';
+import { DefaultConfigs } from './intrig-context';
 
 export default async function IntrigLayout({children, configs}: { children: React.ReactNode, configs?: DefaultConfigs}) {
 

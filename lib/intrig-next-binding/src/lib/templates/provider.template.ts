@@ -38,7 +38,7 @@ import axios, {
 import { ZodSchema } from 'zod';
 import logger from './logger'
 
-import {Context, RequestType, GlobalState} from './intrig-context';
+import {Context, RequestType, GlobalState, DefaultConfigs} from './intrig-context';
 
 /**
  * Handles state updates for network requests based on the provided action.
@@ -55,10 +55,6 @@ function requestReducer(
     ...state,
     [\`${"${action.source}:${action.operation}:${action.key}"}\`]: action.state
   }
-}
-
-export interface DefaultConfigs extends CreateAxiosDefaults {
-  debounceDelay?: number;
 }
 
 export interface IntrigProviderProps {

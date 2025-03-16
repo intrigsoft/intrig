@@ -97,10 +97,14 @@ export function requestMethodTemplate({source, paths, operationId, response, req
   return ts`
     ${[...imports].join('\n')}
 
-    ${!response ? `
+    ${
+      !response
+        ? `
     type Response = any;
     const schema = z.any();
-    ` : ''}
+    `
+        : ''
+    }
 
     ${extractErrorParams(errorTypes)}
 
@@ -111,7 +115,7 @@ export function requestMethodTemplate({source, paths, operationId, response, req
           let {${paramExplode}} = p
 
           logger.info("Executing request ${source}: ${method} ${modifiedRequestUrl}");
-          logger.debug("⇨", p, ${requestBody ? "data" : ""})
+          logger.debug("⇨", {p, ${requestBody ? 'data' : ''}})
 
           let axiosInstance = await getAxiosInstance('${source}')
           let { data: responseData, headers } = await axiosInstance.request({
@@ -121,14 +125,13 @@ export function requestMethodTemplate({source, paths, operationId, response, req
               ${contentType ? `"Content-Type": "${contentType}",` : ''}
             },
             params,
-            ${[
-    requestBody && finalRequestBodyBlock,
-    responseTypeBlock,
-  ].filter(Boolean).join(',\n')}
+            ${[requestBody && finalRequestBodyBlock, responseTypeBlock]
+              .filter(Boolean)
+              .join(',\n')}
           })
 
           logger.info("Executed request completed ${source}: ${method} ${modifiedRequestUrl}");
-          logger.debug("⇦", responseData, headers)
+          logger.debug("⇦", {responseData, headers})
 
           if (options?.hydrate) {
             addResponseToHydrate(\`${source}:\${operation}:\${options?.key ?? "default"}\`, responseData);
@@ -144,7 +147,7 @@ export function requestMethodTemplate({source, paths, operationId, response, req
       try {
         let { data: responseData, headers } = await execute${pascalCase(operationId)}(${requestBody ? 'data,' : ''} p, options);
         return transformResponse(responseData, "${responseType}", schema);
-      } catch (e) {
+      } catch (e: any) {
         if (isAxiosError(e) && e.response) {
           logger.error("Error executing request", e.response.data)
           throw networkError(transformResponse(e.response.data, "application/json", errorSchema), e.response.status + "", e.response.request);
@@ -160,5 +163,5 @@ export function requestMethodTemplate({source, paths, operationId, response, req
     export type ${pascalCase(operationId)}Params = Params;
     ${response ? `export type ${pascalCase(operationId)}Response = Response;` : ''}
     ${requestBody ? `export type ${pascalCase(operationId)}RequestBody = RequestBody;` : ''}
-  `
+  `;
 }

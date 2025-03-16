@@ -61,11 +61,11 @@ export default class Generate extends Command {
 
       await setupCacheAndInstall(async (_path) => {
         for (const api of apisToSync) {
-          let spec = await getOpenApiSpecFromFile(api.id);
-          let sourceInfo = extractEndpointInfo(api, spec);
-          adaptor.generateSourceContent(api, _path, sourceInfo);
+          const spec = await getOpenApiSpecFromFile(api.id);
+          const sourceInfo = extractEndpointInfo(api, spec);
+          await adaptor.generateSourceContent(api, _path, sourceInfo);
         }
-        adaptor.generateGlobalContent(_path, apisToSync);
+        await adaptor.generateGlobalContent(_path, apisToSync);
       }, config.generator ?? 'react', adaptor);
     } catch (e) {
       console.error(e);

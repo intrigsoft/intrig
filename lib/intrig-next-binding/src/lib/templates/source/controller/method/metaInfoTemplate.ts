@@ -7,12 +7,12 @@ export function metaInfoTemplate(
   endpoints: RequestProperties[]
 ) {
   if (endpoints.length < 1) return null;
-  let {
+  const {
     paths,
     operationId
   } = endpoints[0];
 
-  let json = jsonLiteral(path.resolve(_path, 'src', api.id, ...paths, operationId, 'metainfo.json'));
+  const json = jsonLiteral(path.resolve(_path, 'src', api.id, ...paths, operationId, 'metainfo.json'));
   return json`
     ${JSON.stringify({
     ...endpoints[0],

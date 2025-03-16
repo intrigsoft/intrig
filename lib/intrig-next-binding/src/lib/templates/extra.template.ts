@@ -5,34 +5,51 @@ export function extraTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, "src", "extra.ts"))
 
   return ts`
-  "use client"
+"use client"
 import {
+  BinaryFunctionHook,
+  BinaryHookOptions,
+  BinaryProduceHook,
+  ConstantHook,
   error,
-  init, IntrigHook,
+  init, IntrigHook, IntrigHookOptions,
   isError,
   isSuccess,
   isValidationError,
   NetworkState,
   pending,
-  success
-} from '@intrig/next/network-state';
-import { useCallback, useEffect, useId, useMemo, useReducer, useRef, useState } from 'react';
-import { useIntrigContext } from '@intrig/next/intrig-context';
+  success, UnaryFunctionHook, UnaryHookOptions, UnaryProduceHook,
+  UnitHook,
+  UnitHookOptions
+} from './network-state';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useIntrigContext } from './intrig-context';
 
 /**
  * Converts a given hook into a promise-based function.
  *
  * @param {IntrigHook<P, B, T>} hook - The hook function to be converted.
- * @param {string} [key='default'] - An optional key to uniquely identify the hook instance.
+ * @param options
  *
  * @return {[(...params: Parameters<ReturnType<IntrigHook<P, B, T>>[1]>) => Promise<T>, () => void]}
  * Returns a tuple containing a function that invokes the hook as a promise and a function to clear the state.
  */
-export function useAsPromise<P, B, T>(hook: IntrigHook<P, B, T>, key: string = 'default'): [(...params: Parameters<ReturnType<IntrigHook<P, B, T>>[1]>) => Promise<T>, () => void] {
+export function useAsPromise<E>(hook: UnitHook<E>, options: UnitHookOptions): [() => Promise<never>, () => void];
+export function useAsPromise<T, E>(hook: ConstantHook<T, E>, options: UnitHookOptions): [() => Promise<T>, () => void];
+export function useAsPromise<P, E>(hook: UnaryProduceHook<P, E>, options?: UnaryHookOptions<P>): [(params: P) => Promise<never>, () => void];
+export function useAsPromise<P, T, E>(  hook: UnaryFunctionHook<P, T, E>, options?: UnaryHookOptions<P>): [(params: P) => Promise<T>, () => void];
+export function useAsPromise<P, B, E>(hook: BinaryProduceHook<P, B, E>, options?: BinaryHookOptions<P, B>): [(body: B, params: P) => Promise<never>, () => void];
+export function useAsPromise<P, B, T, E>(hook: BinaryFunctionHook<P, B, T, E>, options?: BinaryHookOptions<P, B>): [(body: B, params: P) => Promise<T>, () => void];
+
+// **Implementation**
+export function useAsPromise<P, B, T, E>(
+  hook: IntrigHook<P, B, T, E>,
+  options?: IntrigHookOptions<P, B>
+): [(...args: any[]) => Promise<T>, () => void] {  // <- Compatible return type
   const resolveRef = useRef<(value: T) => void>();
   const rejectRef = useRef<(reason?: any) => void>();
 
-  let [state, dispatch, clear] = hook(key);
+  const [state, dispatch, clear] = hook(options as any);
 
   useEffect(() => {
     if (isSuccess(state)) {
@@ -40,25 +57,23 @@ export function useAsPromise<P, B, T>(hook: IntrigHook<P, B, T>, key: string = '
       clear();
     } else if (isError(state)) {
       rejectRef.current?.(state.error);
-      clear()
+      clear();
     }
   }, [state]);
 
-  const promiseFn = useCallback((...args: Parameters<ReturnType<IntrigHook<P, B, T>>[1]>) => {
+  const promiseFn = useCallback((...args: any[]) => {
     return new Promise<T>((resolve, reject) => {
       resolveRef.current = resolve;
       rejectRef.current = reject;
-      let dispatchState = (dispatch as any)(...args);
+
+      const dispatchState = (dispatch as any)(...args);
       if (isValidationError(dispatchState)) {
         reject(dispatchState.error);
       }
     });
   }, [dispatch]);
 
-  return [
-    promiseFn,
-    clear
-  ];
+  return [promiseFn, clear];
 }
 
 /**
@@ -69,10 +84,10 @@ export function useAsPromise<P, B, T>(hook: IntrigHook<P, B, T>, key: string = '
  * @param key An optional identifier for the network state. Defaults to 'default'.
  * @return A tuple containing the current network state, a function to execute the promise, and a function to clear the state.
  */
-export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(fn: F, key: string = 'default'): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
-  let id = useId();
+export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(fn: F, key = 'default'): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
+  const id = useId();
 
-  let context = useIntrigContext();
+  const context = useIntrigContext();
 
   const networkState = useMemo(() => {
     return context.state?.[${"`promiseState:${id}:${key}}`"}] ?? init()
@@ -112,13 +127,26 @@ export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(f
  * A custom hook that resolves the value from the provided hook's state and updates it whenever the state changes.
  *
  * @param {IntrigHook<P, B, T>} hook - The hook that provides the state to observe and resolve data from.
- * @param {string} [key='default'] - An optional key to be passed to the hook for specific state resolution.
+ * @param options
  * @return {T | undefined} The resolved value from the hook's state or undefined if the state is not successful.
  */
-export function useResolvedValue<P, B, T>(hook: IntrigHook<P, B, T>, key: string = 'default') {
-  const [value, setValue] = useState<T>();
+export function useResolvedValue<E>(hook: UnitHook<E>, options: UnitHookOptions): undefined;
 
-  let [state] = hook(key);
+export function useResolvedValue<T, E>(hook: ConstantHook<T, E>, options: UnitHookOptions): T | undefined;
+
+export function useResolvedValue<P, E>(hook: UnaryProduceHook<P, E>, options: UnaryHookOptions<P>): undefined;
+
+export function useResolvedValue<P, T, E>(hook: UnaryFunctionHook<P, T, E>, options: UnaryHookOptions<P>): T | undefined;
+
+export function useResolvedValue<P, B, E>(hook: BinaryProduceHook<P, B, E>, options: BinaryHookOptions<P, B>): undefined;
+
+export function useResolvedValue<P, B, T, E>(hook: BinaryFunctionHook<P, B, T, E>, options: BinaryHookOptions<P, B>): T | undefined;
+
+// **Implementation**
+export function useResolvedValue<P, B, T, E>(hook: IntrigHook<P, B, T, E>, options: IntrigHookOptions<P, B>): T | undefined {
+  const [value, setValue] = useState<T | undefined>();
+
+  const [state] = hook(options as any); // Ensure compatibility with different hook types
 
   useEffect(() => {
     if (isSuccess(state)) {
@@ -126,9 +154,9 @@ export function useResolvedValue<P, B, T>(hook: IntrigHook<P, B, T>, key: string
     } else {
       setValue(undefined);
     }
-  }, []);
+  }, [state]);
 
-  return value
+  return value;
 }
 
 
@@ -137,13 +165,26 @@ export function useResolvedValue<P, B, T>(hook: IntrigHook<P, B, T>, key: string
  * The state is updated only when it is in a successful state.
  *
  * @param {IntrigHook<P, B, T>} hook - The hook that provides the state to observe and cache data from.
- * @param {string} [key='default'] - An optional key to be passed to the hook for specific state resolution.
+ * @param options
  * @return {T | undefined} The cached value from the hook's state or undefined if the state is not successful.
  */
-export function useResolvedCachedValue<P, B, T>(hook: IntrigHook<P, B, T>, key: string = 'default') {
+export function useResolvedCachedValue<E>(hook: UnitHook<E>, options: UnitHookOptions): undefined;
+
+export function useResolvedCachedValue<T, E>(hook: ConstantHook<T, E>, options: UnitHookOptions): T | undefined;
+
+export function useResolvedCachedValue<P, E>(hook: UnaryProduceHook<P, E>, options: UnaryHookOptions<P>): undefined;
+
+export function useResolvedCachedValue<P, T, E>(hook: UnaryFunctionHook<P, T, E>, options: UnaryHookOptions<P>): T | undefined;
+
+export function useResolvedCachedValue<P, B, E>(hook: BinaryProduceHook<P, B, E>, options: BinaryHookOptions<P, B>): undefined;
+
+export function useResolvedCachedValue<P, B, T, E>(hook: BinaryFunctionHook<P, B, T, E>, options: BinaryHookOptions<P, B>): T | undefined;
+
+// **Implementation**
+export function useResolvedCachedValue<P, B, T, E>(hook: IntrigHook<P, B, T, E>, options: IntrigHookOptions<P, B>): T | undefined {
   const [cachedValue, setCachedValue] = useState<T | undefined>();
 
-  let [state] = hook(key);
+  const [state] = hook(options as any); // Ensure compatibility with different hook types
 
   useEffect(() => {
     if (isSuccess(state)) {
@@ -154,5 +195,6 @@ export function useResolvedCachedValue<P, B, T>(hook: IntrigHook<P, B, T>, key: 
 
   return cachedValue;
 }
+
 `
 }
