@@ -23,12 +23,13 @@ export function packageJsonTemplate(_path: string) {
     "loglevel": "1.8.1",
     "pino": "^9.6.0",
     "pino-pretty": "^13.0.0",
+    "qs": "^6.14.0"
   },
   "peerDependencies": {
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "next": ">=13.0.0",
-    "next/server": ">=13.0.0",
+    "@types/qs": "^6.9.18"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0"

@@ -12,15 +12,24 @@ export async function setupCacheAndInstall(
   generateData: (path: string) => Promise<void>,
   generator: string,
   adaptor: ContentGeneratorAdaptor): Promise<void> {
-  // const tempDir = path.join(os.tmpdir(), 'intrig_generated')
 
   const tempDir = path.join('.intrig', 'generated')
 
   // Remove existing installation if it exists
   if (await fs.pathExists(tempDir)) {
-    cli.action.start('Removing existing generated package files')
-    await fs.remove(tempDir)
-    cli.action.stop()
+    cli.action.start('Cleaning generated package files (excluding node_modules)')
+    try {
+      const files = await fs.readdir(tempDir)
+      for (const file of files) {
+        if (file !== 'node_modules') {
+          await fs.remove(path.join(tempDir, file))
+        }
+      }
+    } catch (e) {
+      console.error('Failed to clean tempDir', e)
+    } finally {
+      cli.action.stop()
+    }
   }
 
   // Ensure the temp directory exists
@@ -28,10 +37,37 @@ export async function setupCacheAndInstall(
 
   await generateData(path.resolve(tempDir))
 
+  const packageManager = await detectPackageManager(process.cwd());
+
+  // Install dependencies
+  cli.action.start("Installing dependencies for the generated package")
+  try {
+    switch (packageManager.name) {
+      case "npm":
+        await execAsync('npm install', { cwd: tempDir })
+        break;
+      case "yarn":
+        await execAsync('yarn install', { cwd: tempDir })
+        break;
+      case "pnpm":
+        await execAsync('pnpm install', { cwd: tempDir })
+        break;
+      case "bun":
+        await execAsync('bun install', { cwd: tempDir })
+        break;
+      default:
+        console.error(new Error(`Unsupported package manager: ${packageManager.name}`))
+    }
+  } catch (e) {
+    cli.action.stop('failed')
+    console.error('Dependency installation failed', e)
+    return
+  }
+  cli.action.stop()
+
   // Build the project
   cli.action.start("Building the generated package")
   try {
-    const packageManager = await detectPackageManager(process.cwd());
     switch (packageManager.name) {
       case "npm":
         await execAsync('npm run build', { cwd: tempDir })
@@ -45,14 +81,13 @@ export async function setupCacheAndInstall(
       case "bun":
         await execAsync('bun run build', { cwd: tempDir })
         break;
-      default:
-        console.error(new Error(`Unsupported package manager: ${packageManager.name}`))
     }
   } catch (e: unknown) {
-    cli.action.stop(JSON.stringify(e))
-  } finally {
-    cli.action.stop()
+    cli.action.stop('failed')
+    console.error('Build failed', e)
+    return
   }
+  cli.action.stop()
 
   const sourceLibDir = path.join(tempDir, 'dist')
   let client = 'react';

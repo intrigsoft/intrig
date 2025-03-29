@@ -87,49 +87,106 @@ function extractErrorParams(errorTypes: string[]) {
   }
 }
 
-export function requestHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties) {
-  const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}.ts`))
+export function requestHookTemplate(
+  {
+    source,
+    paths,
+    operationId,
+    response,
+    requestUrl,
+    variables,
+    sourcePath,
+    requestBody,
+    contentType,
+    responseType,
+    errorResponses,
+    method,
+  }: RequestProperties,
+  clientExports: string[] = [],
+  serverExports: string[] = [],
+) {
+  const ts = typescript(
+    path.resolve(
+      sourcePath,
+      'src',
+      source,
+      ...paths,
+      camelCase(operationId),
+      `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}.ts`,
+    ),
+  );
 
-  const modifiedRequestUrl = `/api/${source}${requestUrl.replace(/\{/g, "${")}`
+  const modifiedRequestUrl = `/api/${source}${requestUrl.replace(/\{/g, '${')}`;
 
   const imports = new Set<string>();
-  imports.add(`import { z } from 'zod'`)
-  imports.add(`import { useCallback, useEffect } from 'react'`)
-  imports.add(`import {useNetworkState, NetworkState, DispatchState, error, successfulDispatch, validationError} from "@intrig/next"`)
-  imports.add(`import { encode } from "@intrig/next/media-type-utils"`)
-  imports.add(`import logger from "@intrig/next/logger"`)
+  imports.add(`import { z } from 'zod'`);
+  imports.add(`import { useCallback, useEffect } from 'react'`);
+  imports.add(
+    `import {useNetworkState, NetworkState, DispatchState, error, successfulDispatch, validationError} from "@intrig/next"`,
+  );
+  imports.add(`import { encode } from "@intrig/next/media-type-utils"`);
+  imports.add(`import logger from "@intrig/next/logger"`);
 
-  const { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
+  const { hookShape, optionsShape } = extractHookShapeAndOptionsShape(
+    response,
+    requestBody,
+    imports,
+  );
 
-  const { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
+  const { paramExpression, paramType } = extractParamDeconstruction(
+    variables,
+    requestBody,
+  );
 
   if (requestBody) {
-    imports.add(`import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"`)
+    imports.add(
+      `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"`,
+    );
+    clientExports.push(`export { ${requestBody} } from "@intrig/next/${source}/components/schemas/${requestBody}"`);
   }
 
   if (response) {
-    imports.add(`import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"`)
+    imports.add(
+      `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"`,
+    );
+    clientExports.push(`export { ${response} } from "@intrig/next/${source}/components/schemas/${response}"`);
   }
 
-  imports.add(`import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`)
+  imports.add(
+    `import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`,
+  );
 
-  const errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))]
-  errorTypes.forEach(ref => imports.add(`import {${ref}, ${ref}Schema } from "@intrig/next/${source}/components/schemas/${ref}"`))
+  const errorTypes = [
+    ...new Set(Object.values(errorResponses ?? {}).map((a) => a.response)),
+  ];
+  errorTypes.forEach((ref) =>
+    imports.add(
+      `import {${ref}, ${ref}Schema } from "@intrig/next/${source}/components/schemas/${ref}"`,
+    ),
+  );
 
   const paramExplode = [
-    ...variables.filter(a => a.in === "path").map(a => a.name),
-    "...params"
-  ].join(",")
+    ...variables.filter((a) => a.in === 'path').map((a) => a.name),
+    '...params',
+  ].join(',');
 
-  const finalRequestBodyBlock = requestBody ? `data: encode(data, "${contentType}", requestBodySchema)` : ''
+  const finalRequestBodyBlock = requestBody
+    ? `data: encode(data, "${contentType}", requestBodySchema)`
+    : '';
+
+  clientExports.push(`export { use${pascalCase(operationId)} } from './use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}'`);
 
   return ts`
     ${[...imports].join('\n')}
 
-    ${!response ? `
+    ${
+      !response
+        ? `
     type Response = any;
     const schema = z.any();
-    ` : ''}
+    `
+        : ''
+    }
 
     ${extractErrorParams(errorTypes)}
 
@@ -148,14 +205,18 @@ export function requestHookTemplate({source, paths, operationId, response, reque
       let doExecute = useCallback<(${paramType}) => DispatchState<any>>((${paramExpression}) => {
         let { ${paramExplode}} = p
 
-          ${requestBody ? `
+          ${
+            requestBody
+              ? `
           const validationResult = requestBodySchema.safeParse(data);
           if (!validationResult.success) {
             logger.error("Request Validation failed", validationResult.error.errors)
             logger.debug("Request Body", data)
             return validationError(validationResult.error.errors);
           }
-          ` : ``}
+          `
+              : ``
+          }
 
           dispatch({
             method: '${method}',
@@ -164,7 +225,7 @@ export function requestHookTemplate({source, paths, operationId, response, reque
               ${contentType ? `"Content-Type": "${contentType}",` : ''}
             },
             params,
-            key: \`${"${source}: ${operation}"}\`,
+            key: \`${'${source}: ${operation}'}\`,
             ${requestBody ? finalRequestBodyBlock : ''}
           })
           return successfulDispatch();
@@ -189,12 +250,12 @@ export function requestHookTemplate({source, paths, operationId, response, reque
       ]
     }
 
-    use${pascalCase(operationId)}Hook.key = \`${"${source}: ${operation}"}\`
+    use${pascalCase(operationId)}Hook.key = \`${'${source}: ${operation}'}\`
 
     export const use${pascalCase(operationId)}: ${hookShape} = use${pascalCase(operationId)}Hook;
 
     export type ${pascalCase(operationId)}Params = Params;
     ${response ? `export type ${pascalCase(operationId)}Response = Response;` : ''}
     ${requestBody ? `export type ${pascalCase(operationId)}RequestBody = RequestBody;` : ''}
-  `
+  `;
 }

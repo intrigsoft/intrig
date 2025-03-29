@@ -55,44 +55,100 @@ function extractErrorParams(errorTypes: string[]) {
   }
 }
 
-export function requestMethodTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties) {
-  const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `${camelCase(operationId)}${generatePostfix(contentType, responseType)}.ts`))
+export function requestMethodTemplate(
+  {
+    source,
+    paths,
+    operationId,
+    response,
+    requestUrl,
+    variables,
+    sourcePath,
+    requestBody,
+    contentType,
+    responseType,
+    errorResponses,
+    method,
+  }: RequestProperties,
+  clientExports: string[] = [],
+  serverExports: string[] = [],
+) {
+  const ts = typescript(
+    path.resolve(
+      sourcePath,
+      'src',
+      source,
+      ...paths,
+      camelCase(operationId),
+      `${camelCase(operationId)}${generatePostfix(contentType, responseType)}.ts`,
+    ),
+  );
 
-  const modifiedRequestUrl = `${requestUrl.replace(/\{/g, "${")}`
+  const modifiedRequestUrl = `${requestUrl.replace(/\{/g, '${')}`;
+
+  serverExports.push(`export { ${camelCase(operationId)} } from './${camelCase(operationId)}${generatePostfix(contentType, responseType)}'`);
 
   const imports = new Set<string>();
   imports.add(`import { z, ZodError } from 'zod'`);
   imports.add(`import { isAxiosError } from 'axios';`);
-  imports.add(`import {getAxiosInstance, addResponseToHydrate} from '@intrig/next/intrig-middleware'`);
-  imports.add(`import {transformResponse, encode} from '@intrig/next/media-type-utils'`)
-  imports.add(`import { networkError, responseValidationError, AsyncRequestOptions } from '@intrig/next';`);
-  imports.add(`import logger from "@intrig/next/logger"`)
+  imports.add(
+    `import {getAxiosInstance, addResponseToHydrate} from '@intrig/next/intrig-middleware'`,
+  );
+  imports.add(
+    `import {transformResponse, encode} from '@intrig/next/media-type-utils'`,
+  );
+  imports.add(
+    `import { networkError, responseValidationError, AsyncRequestOptions } from '@intrig/next';`,
+  );
+  imports.add(`import logger from "@intrig/next/logger"`);
 
-  const { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
+  const { paramExpression, paramType } = extractParamDeconstruction(
+    variables,
+    requestBody,
+  );
 
   if (requestBody) {
-    imports.add(`import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"`)
+    imports.add(
+      `import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"`,
+    );
+    serverExports.push(`export { ${requestBody} } from "@intrig/next/${source}/components/schemas/${requestBody}"`);
   }
 
   if (response) {
-    imports.add(`import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"`)
+    imports.add(
+      `import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"`,
+    );
+    serverExports.push(`export { ${response} } from "@intrig/next/${source}/components/schemas/${response}"`);
   }
 
-  imports.add(`import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`)
+  imports.add(
+    `import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`,
+  );
 
-  const errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))]
-  errorTypes.forEach(ref => imports.add(`import {${ref}, ${ref}Schema } from "@intrig/next/${source}/components/schemas/${ref}"`))
+  const errorTypes = [
+    ...new Set(Object.values(errorResponses ?? {}).map((a) => a.response)),
+  ];
+  errorTypes.forEach((ref) =>
+    imports.add(
+      `import {${ref}, ${ref}Schema } from "@intrig/next/${source}/components/schemas/${ref}"`,
+    ),
+  );
 
   const paramExplode = [
-    ...variables.filter(a => a.in === "path").map(a => a.name),
-    "...params"
-  ].join(",")
+    ...variables.filter((a) => a.in === 'path').map((a) => a.name),
+    '...params',
+  ].join(',');
 
-  const finalRequestBodyBlock = requestBody ? `data: encode(data, "${contentType}", requestBodySchema)` : ''
+  const finalRequestBodyBlock = requestBody
+    ? `data: encode(data, "${contentType}", requestBodySchema)`
+    : '';
 
-  const responseTypeBlock = responseType && (responseType.startsWith("application/vnd") || responseType === "application/octet-stream")
-    ? `responseType: 'arraybuffer'`
-    : undefined
+  const responseTypeBlock =
+    responseType &&
+    (responseType.startsWith('application/vnd') ||
+      responseType === 'application/octet-stream')
+      ? `responseType: 'arraybuffer'`
+      : undefined;
 
   return ts`
     ${[...imports].join('\n')}

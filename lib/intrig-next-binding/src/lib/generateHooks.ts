@@ -9,11 +9,6 @@ import { downloadHookTemplate } from './templates/source/controller/method/downl
 
 export async function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 
-  async function handleIndexes(requestUrl: string, paths: RequestProperties[]) {
-    await dump(clientIndexTemplate(paths))
-    await dump(serverIndexTemplate(paths))
-  }
-
   const groupedByPath: Record<string, RequestProperties[]> = {}
 
   for (let path of paths) {
@@ -21,18 +16,20 @@ export async function generateHooks(api: IntrigSourceConfig, _path: string, path
       ...path,
       sourcePath: _path,
     }
-    await dump(paramsTemplate(path))
-    await dump(requestHookTemplate(path))
-    await dump(requestMethodTemplate(path))
-    await dump(clientIndexTemplate([path]))
-    await dump(serverIndexTemplate([path]))
+    const clientExports: string[] = [];
+    const serverExports: string[] = []
+    await dump(paramsTemplate(path, clientExports, serverExports))
+    await dump(requestHookTemplate(path, clientExports, serverExports))
+    await dump(requestMethodTemplate(path, clientExports, serverExports))
+    if (path.method.toUpperCase() === 'GET' && !(path.responseType === 'application/json' || path.responseType === '*/*')) {
+      await dump(downloadHookTemplate(path, clientExports, serverExports))
+    }
+    await dump(clientIndexTemplate([path], clientExports))
+    await dump(serverIndexTemplate([path], serverExports))
 
     groupedByPath[path.requestUrl] = groupedByPath[path.requestUrl] ?? []
-    groupedByPath[path.requestUrl].push(path)
 
-    if (!(path.responseType === 'application/json' || path.responseType === '*/*')) {
-      await dump(downloadHookTemplate(path))
-    }
+    groupedByPath[path.requestUrl].push(path)
   }
 
   for (const [requestUrl, matchingPaths] of Object.entries(groupedByPath)) {

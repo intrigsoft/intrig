@@ -88,125 +88,70 @@ function extractErrorParams(errorTypes: string[]) {
 }
 
 
-export function downloadHookTemplate({source, paths, operationId, response, requestUrl, variables, sourcePath, requestBody, contentType, responseType, errorResponses, method}: RequestProperties) {
-  const ts = typescript(path.resolve(sourcePath, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}Download.ts`))
+export function downloadHookTemplate(
+  {
+    source,
+    paths,
+    operationId,
+    response,
+    requestUrl,
+    variables,
+    sourcePath,
+    requestBody,
+    contentType,
+    responseType,
+    errorResponses,
+    method,
+  }: RequestProperties,
+  clientExports: string[] = [],
+  serverExports: string[] = [],
+) {
+  const ts = typescript(
+    path.resolve(
+      sourcePath,
+      'src',
+      source,
+      ...paths,
+      camelCase(operationId),
+      `${pascalCase(operationId)}${generatePostfix(contentType, responseType)}Link.tsx`,
+    ),
+  );
 
-  const modifiedRequestUrl = `/api/${source}${requestUrl.replace(/\{/g, "${")}`
+  const modifiedRequestUrl = `/api/${source}${requestUrl.replace(/\{/g, '${')}`;
 
   const imports = new Set<string>();
-  imports.add(`import { z } from 'zod'`)
-  imports.add(`import { useCallback, useEffect } from 'react'`)
-  imports.add(`import {useNetworkState, NetworkState, DispatchState, pending, success, error, successfulDispatch, validationError} from "@intrig/next"`)
-  imports.add(`import {encode} from "@intrig/next/media-type-utils"`)
+  imports.add(`import Link, { LinkProps } from 'next/link'`);
+  imports.add(`import React, { useMemo } from 'react'`);
+  imports.add(`import qs from 'qs'`);
 
-  const { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
-  const { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
-
-  if (requestBody) {
-    imports.add(`import { ${requestBody} as RequestBody, ${requestBody}Schema as requestBodySchema } from "@intrig/next/${source}/components/schemas/${requestBody}"`)
-  }
-
-  if (response) {
-    imports.add(`import { ${response} as Response, ${response}Schema as schema } from "@intrig/next/${source}/components/schemas/${response}"`)
-  }
-
-  imports.add(`import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`)
-
-  const errorTypes = [...new Set(Object.values(errorResponses ?? {}).map(a => a.response))]
-  errorTypes.forEach(ref => imports.add(`import {${ref}, ${ref}Schema } from "@intrig/next/${source}/components/schemas/${ref}"`))
+  imports.add(
+    `import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`,
+  );
 
   const paramExplode = [
-    ...variables.filter(a => a.in === "path").map(a => a.name),
-    "...params"
-  ].join(",")
+    ...variables.filter((a) => a.in === 'path').map((a) => a.name),
+    '...params',
+  ].join(',');
 
-  const executeBlock = requestBody ? `
-  let form = document.createElement('form');
-  form.method = '${method}';
-  form.target = '_blank';
-  form.action = \`${modifiedRequestUrl}\`;
-
-  Object.entries(data).forEach(([key, value]) => {
-  let input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = key;
-  input.value = value;
-  form.appendChild(input);
-  })
-
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
-  ` : `
-  let a = document.createElement('a');
-  a.href = \`${modifiedRequestUrl}\`;
-  a.download = 'download';
-  dispatch(pending())
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  dispatch(success(undefined))
-  `
-
+  clientExports.push(`export { ${pascalCase(operationId)}Link } from './${pascalCase(operationId)}Link'`);
+  serverExports.push(`export { ${pascalCase(operationId)}Link } from './${pascalCase(operationId)}Link'`);
 
   return ts`
     ${[...imports].join('\n')}
 
-    ${!response ? `
-    type Response = any;
-    const schema = z.any();
-    ` : ''}
-
-    ${extractErrorParams(errorTypes)}
-
-    const operation = "${method.toUpperCase()} ${requestUrl}| ${contentType} -> ${responseType}"
-    const source = "${source}"
-
-    function use${pascalCase(operationId)}Hook(options: ${optionsShape} = {}): [NetworkState<Response, _ErrorType>, (${paramType}) => DispatchState<any>, () => void] {
-      let [state,, clear, dispatch] = useNetworkState<Response, _ErrorType>({
-        key: options?.key ?? 'default',
-        operation,
-        source,
-        schema: schema as any,
-        errorSchema
-      });
-
-      let doExecute = useCallback<(${paramType}) => DispatchState<any>>((${paramExpression}) => {
-        let { ${paramExplode}} = p
-
-          ${requestBody ? `
-          const validationResult = requestBodySchema.safeParse(data);
-          if (!validationResult.success) {
-            return validationError(validationResult.error.errors);
-          }
-          ` : ``}
-
-          ${executeBlock}
-
-          return successfulDispatch();
-      }, [dispatch])
-
-      useEffect(() => {
-        if (options.fetchOnMount) {
-          doExecute(${requestBody ? `options.body!,` : ''} options.params!);
-        }
-
-        return () => {
-          if (options.clearOnUnmount) {
-            clear();
-          }
-        }
-      }, [])
-
-      return [
-        state,
-        doExecute,
-        clear
-      ]
+    export interface ${pascalCase(operationId)}LinkProps extends Omit<LinkProps, 'href'> {
+      params?: Params
+      children?: React.ReactNode
     }
 
-    use${pascalCase(operationId)}Hook.key = \`${"${source}: ${operation}"}\`
+    export function ${pascalCase(operationId)}Link({params: p, children, ...props}: ${pascalCase(operationId)}LinkProps) {
+      const href = useMemo(() => {
+        let { ${paramExplode}} = p ?? {}
 
-    export const use${pascalCase(operationId)}Download: ${hookShape} = use${pascalCase(operationId)}Hook;
-  `
+        return ${'`'}${modifiedRequestUrl}?${'${qs.stringify(params)}'}${'`'}
+      }, [p])
+
+      return <Link href={href} {...props} download>{children}</Link>
+    }
+  `;
 }
