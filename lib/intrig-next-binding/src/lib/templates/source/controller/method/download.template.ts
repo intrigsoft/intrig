@@ -7,87 +7,6 @@ import {
 } from '@intrig/cli-common';
 import path from 'path';
 
-function extractHookShapeAndOptionsShape(response: string, requestBody: string, imports: Set<string>) {
-  if (response) {
-    if (requestBody) {
-      imports.add(`import { BinaryFunctionHook, BinaryHookOptions } from "@intrig/next"`);
-      return {
-        hookShape: `BinaryFunctionHook<Params, RequestBody, Response, _ErrorType>`,
-        optionsShape: `BinaryHookOptions<Params, RequestBody>`
-      };
-    } else {
-      imports.add(`import { UnaryFunctionHook, UnaryHookOptions } from "@intrig/next"`);
-      return {
-        hookShape: `UnaryFunctionHook<Params, Response, _ErrorType>`,
-        optionsShape: `UnaryHookOptions<Params>`
-      };
-    }
-  } else {
-    if (requestBody) {
-      imports.add(`import { BinaryProduceHook, BinaryHookOptions } from "@intrig/next"`);
-      return {
-        hookShape: `BinaryProduceHook<Params, RequestBody, _ErrorType>`,
-        optionsShape: `BinaryHookOptions<Params, RequestBody>`
-      };
-    } else {
-      imports.add(`import { UnaryProduceHook, UnaryHookOptions } from "@intrig/next"`);
-      return {
-        hookShape: `UnaryProduceHook<Params, _ErrorType>`,
-        optionsShape: `UnaryHookOptions<Params>`
-      };
-    }
-  }
-}
-
-
-function extractParamDeconstruction(variables: Variable[], requestBody: string) {
-  const isParamMandatory = variables?.some(a => a.in === 'path') || false;
-
-  if (requestBody) {
-    if (isParamMandatory) {
-      return {
-        paramExpression: 'data, p',
-        paramType: 'data: RequestBody, params: Params'
-      }
-    } else {
-      return {
-        paramExpression: 'data, p = {}',
-        paramType: 'data: RequestBody, params?: Params'
-      }
-    }
-  } else {
-    if (isParamMandatory) {
-      return {
-        paramExpression: 'p',
-        paramType: 'params: Params'
-      }
-    } else {
-      return {
-        paramExpression: 'p = {}',
-        paramType: 'params?: Params'
-      }
-    }
-  }
-}
-
-function extractErrorParams(errorTypes: string[]) {
-  switch (errorTypes.length) {
-    case 0:
-      return `
-      export type _ErrorType = any
-      const errorSchema = z.any()`
-    case 1:
-      return `
-      export type _ErrorType = ${errorTypes[0]}
-      const errorSchema = ${errorTypes[0]}Schema`
-    default:
-      return `
-      export type _ErrorType = ${errorTypes.join(' | ')}
-      const errorSchema = z.union([${errorTypes.map(a => `${a}Schema`).join(', ')}])`
-  }
-}
-
-
 export function downloadHookTemplate(
   {
     source,
@@ -128,8 +47,10 @@ export function downloadHookTemplate(
     `import {${pascalCase(operationId)}Params as Params} from './${pascalCase(operationId)}.params'`,
   );
 
+  const requiredParams = variables.filter((a) => a.in === 'path').map((a) => a.name);
+
   const paramExplode = [
-    ...variables.filter((a) => a.in === 'path').map((a) => a.name),
+    ...requiredParams,
     '...params',
   ].join(',');
 
@@ -140,8 +61,8 @@ export function downloadHookTemplate(
     ${[...imports].join('\n')}
 
     export interface ${pascalCase(operationId)}LinkProps extends Omit<LinkProps, 'href'> {
-      params?: Params
-      children?: React.ReactNode
+      params${requiredParams?.length ? '' : '?'}: Params
+      children: React.ReactNode
     }
 
     export function ${pascalCase(operationId)}Link({params: p, children, ...props}: ${pascalCase(operationId)}LinkProps) {

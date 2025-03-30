@@ -9,6 +9,7 @@ import { downloadHookTemplate } from './templates/source/controller/method/downl
 
 export async function generateHooks(api: IntrigSourceConfig, _path: string, paths: RequestProperties[]) {
 
+
   const groupedByPath: Record<string, RequestProperties[]> = {}
 
   for (let path of paths) {

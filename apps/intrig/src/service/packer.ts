@@ -23,6 +23,7 @@ export async function setupCacheAndInstall(
       for (const file of files) {
         if (file !== 'node_modules') {
           await fs.remove(path.join(tempDir, file))
+          console.log(`Removed ${file}`)
         }
       }
     } catch (e) {

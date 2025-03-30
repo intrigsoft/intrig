@@ -32,6 +32,7 @@ export function methodDocsTemplate(
 
   const methodName = camelCase(operationId);
   const hookName = `use${pascalCase(operationId)}`;
+  const linkName = `${pascalCase(operationId)}Link`
 
   const params = `{ ${variables.map(a => {
     return `${a.name}: '<fill-value-here>'`
@@ -75,15 +76,15 @@ export function methodDocsTemplate(
 
 ### Imports
 
-\`\`\`tsx
+${"```tsx"}
 import { ${methodName} } from '@intrig/next/${api.id}/${paths.join('/')}/${methodName}/server';
-\`\`\`
+${"```"}
 
 ### Usage
 
 Use \`${methodName}\` as an async function in your component to make a request and handle the response. The following example demonstrates how to use it:
 
-\`\`\`tsx
+${"```tsx"}
 export async function MyComponent() {
   try {
     // Call the async function to fetch data
@@ -97,7 +98,7 @@ export async function MyComponent() {
     return <>An error occurred while fetching data.</>;
   }
 }
-\`\`\`
+${"```"}
   `
 
   const clientContent = `
@@ -111,15 +112,15 @@ Use our {% code-builder path="${configPath}" %} Code Builder {% /code-builder %}
 
 ##### Hook
 
-\`\`\`tsx
+${"```tsx"}
 import { ${hookName} } from '@intrig/next/${api.id}/${paths.join('/')}/${methodName}/client';
-\`\`\`
+${"```"}
 
 ##### Utility methods
 
-\`\`\`tsx
+${"```tsx"}
 import { isSuccess, isError, isPending } from '@intrig/next'
-\`\`\`
+${"```"}
 
 ### Usage
 
@@ -127,9 +128,9 @@ import { isSuccess, isError, isPending } from '@intrig/next'
 
 Use the imported hook to define state variables for the API call.
 
-\`\`\`tsx
+${"```tsx"}
 let [${methodName}Resp, ${methodName}, clear${pascalCase(methodName)}] = ${hookName}();
-\`\`\`
+${"```"}
 
 - \`${methodName}Resp\`: Holds the response state of the API.
 - \`${methodName}\`: The function to trigger the API call.
@@ -139,40 +140,40 @@ let [${methodName}Resp, ${methodName}, clear${pascalCase(methodName)}] = ${hookN
 
 Use \`useEffect\` to trigger the API request when the component is loaded.
 
-\`\`\`tsx
+${"```tsx"}
 import { useEffect } from 'react';
 
 useEffect(() => {
   ${methodName}(${params})
 }, []);
-\`\`\`
+${"```"}
 
 #### 3. Clear on unmount.
 
 Use \`useEffect\` to clear the response state when the component is unmounted.
 
-\`\`\`tsx
+${"```tsx"}
 import { useEffect } from 'react';
 
 useEffect(() => {
   return clear${pascalCase(methodName)}
 }, [])
-\`\`\`
+${"```"}
 
 __Note__: Alternatively, you can configure the hook to clear the response state on unmount using the \`clearOnUnmount\` option.
 
-\`\`\`tsx
+${"```tsx"}
 let [${methodName}Resp, ${methodName}] = ${hookName}({ clearOnUnmount: true });
-\`\`\`
+${"```"}
 
 #### 4. Managing response instances.
 
 Use \`key\` option to manage multiple response instances of the hook.
 
-\`\`\`tsx
+${"```tsx"}
 let [${methodName}RespLeft, ${methodName}Left] = ${hookName}({ key: 'Left' });
 let [${methodName}RespRight, ${methodName}Right] = ${hookName}({ key: 'Right' });
-\`\`\`
+${"```"}
 
 #### 5. Handling the response
 
@@ -180,7 +181,7 @@ let [${methodName}RespRight, ${methodName}Right] = ${hookName}({ key: 'Right' })
 
 Use \`useMemo\` to memoize the response data for efficient re-rendering when the response is successful.
 
-\`\`\`tsx
+${"```tsx"}
 import { useMemo } from 'react';
 ...
 
@@ -189,13 +190,13 @@ let petById = useMemo(() => {
     return ${methodName}Resp.data
   }
 }, [${methodName}Resp])
-\`\`\`
+${"```"}
 
 ##### 5.2 Perform actions when the response is successful using \`useEffect\`.
 
 Use \`useEffect\` to perform actions whenever the response becomes successful.
 
-\`\`\`tsx
+${"```tsx"}
 import { useEffect } from 'react';
 
 ...
@@ -205,38 +206,68 @@ useEffect(() => {
     //DO something with ${methodName}Resp.data
   }
 }, [${methodName}Resp])
-\`\`\`
+${"```"}
 
 ##### 5.3 Handle the pending state
 
 Render a loading state while the request is pending.
 
-\`\`\`tsx
+${"```tsx"}
 if (isPending(${methodName}Resp)) {
   return <>loading...</>
 }
-\`\`\`
+${"```"}
 
 ##### 5.4 Handle errors.
 
 Render an error message if the request fails.
 
-\`\`\`tsx
+${"```tsx"}
 if (isError(${methodName}Resp)) {
   return <>An error occurred... {${methodName}Resp.error}</>
 }
-\`\`\`
+${"```"}
 
 ##### 5.5 Use the response within JSX.
 
 Render the response data or error message conditionally within your JSX.
 
-\`\`\`tsx
+${"```tsx"}
 return <>
   {isSuccess(${methodName}Resp) && <>{${methodName}Resp.data}</>}
   {isError(${methodName}Resp) && <span className={'error'}>{${methodName}Resp.error}</span>}
 </>
-\`\`\`
+${"```"}
+  `
+
+  const downloadAvailable = method.toUpperCase() === 'GET' && !(responseType === 'application/json' || responseType === '*/*');
+
+  const downloadContent = `
+## Download link integration.
+
+### Imports
+
+- For server side usage import from server imports
+${"```tsx"}
+import { ${linkName} } from '@intrig/next/${api.id}/${paths.join('/')}/${methodName}/server';
+${"```"}
+
+- For client side usage import from client imports
+
+${"```tsx"}
+import { ${linkName} } from '@intrig/next/${api.id}/${paths.join('/')}/${methodName}/server';
+${"```"}
+
+### Usage
+
+Use ${linkName} within jsx content instead of regular Link in next/link
+
+${"```tsx"}
+return <${linkName} ${pathVariables?.length ? `params={${params}}` : ''}>
+  Download ${methodName} content
+</${linkName}>
+${"```"}
+
   `
 
   const content = `---
@@ -253,9 +284,9 @@ ${description ?? ''}
 
 ## API Signature
 
-\`\`\`http request
+${"```"}http request
 ${method.toUpperCase()} ${requestUrl}
-\`\`\`
+${"```"}
 
 ${requestPropertiesList.length > 0 ? `
 ### Request Properties
@@ -288,6 +319,11 @@ ${serverContent}
 {% tab title="Client" %}
 ${clientContent}
 {% /tab %}
+${downloadAvailable ? `
+{% tab title="Download Link" %}
+${downloadContent}
+{% /tab %}
+` : ``}
 {% /tabs %}
   `;
 
